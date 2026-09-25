@@ -208,6 +208,23 @@ These are lessons from Family Arcade, where each of these was found by hand:
 - The controller's **back** button must not leave the page. Capture it (history-state guard) and open Pause instead.
 - Storage may be blocked. `save.js` catches every storage call and falls back to in-memory storage.
 
+### Getting rid of the Silk cursor (a goal, not just a workaround)
+
+Family Arcade still has this problem: on the Cube, the left stick drives Silk's on-screen cursor, so steering feels mushy and the cursor wanders off the page and takes focus with it. Family Arcade only *works around* the cursor (press-anywhere + focus guard). It never tries to suppress it. Block Diggers will try to suppress it, in this order. Each step is verified on the Cube before moving on:
+
+1. **Measure first.** A diagnostic page (milestone 1) shows live gamepad axes and buttons, `keydown` events, `pointermove` events and `document.hasFocus()` side by side. This tells us exactly what Silk does with each stick and the D-pad: does the page still get axis data while the cursor moves, and does the right stick or D-pad avoid the cursor?
+2. **In-page suppression, tried one at a time from toggles on that page:**
+   - `cursor: none` on the whole document (Chromium maps CSS cursors to the Android pointer icon, which may hide Silk's cursor);
+   - `requestPointerLock()` on the canvas (locks and hides the pointer if Silk honours it);
+   - `requestFullscreen()`;
+   - `preventDefault()` on the stick's `keydown` and `pointermove` events.
+
+   Whatever works gets folded into `tvGuard.js` and switched on when the first controller press arrives.
+3. **Controls that dodge the cursor.** If the diagnostics show Silk only hijacks some inputs (for example the left stick but not the D-pad or right stick), movement also accepts those inputs, and the join screen suggests them on Fire TV.
+4. **Fallback: skip Silk entirely.** Launch the game through Amazon's **Web App Tester** app (free on the Fire TV Appstore). It opens a URL in Amazon WebView full-screen, with no browser chrome. Amazon documents that WebView supports the standard Gamepad API. If that also shows no cursor, it becomes the recommended way to play on the TV, and a short how-to goes in the README.
+
+Whatever fix works here is written up so it can be ported to Family Arcade's KidKit afterwards. That port is a separate task and not part of Block Diggers.
+
 ### Performance budget (Fire TV Cube)
 
 - Phaser tilemap layer with built-in culling. Only visible tiles are drawn.
@@ -242,7 +259,7 @@ These are lessons from Family Arcade, where each of these was found by hand:
 
 ## 6. Build order (each milestone is playable)
 
-1. **Skeleton + input check.** Vite + Phaser project, the input module with the Silk rules, and a test scene that shows each connected controller's live input. Deploy to Pages and verify on the Cube.
+1. **Skeleton + Silk cursor diagnostics.** Vite + Phaser project, the input module, and the diagnostic page from "Getting rid of the Silk cursor", with its suppression toggles. Deploy to Pages, test on the Cube, and pick the fix before any gameplay is built on top of the input.
 2. **Solo digging.** World gen, grid, player movement, mining, auto-ladders, ores, backpack, lantern darkness, HUD.
 3. **Co-op.** Join flow, second player, zoom camera, soft wall, bubble.
 4. **Hazards.** Slimes, gravel, lava, bats, bonk and scatter.
