@@ -21,7 +21,7 @@
 - Keyboard map: arrows/WASD move, Space = A, H = B, B = Y, Escape = Start.
 - The repo is public: no family names anywhere in code, docs or commit messages.
 - Every commit message ends with a blank line and then `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
-- All commands run from the repo root `C:/Users/Matt/Documents/_Code/Projects/block-diggers` in Git Bash.
+- All commands run from the repo root the repo root in Git Bash.
 
 ## File Map
 

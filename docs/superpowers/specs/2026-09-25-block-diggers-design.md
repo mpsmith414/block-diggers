@@ -134,7 +134,7 @@ Everything works with one player: the camera follows them, and the bubble and th
 - **Phaser 3**, plain JavaScript (ES modules), **Vite** dev server and build.
 - **Vitest** for unit tests.
 - **GitHub Actions** builds on push to `main` and deploys `dist/` to **GitHub Pages**. Vite `base` is `/block-diggers/`, and all asset paths are relative to it.
-- Standalone repo at `C:\Users\Matt\Documents\_Code\Projects\block-diggers`, GitHub repo `block-diggers`. **Free Pages needs a public repo, so the repo isn't created or pushed until the owner confirms.** The code has no family names in it.
+- Standalone public GitHub repo `block-diggers` (free Pages needs a public repo). The code has no family names in it.
 
 ### Rule for game logic
 
