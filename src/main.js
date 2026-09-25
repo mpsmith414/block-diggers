@@ -1,12 +1,5 @@
 import Phaser from 'phaser';
-
-class HelloScene extends Phaser.Scene {
-  constructor() { super('Hello'); }
-  create() {
-    this.add.text(240, 135, 'Block Diggers', { fontFamily: 'monospace', fontSize: '24px', color: '#ffffff' })
-      .setOrigin(0.5);
-  }
-}
+import { InputTestScene } from './scenes/InputTestScene.js';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -17,5 +10,5 @@ new Phaser.Game({
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [HelloScene],
+  scene: [InputTestScene],
 });
