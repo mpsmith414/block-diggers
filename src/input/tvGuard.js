@@ -11,7 +11,23 @@ export function installBackGuard(win, onBack) {
     onBack();
   };
   win.addEventListener('popstate', onPop);
-  return () => win.removeEventListener('popstate', onPop);
+
+  // Chromium can drop history entries pushed before any user activation, so
+  // Back might still leave the page until the first click/keypress. Re-push
+  // once activation happens, then stop listening.
+  const onActivate = () => {
+    push();
+    win.removeEventListener('pointerdown', onActivate, true);
+    win.removeEventListener('keydown', onActivate, true);
+  };
+  win.addEventListener('pointerdown', onActivate, true);
+  win.addEventListener('keydown', onActivate, true);
+
+  return () => {
+    win.removeEventListener('popstate', onPop);
+    win.removeEventListener('pointerdown', onActivate, true);
+    win.removeEventListener('keydown', onActivate, true);
+  };
 }
 
 export function installFocusGuard({ doc, win, intervalMs = 500, onRecover = () => {} }) {

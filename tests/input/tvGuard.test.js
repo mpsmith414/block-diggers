@@ -24,6 +24,25 @@ describe('installBackGuard', () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  it('re-pushes once on the first user activation, to survive Chromium dropping pre-activation history', () => {
+    const push = vi.spyOn(window.history, 'pushState');
+    installBackGuard(window, vi.fn());
+    expect(push).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new KeyboardEvent('keydown'));
+    expect(push).toHaveBeenCalledTimes(2);
+    window.dispatchEvent(new KeyboardEvent('keydown'));
+    expect(push).toHaveBeenCalledTimes(2);
+  });
+
+  it('removes the activation listener on uninstall before activation happens', () => {
+    const push = vi.spyOn(window.history, 'pushState');
+    const off = installBackGuard(window, vi.fn());
+    expect(push).toHaveBeenCalledTimes(1);
+    off();
+    window.dispatchEvent(new KeyboardEvent('keydown'));
+    expect(push).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('installFocusGuard', () => {
