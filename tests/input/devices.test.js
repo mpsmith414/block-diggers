@@ -76,6 +76,16 @@ describe('createKeyboard', () => {
     target.dispatchEvent(keyEvent('keydown', 'ArrowRight'));
     expect(kb.read().buttons.right).toBe(false);
   });
+  it('keeps a button held while any key mapped to it is still down', () => {
+    const target = new EventTarget();
+    const kb = createKeyboard(target);
+    target.dispatchEvent(keyEvent('keydown', 'w'));
+    target.dispatchEvent(keyEvent('keydown', 'ArrowUp'));
+    target.dispatchEvent(keyEvent('keyup', 'w'));
+    expect(kb.read().buttons.up).toBe(true);
+    target.dispatchEvent(keyEvent('keyup', 'ArrowUp'));
+    expect(kb.read().buttons.up).toBe(false);
+  });
 });
 
 describe('createDevices', () => {

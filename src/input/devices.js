@@ -38,16 +38,16 @@ export const KEYMAP = {
 
 export function createKeyboard(target) {
   const held = new Set();
-  const nameOf = (e) => KEYMAP[String(e.key).toLowerCase()];
+  const keyOf = (e) => String(e.key).toLowerCase();
   const onDown = (e) => {
-    const name = nameOf(e);
-    if (!name) return;
-    held.add(name);
+    const key = keyOf(e);
+    if (!KEYMAP[key]) return;
+    held.add(key);
     e.preventDefault();
   };
   const onUp = (e) => {
-    const name = nameOf(e);
-    if (name) held.delete(name);
+    const key = keyOf(e);
+    if (KEYMAP[key]) held.delete(key);
   };
   const onBlur = () => held.clear();
   target.addEventListener('keydown', onDown);
@@ -56,7 +56,7 @@ export function createKeyboard(target) {
   return {
     read() {
       const buttons = noButtons();
-      for (const name of held) buttons[name] = true;
+      for (const key of held) buttons[KEYMAP[key]] = true;
       return { id: 'keyboard', kind: 'keyboard', label: 'Keyboard', axes: noAxes(), buttons };
     },
     destroy() {
