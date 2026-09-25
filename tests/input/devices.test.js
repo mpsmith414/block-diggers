@@ -86,6 +86,14 @@ describe('createKeyboard', () => {
     target.dispatchEvent(keyEvent('keyup', 'ArrowUp'));
     expect(kb.read().buttons.up).toBe(false);
   });
+  it('reports a tap that started and ended between two reads, exactly once', () => {
+    const target = new EventTarget();
+    const kb = createKeyboard(target);
+    target.dispatchEvent(keyEvent('keydown', ' '));
+    target.dispatchEvent(keyEvent('keyup', ' '));
+    expect(kb.read().buttons.a).toBe(true);
+    expect(kb.read().buttons.a).toBe(false);
+  });
 });
 
 describe('createDevices', () => {
