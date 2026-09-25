@@ -38,11 +38,17 @@ tableHeading.append(resetBtn);
 const togglesBox = el('div', 'toggles');
 const padsBox = el('div', 'pads');
 const keyLogBox = el('ol', 'keylog');
+// Two-column grid so the arena, table and toggles all fit on one TV screen
+// (960x540) without scrolling. Controllers/Last keys stay below the fold.
+const colLeft = el('div', 'col-left');
+colLeft.append(arena, tableHeading, table);
+const colRight = el('div', 'col-right');
+colRight.append(el('h2', null, 'Cursor fixes: LB/RB pick · Y flips · or click · or keys 1–5'), togglesBox);
+const mainGrid = el('div', 'main-grid');
+mainGrid.append(colLeft, colRight);
 app.append(
   el('h1', null, 'Block Diggers · Controller Check'),
-  statsBox, arena,
-  tableHeading, table,
-  el('h2', null, 'Cursor fixes: LB/RB pick · Y flips · or click · or keys 1–5'), togglesBox,
+  statsBox, mainGrid,
   el('h2', null, 'Controllers'), padsBox,
   el('h2', null, 'Last keys'), keyLogBox,
 );
@@ -73,6 +79,7 @@ window.addEventListener('keydown', (e) => {
   for (const k of INPUTS) if (active[k]) seen[k].keys++;
   keyLog.unshift(`${JSON.stringify(e.key)}  code=${e.code || '-'}  keyCode=${e.keyCode}`);
   keyLog.length = Math.min(keyLog.length, 8);
+  if (e.repeat) return; // still logged and counted above, but auto-repeat shouldn't toggle anything
   const n = Number(e.key);
   if (n >= 1 && n <= TOGGLES.length) flip(n - 1);
   else fireArmed();
@@ -149,6 +156,17 @@ function renderToggles() {
   });
 }
 renderToggles();
+
+// The browser can drop pointer lock / fullscreen on its own (Esc, focus
+// loss, etc.) without going through flip(); keep the toggle state in sync.
+document.addEventListener('pointerlockchange', () => {
+  TOGGLES[1].on = !!document.pointerLockElement;
+  renderToggles();
+});
+document.addEventListener('fullscreenchange', () => {
+  TOGGLES[2].on = !!document.fullscreenElement;
+  renderToggles();
+});
 
 function renderKeys() {
   const keyStr = keyLog.join('\n');
