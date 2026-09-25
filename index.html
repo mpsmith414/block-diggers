@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Block Diggers</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    #game { position: fixed; inset: 0; }
+    #diag-link {
+      position: fixed; top: 8px; right: 8px; z-index: 10;
+      color: #fff; font: 16px system-ui, sans-serif; text-decoration: none;
+      background: rgba(0, 0, 0, 0.55); padding: 6px 10px; border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <a id="diag-link" href="./diag.html">🎮 Controller check</a>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
