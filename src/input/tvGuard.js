@@ -81,7 +81,8 @@ export function setPointerLock(doc, el, on) {
 
 export function setFullscreen(doc, el, on) {
   if (on) return el.requestFullscreen ? attempt(() => el.requestFullscreen()) : Promise.resolve('unsupported');
-  if (!doc.fullscreenElement || !doc.exitFullscreen) return Promise.resolve('ok');
+  if (!doc.fullscreenElement) return Promise.resolve('ok');
+  if (!doc.exitFullscreen) return Promise.resolve('unsupported');
   return attempt(() => doc.exitFullscreen());
 }
 

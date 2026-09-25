@@ -94,3 +94,20 @@ describe('createEventBlocker', () => {
     expect(e2.defaultPrevented).toBe(false);
   });
 });
+
+describe('turning the experiments back off', () => {
+  it('exits pointer lock, or reports unsupported', async () => {
+    const exitPointerLock = vi.fn();
+    expect(await setPointerLock({ exitPointerLock }, {}, false)).toBe('ok');
+    expect(exitPointerLock).toHaveBeenCalledTimes(1);
+    expect(await setPointerLock({}, {}, false)).toBe('unsupported');
+  });
+  it('exits fullscreen only when fullscreen, and reports unsupported if it cannot', async () => {
+    const exitFullscreen = vi.fn(() => Promise.resolve());
+    expect(await setFullscreen({ fullscreenElement: null, exitFullscreen }, {}, false)).toBe('ok');
+    expect(exitFullscreen).not.toHaveBeenCalled();
+    expect(await setFullscreen({ fullscreenElement: {}, exitFullscreen }, {}, false)).toBe('ok');
+    expect(exitFullscreen).toHaveBeenCalledTimes(1);
+    expect(await setFullscreen({ fullscreenElement: {} }, {}, false)).toBe('unsupported');
+  });
+});
