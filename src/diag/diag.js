@@ -16,10 +16,14 @@ const el = (tag, cls, text) => {
   return e;
 };
 const setHTML = (node, html) => { if (node.innerHTML !== html) node.innerHTML = html; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Race a promise against a timeout.
-const within = (promiseOrValue, ms, fallback) =>
-  Promise.race([Promise.resolve(promiseOrValue), new Promise((r) => setTimeout(() => r(fallback), ms))]);
+const within = (promiseOrValue, ms, fallback) => {
+  let timer;
+  const timeout = new Promise((r) => { timer = setTimeout(() => r(fallback), ms); });
+  return Promise.race([Promise.resolve(promiseOrValue), timeout]).finally(() => clearTimeout(timer));
+};
 
 // ---------- layout ----------
 const app = document.getElementById('app');
@@ -94,26 +98,33 @@ const TOGGLES = [
 ];
 let selected = 0;
 let armed = null;
+const busy = new Set();
 
 // apply() runs synchronously inside flip(), so a flip called from a click or
 // keydown handler still counts as a user gesture for pointer lock / fullscreen.
 async function flip(i) {
-  const t = TOGGLES[i];
-  const want = !t.on;
-  t.result = 'trying…';
-  renderToggles();
-  const result = await within(t.apply(want), 3000, 'error: no answer after 3s');
-  if (result === 'ok') {
-    t.on = want;
-    t.result = 'ok';
-    if (armed === i) armed = null;
-  } else if (t.gesture && want) {
-    t.result = `${result} · armed: click or press any key`;
-    armed = i;
-  } else {
-    t.result = result;
+  if (busy.has(i)) return;
+  busy.add(i);
+  try {
+    const t = TOGGLES[i];
+    const want = !t.on;
+    t.result = 'trying…';
+    renderToggles();
+    const result = await within(t.apply(want), 3000, 'error: no answer after 3s');
+    if (result === 'ok') {
+      t.on = want;
+      t.result = 'ok';
+      if (armed === i) armed = null;
+    } else if (t.gesture && want) {
+      t.result = `${result} · armed: click or press any key`;
+      armed = i;
+    } else {
+      t.result = result;
+    }
+    renderToggles();
+  } finally {
+    busy.delete(i);
   }
-  renderToggles();
 }
 
 function fireArmed() {
@@ -134,7 +145,7 @@ function renderToggles() {
   TOGGLES.forEach((t, i) => {
     const b = toggleButtons[i];
     b.className = `toggle${t.on ? ' on' : ''}${i === selected ? ' selected' : ''}`;
-    setHTML(b, `${i + 1}. ${t.name}: <b>${t.on ? 'ON' : 'off'}</b><small>${t.result || '&nbsp;'}</small>`);
+    setHTML(b, `${i + 1}. ${t.name}: <b>${t.on ? 'ON' : 'off'}</b><small>${esc(t.result) || '&nbsp;'}</small>`);
   });
 }
 renderToggles();
@@ -167,7 +178,6 @@ let last = performance.now();
 function move(k, v, dt, next) {
   if (v.x === 0 && v.y === 0) return;
   next[k] = true;
-  seen[k].game++;
   const d = dots[k];
   d.x = wrap(d.x + v.x * 240 * dt, arena.width);
   d.y = wrap(d.y + v.y * 240 * dt, arena.height);
@@ -199,6 +209,7 @@ function frame(now) {
     }, dt, next);
     lb ||= s.buttons.lb; rb ||= s.buttons.rb; y ||= s.buttons.y; x ||= s.buttons.x;
   }
+  for (const k of INPUTS) if (next[k]) seen[k].game++;
   active = next;
 
   if (lbEdge(lb)) { selected = (selected + TOGGLES.length - 1) % TOGGLES.length; renderToggles(); }
@@ -258,7 +269,7 @@ function renderPads(pads) {
     const lit = Object.keys(BUTTON_INDEX).filter((k) => s.buttons[k]).join(' ') || '-';
     const raw = gp.buttons.map((b, i) => (b && b.pressed ? i : null)).filter((i) => i !== null).join(',') || '-';
     const axes = gp.axes.map((a) => a.toFixed(2)).join('  ');
-    return `<pre>#${gp.index} ${gp.id}\nmapping: ${gp.mapping || '(none)'}  buttons: ${gp.buttons.length}  axes: ${gp.axes.length}\naxes: ${axes}\npressed: ${lit}   raw: ${raw}</pre>`;
+    return `<pre>#${gp.index} ${esc(gp.id)}\nmapping: ${esc(gp.mapping || '(none)')}  buttons: ${gp.buttons.length}  axes: ${gp.axes.length}\naxes: ${axes}\npressed: ${lit}   raw: ${raw}</pre>`;
   }).join('');
   setHTML(padsBox, html);
 }
