@@ -21,6 +21,7 @@ export class InputTestScene extends Phaser.Scene {
     this.avatars = [];
     this.pauseEdges = [createEdge(), createEdge()];
     this.paused = false;
+    this.lastPauseAt = -Infinity;
 
     this.prompt = this.add
       .text(240, 135, 'Press A', { fontFamily: 'monospace', fontSize: '24px', color: '#ffffff' })
@@ -41,6 +42,11 @@ export class InputTestScene extends Phaser.Scene {
   }
 
   togglePause() {
+    // Silk can deliver one View/Back press as both a browser Back event and a
+    // gamepad Start/Back edge; without this, they'd cancel each other out.
+    const now = this.time.now;
+    if (now - this.lastPauseAt < 300) return;
+    this.lastPauseAt = now;
     this.paused = !this.paused;
     this.pausedText.setVisible(this.paused);
   }
