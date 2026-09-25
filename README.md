@@ -22,31 +22,24 @@ Pushing to `main` runs the tests, builds, and deploys to GitHub Pages.
 
 ## Controller check on the Fire TV Cube
 
-The page itself never reads the **A** button — A only works as Silk's click, on
-whatever the on-screen cursor is pointing at. Keep that in mind throughout:
-where these steps say "press A", they mean "click", and it only does something
-useful if the cursor is over the right spot first.
+The "Everything that arrived" tally counts every input the page receives,
+whatever its source: controller sticks and buttons (through the browser's
+Gamepad API), key presses, and cursor moves/clicks. Green = something arrived,
+red = nothing did. One controller is enough.
 
-1. Pair both Xbox controllers with the Fire TV (Settings → Controllers & Bluetooth Devices).
-2. Open Silk and go to the controller check URL above.
-3. Press **A** once on the page. This is a click: it makes the Back button
-   safe (installs the back guard) and focuses the page. If the "Page focus"
-   chip still says NO, point the cursor at the page and press A again.
-4. Press a button on each controller until the "Controllers" chip reads 2
-   (it goes green already at 1).
-5. **Baseline:** press **X** to reset counts, then hold the **left stick** in
-   circles for about 3 seconds, then the **right stick**, then the **D-pad**.
-   Photograph the "What each input does" table. Also photograph the
-   Controllers panel while holding **A**, then **B**, then **X**, then **Y**
-   in turn — this shows the button mapping and the raw button numbers.
-6. **For each cursor fix:** use **LB/RB** to select it and **Y** to flip it.
-   If it says "armed", move the on-screen cursor OFF the toggle buttons
-   before pressing A once — a click landing on a toggle flips that toggle
-   instead of arming/firing the pending one. Wait until the toggle shows
-   ON/ok (or an error — photograph that too). THEN press **X** to reset
-   counts, repeat the stick/D-pad circles from step 5, photograph the table,
-   and note whether the on-screen cursor is still visible. Turn the fix back
-   off (**Y**) before moving to the next one.
+1. Open the controller check URL in Silk and click once on the page (point the
+   cursor at it, press **A**) so the page has focus.
+2. Click **Reset (X)**.
+3. Slowly: wiggle the **left stick**, then the **right stick**, press each
+   **D-pad** direction, then press **A, B, X, Y, LB, RB, LT, RT, View, Menu**
+   once each.
+4. Take a photo of the screen.
+
+### What we learned in Silk (2026-09-25)
+- The controller shows up (Controllers: 1), but the sticks and D-pad never
+  reach the page. Silk uses them to drive its own cursor.
+- Hiding the cursor with CSS doesn't work (Silk draws its own). Pointer lock
+  fails with `UnknownError`. Back is caught correctly.
 
 ## Fallback: skip Silk with Web App Tester
 

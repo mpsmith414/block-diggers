@@ -8,6 +8,11 @@ import {
 // Controller diagnostics for the Fire TV Cube's Silk browser.
 // Answers: which inputs reach the page, which ones drive Silk's cursor,
 // and whether any page-side trick switches the cursor off.
+//
+// The evidence tally counts everything that arrives, whatever its source, so
+// one photo at the end of a test shows what got through. (An earlier version
+// only counted cursor/key events while a stick was visibly reaching the page,
+// which read as all zeros when Silk kept the sticks for itself.)
 
 const el = (tag, cls, text) => {
   const e = document.createElement(tag);
@@ -32,16 +37,17 @@ const arena = el('canvas', 'arena');
 arena.width = 640;
 arena.height = 240;
 const table = el('table', 'verdict');
-const resetBtn = el('button', 'reset', 'Reset counts (X)');
-const tableHeading = el('h2', null, 'What each input does ');
+const resetBtn = el('button', 'reset', 'Reset (X)');
+const tableHeading = el('h2', null, 'Everything that arrived ');
 tableHeading.append(resetBtn);
+const hint = el('p', 'hint', 'Wiggle both sticks, press the D-pad and every button, then take a photo.');
 const togglesBox = el('div', 'toggles');
 const padsBox = el('div', 'pads');
 const keyLogBox = el('ol', 'keylog');
-// Two-column grid so the arena, table and toggles all fit on one TV screen
+// Two-column grid so the arena, tally and toggles all fit on one TV screen
 // (960x540) without scrolling. Controllers/Last keys stay below the fold.
 const colLeft = el('div', 'col-left');
-colLeft.append(arena, tableHeading, table);
+colLeft.append(arena, tableHeading, hint, table);
 const colRight = el('div', 'col-right');
 colRight.append(el('h2', null, 'Cursor fixes: LB/RB pick · Y flips · or click · or keys 1–5'), togglesBox);
 const mainGrid = el('div', 'main-grid');
@@ -53,45 +59,45 @@ app.append(
   el('h2', null, 'Last keys'), keyLogBox,
 );
 
-// ---------- measurements ----------
-const INPUTS = ['leftStick', 'rightStick', 'dpad'];
-const LABEL = { leftStick: 'Left stick', rightStick: 'Right stick', dpad: 'D-pad' };
-const blankSeen = () => Object.fromEntries(INPUTS.map((k) => [k, { game: 0, pointer: 0, keys: 0 }]));
-let seen = blankSeen();
-let active = { leftStick: false, rightStick: false, dpad: false };
+// ---------- evidence tally ----------
+const BTN_NAMES = {
+  0: 'A', 1: 'B', 2: 'X', 3: 'Y', 4: 'LB', 5: 'RB', 6: 'LT', 7: 'RT',
+  8: 'View', 9: 'Menu', 10: 'LS', 11: 'RS', 16: 'Home',
+};
+const DPAD = { 12: '↑', 13: '↓', 14: '←', 15: '→' };
+const blankEvidence = () => ({ pads: new Set(), stickMax: [0, 0, 0, 0], buttons: {}, keys: {}, moves: 0, clicks: 0 });
+let ev = blankEvidence();
+const prevPressed = {}; // gamepad index -> Set of button indices down last frame
 let lastPointer = null;
 let backCount = 0;
 const keyLog = [];
 let renderedKeys = '';
-const rate = { pointer: 0, keys: 0 };
-const windowCount = { pointer: 0, keys: 0 };
-let windowStart = performance.now();
 
 // Registered before any blocker so these always see the events.
 window.addEventListener('pointermove', (e) => {
-  windowCount.pointer++;
+  ev.moves++;
   lastPointer = { x: e.clientX, y: e.clientY };
-  for (const k of INPUTS) if (active[k]) seen[k].pointer++;
 }, { capture: true });
 
 window.addEventListener('keydown', (e) => {
-  windowCount.keys++;
-  for (const k of INPUTS) if (active[k]) seen[k].keys++;
   keyLog.unshift(`${JSON.stringify(e.key)}  code=${e.code || '-'}  keyCode=${e.keyCode}`);
   keyLog.length = Math.min(keyLog.length, 8);
-  if (e.repeat) return; // still logged and counted above, but auto-repeat shouldn't toggle anything
+  if (e.repeat) return; // logged above, but a held key counts once and toggles nothing
+  const name = e.key === ' ' ? 'Space' : e.key;
+  ev.keys[name] = (ev.keys[name] || 0) + 1;
   const n = Number(e.key);
   if (n >= 1 && n <= TOGGLES.length) flip(n - 1);
   else fireArmed();
 }, { capture: true });
 
 window.addEventListener('pointerdown', (e) => {
+  ev.clicks++;
   if (e.target.closest && e.target.closest('.toggle')) return; // the button's own click handles it
   fireArmed();
 }, { capture: true });
 
 installBackGuard(window, () => { backCount++; });
-resetBtn.addEventListener('click', () => { seen = blankSeen(); });
+resetBtn.addEventListener('click', () => { ev = blankEvidence(); });
 
 // ---------- cursor-fix toggles ----------
 const blockKeys = createEventBlocker(window, ['keydown', 'keyup']);
@@ -193,47 +199,50 @@ const xEdge = createEdge();
 const wrap = (v, max) => ((v % max) + max) % max;
 let last = performance.now();
 
-function move(k, v, dt, next) {
+function move(k, v, dt) {
   if (v.x === 0 && v.y === 0) return;
-  next[k] = true;
   const d = dots[k];
   d.x = wrap(d.x + v.x * 240 * dt, arena.width);
   d.y = wrap(d.y + v.y * 240 * dt, arena.height);
 }
 
+function tallyPad(gp) {
+  ev.pads.add(`#${gp.index} ${gp.id}`);
+  for (let i = 0; i < 4; i++) ev.stickMax[i] = Math.max(ev.stickMax[i], Math.abs(gp.axes[i] ?? 0));
+  const before = prevPressed[gp.index] || new Set();
+  const now = new Set();
+  gp.buttons.forEach((b, i) => {
+    if (!(b && b.pressed)) return;
+    now.add(i);
+    if (!before.has(i)) ev.buttons[i] = (ev.buttons[i] || 0) + 1;
+  });
+  prevPressed[gp.index] = now;
+}
+
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (now - windowStart >= 1000) {
-    rate.pointer = windowCount.pointer;
-    rate.keys = windowCount.keys;
-    windowCount.pointer = 0;
-    windowCount.keys = 0;
-    windowStart = now;
-  }
 
   let pads = [];
   try { pads = Array.from(navigator.getGamepads ? navigator.getGamepads() : []).filter(Boolean); } catch { pads = []; }
 
-  const next = { leftStick: false, rightStick: false, dpad: false };
   let lb = false; let rb = false; let y = false; let x = false;
   for (const gp of pads) {
+    tallyPad(gp);
     const s = readPad(gp);
-    move('leftStick', applyDeadzone(s.axes.lx, s.axes.ly), dt, next);
-    move('rightStick', applyDeadzone(s.axes.rx, s.axes.ry), dt, next);
+    move('leftStick', applyDeadzone(s.axes.lx, s.axes.ly), dt);
+    move('rightStick', applyDeadzone(s.axes.rx, s.axes.ry), dt);
     move('dpad', {
       x: (s.buttons.right ? 1 : 0) - (s.buttons.left ? 1 : 0),
       y: (s.buttons.down ? 1 : 0) - (s.buttons.up ? 1 : 0),
-    }, dt, next);
+    }, dt);
     lb ||= s.buttons.lb; rb ||= s.buttons.rb; y ||= s.buttons.y; x ||= s.buttons.x;
   }
-  for (const k of INPUTS) if (next[k]) seen[k].game++;
-  active = next;
 
   if (lbEdge(lb)) { selected = (selected + TOGGLES.length - 1) % TOGGLES.length; renderToggles(); }
   if (rbEdge(rb)) { selected = (selected + 1) % TOGGLES.length; renderToggles(); }
   if (yEdge(y)) flip(selected);
-  if (xEdge(x)) seen = blankSeen();
+  if (xEdge(x)) ev = blankEvidence();
 
   renderStats(pads.length);
   renderTable();
@@ -253,28 +262,34 @@ function renderStats(padCount) {
   setHTML(statsBox, [
     chip('Page focus', focus ? 'yes' : 'NO', focus),
     chip('Controllers', padCount, padCount > 0),
-    chip('Cursor events/s', rate.pointer, rate.pointer === 0),
-    chip('Keys/s', rate.keys),
     chip('Pointer lock', document.pointerLockElement ? 'on' : 'off'),
     chip('Fullscreen', document.fullscreenElement ? 'on' : 'off'),
     chip('Back presses', backCount),
   ].join(''));
 }
 
-function verdict(s) {
-  if (s.game === 0 && s.pointer === 0 && s.keys === 0) return '— not tried';
-  if (s.game === 0) return '❌ never reaches game';
-  if (s.pointer > 0) return '⚠️ also moves cursor';
-  if (s.keys > 0) return '⚠️ also sends keys';
-  return '✅ clean';
-}
+// A cell that reads green when something arrived and red when nothing did.
+const cell = (text, got) => `<td class="${got ? 'got' : 'none'}">${text}</td>`;
+const counts = (entries) => entries.map(([name, n]) => `${esc(name)}×${n}`).join('  ');
 
 function renderTable() {
-  const rows = INPUTS.map((k) => {
-    const s = seen[k];
-    return `<tr><td>${LABEL[k]}</td><td>${s.game}</td><td>${s.pointer}</td><td>${s.keys}</td><td>${verdict(s)}</td></tr>`;
-  }).join('');
-  setHTML(table, `<tr><th>Input</th><th>Game frames</th><th>Cursor events</th><th>Key events</th><th>Verdict</th></tr>${rows}`);
+  const [lx, ly, rx, ry] = ev.stickMax;
+  const stick = (a, b) => cell(`max ${a.toFixed(2)} ↔ · ${b.toFixed(2)} ↕`, Math.max(a, b) > 0.3);
+  const dpad = Object.entries(DPAD).map(([i, name]) => [name, ev.buttons[i] || 0]);
+  const buttons = Object.entries(ev.buttons)
+    .filter(([i]) => !DPAD[i])
+    .map(([i, n]) => [BTN_NAMES[i] || `#${i}`, n]);
+  const keys = Object.entries(ev.keys).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const rows = [
+    ['Controllers seen', cell(ev.pads.size ? [...ev.pads].map(esc).join('<br>') : 'none', ev.pads.size > 0)],
+    ['Left stick', stick(lx, ly)],
+    ['Right stick', stick(rx, ry)],
+    ['D-pad', cell(counts(dpad), dpad.some(([, n]) => n > 0))],
+    ['Buttons', cell(buttons.length ? counts(buttons) : 'none', buttons.length > 0)],
+    ['Keys', cell(keys.length ? counts(keys) : 'none', keys.length > 0)],
+    ['Cursor', cell(`${ev.moves} moves · ${ev.clicks} clicks`, ev.moves + ev.clicks > 0)],
+  ];
+  setHTML(table, rows.map(([label, td]) => `<tr><th>${label}</th>${td}</tr>`).join(''));
 }
 
 function renderPads(pads) {

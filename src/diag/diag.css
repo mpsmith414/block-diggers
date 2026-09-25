@@ -14,8 +14,12 @@ h2 { font-size: 16px; margin: 10px 0 6px; color: #c9b8ff; }
 .col-left, .col-right { min-width: 0; }
 
 .arena { display: block; height: 26vh; width: auto; max-width: 100%; aspect-ratio: 8 / 3; background: #221a33; border-radius: 8px; }
-table.verdict { border-collapse: collapse; width: 100%; margin-top: 6px; }
-table.verdict th, table.verdict td { border-bottom: 1px solid #332a4a; padding: 4px 8px; text-align: left; }
+table.verdict { border-collapse: collapse; width: 100%; margin-top: 4px; }
+table.verdict th, table.verdict td { border-bottom: 1px solid #332a4a; padding: 3px 8px; text-align: left; vertical-align: top; }
+table.verdict th { white-space: nowrap; font-weight: 600; }
+table.verdict td.got { color: #8ff0a4; }
+table.verdict td.none { color: #ff9a9a; }
+.hint { margin: 0; opacity: 0.8; }
 
 .toggles { display: flex; flex-direction: column; gap: 8px; }
 .toggle { font: inherit; color: inherit; background: #2a2140; border: 3px solid transparent; border-radius: 10px; padding: 8px 12px; cursor: pointer; text-align: left; }
