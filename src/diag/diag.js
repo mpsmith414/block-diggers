@@ -17,6 +17,10 @@ const el = (tag, cls, text) => {
 };
 const setHTML = (node, html) => { if (node.innerHTML !== html) node.innerHTML = html; };
 
+// Race a promise against a timeout.
+const within = (promiseOrValue, ms, fallback) =>
+  Promise.race([Promise.resolve(promiseOrValue), new Promise((r) => setTimeout(() => r(fallback), ms))]);
+
 // ---------- layout ----------
 const app = document.getElementById('app');
 const statsBox = el('div', 'stats');
@@ -48,6 +52,7 @@ let active = { leftStick: false, rightStick: false, dpad: false };
 let lastPointer = null;
 let backCount = 0;
 const keyLog = [];
+let renderedKeys = '';
 const rate = { pointer: 0, keys: 0 };
 const windowCount = { pointer: 0, keys: 0 };
 let windowStart = performance.now();
@@ -95,7 +100,9 @@ let armed = null;
 async function flip(i) {
   const t = TOGGLES[i];
   const want = !t.on;
-  const result = await t.apply(want);
+  t.result = 'trying…';
+  renderToggles();
+  const result = await within(t.apply(want), 3000, 'error: no answer after 3s');
   if (result === 'ok') {
     t.on = want;
     t.result = 'ok';
@@ -131,6 +138,18 @@ function renderToggles() {
   });
 }
 renderToggles();
+
+function renderKeys() {
+  const keyStr = keyLog.join('\n');
+  if (renderedKeys === keyStr) return;
+  renderedKeys = keyStr;
+  keyLogBox.innerHTML = '';
+  keyLog.forEach((key) => {
+    const li = document.createElement('li');
+    li.textContent = key;
+    keyLogBox.append(li);
+  });
+}
 
 // ---------- per-frame ----------
 const dots = {
@@ -190,6 +209,7 @@ function frame(now) {
   renderStats(pads.length);
   renderTable();
   renderPads(pads);
+  renderKeys();
   drawArena();
   requestAnimationFrame(frame);
 }
