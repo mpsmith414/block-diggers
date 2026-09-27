@@ -60,5 +60,8 @@ export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
 
+// ---- bubble to partner ----
+export const BUBBLE = { speed: 220, minDistance: 32 };
+
 // ---- going home ----
 export const HOME_HOLD_MS = 2000;
