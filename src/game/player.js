@@ -89,8 +89,22 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true 
   const jumpPressed = intent.jump && !p.jumpHeld;
   p.jumpHeld = !!intent.jump;
 
-  // vertical speed
-  if (jumpPressed && (p.grounded || inLadder)) {
+  // in water: slow sinking, swim up with up or A, hop out at the surface
+  // centre or feet in water (bobbing at the surface counts)
+  const inWater = grid.get(cx, cy) === B.WATER || grid.get(cx, Math.floor((p.y + PLAYER.h - 1) / T)) === B.WATER;
+  p.inWater = inWater;
+  if (inWater && !inLadder) {
+    const surface = grid.get(cx, cy - 1) !== B.WATER && !isSolid(grid.get(cx, cy - 1));
+    if (jumpPressed && surface) {
+      p.vy = -PLAYER.jumpSpeed;
+      out.jumped = true;
+    } else if (iy < 0 || intent.jump) {
+      p.vy = Math.max(-PLAYER.swimUp, p.vy - PLAYER.gravity * dt);
+    } else {
+      p.vy = Math.min(PLAYER.swimMaxFall, p.vy + PLAYER.gravity * PLAYER.swimGravity * dt);
+    }
+    p.climbing = false;
+  } else if (jumpPressed && (p.grounded || inLadder)) {
     p.vy = -PLAYER.jumpSpeed;
     p.climbing = false;
     out.jumped = true;
@@ -101,7 +115,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true 
   } else {
     p.vy = Math.min(PLAYER.maxFall, p.vy + PLAYER.gravity * dt);
   }
-  p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed;
+  p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed * (inWater ? PLAYER.swimSlow : 1);
   // Stepping sideways off a ladder: line up with the row first, so the box
   // doesn't straddle two rows and snag on the one we didn't dig.
   if (ix && inLadder && !p.climbing && p.vy === 0) p.y = (cy + 1) * T - PLAYER.h;

@@ -4,7 +4,7 @@ import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
 import { TILE, PLAYER } from '../../src/tuning.js';
 
-const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS };
+const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS, w: B.WATER };
 
 // Rows of characters -> grid. Everything outside reads as bedrock.
 function makeGrid(rows) {
@@ -234,5 +234,30 @@ describe('pressing down over a 1-wide hole', () => {
     expect(p.grounded).toBe(true);
     run(p, { ...idle, moveY: 1 }, g, 0.6);
     expect(playerCell(p)).toEqual({ cx: 2, cy: 2 });
+  });
+});
+
+describe('water', () => {
+  const pool = () => makeGrid(['#...#', '#...#', '#www#', '#www#', '#www#', '#www#', '#####']);
+  it('sinks slowly', () => {
+    const g = pool();
+    const p = createPlayer({ x: 2 * TILE + 2, y: 2 * TILE + 1 });
+    run(p, idle, g, 0.5);
+    expect(p.vy).toBeLessThanOrEqual(PLAYER.swimMaxFall + 0.01);
+    expect(p.y).toBeLessThan(4 * TILE);
+  });
+  it('swims up while holding up, and can hop out at the surface', () => {
+    const g = pool();
+    const p = createPlayer(standAt(2, 5));
+    settle(p, g);
+    run(p, { ...idle, moveY: -1 }, g, 2);
+    expect(playerCell(p).cy).toBeLessThanOrEqual(2);
+    // at the surface: A hops right out of the water
+    let top = p.y;
+    for (let i = 0; i < 40; i++) {
+      stepPlayer(p, { ...idle, moveY: -1, jump: i % 20 === 0 }, g, { dt: 1 / 60 });
+      top = Math.min(top, p.y);
+    }
+    expect(top).toBeLessThan(2 * TILE - PLAYER.h); // feet above the water line
   });
 });

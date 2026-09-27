@@ -18,6 +18,19 @@ export const B = {
   LADDER: 14,
   LAVA: 15,
   CHEST: 16,
+  // expansion (appended so the old ids / tileset frames never move)
+  CRYSTAL: 17,
+  WATER: 18,
+  GEODE: 19,
+  FOSSIL: 20,
+  BOOM: 21,
+  BIGCHEST: 22,
+  BIGCHEST_R: 23,
+  BOULDER: 24,
+  EGG: 25,
+  GOLD_CRYSTAL: 26,
+  DIAMOND_CRYSTAL: 27,
+  EMERALD_CRYSTAL: 28,
 };
 
 export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald'];
@@ -41,6 +54,18 @@ def(B.EMERALD, 'emerald', true, 'deep', 'emerald');
 def(B.LADDER, 'ladder', false, null);
 def(B.LAVA, 'lava', false, null);
 def(B.CHEST, 'chest', false, null);
+def(B.CRYSTAL, 'crystal rock', true, 'crystal');
+def(B.WATER, 'water', false, null);
+def(B.GEODE, 'geode', true, 'stone');
+def(B.FOSSIL, 'fossil', true, 'soft');
+def(B.BOOM, 'boom block', true, 'bedrock');
+def(B.BIGCHEST, 'big chest', false, null);
+def(B.BIGCHEST_R, 'big chest', false, null);
+def(B.BOULDER, 'boulder', true, 'bedrock');
+def(B.EGG, 'egg', false, null);
+def(B.GOLD_CRYSTAL, 'gold in crystal', true, 'crystal', 'gold');
+def(B.DIAMOND_CRYSTAL, 'diamond in crystal', true, 'crystal', 'diamond');
+def(B.EMERALD_CRYSTAL, 'emerald in crystal', true, 'crystal', 'emerald');
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

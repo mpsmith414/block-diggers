@@ -90,3 +90,26 @@ describe('mineCell', () => {
     expect([0, 1, 2].map((y) => g.get(1, y))).toEqual([B.LADDER, B.LADDER, B.LAVA]);
   });
 });
+
+describe('expansion blocks', () => {
+  it('keeps the original ids stable', () => {
+    expect([B.AIR, B.GRASS, B.DIRT, B.STONE, B.DEEP, B.BEDROCK, B.GRAVEL, B.LADDER, B.LAVA, B.CHEST]).toEqual([0, 1, 2, 3, 4, 5, 6, 14, 15, 16]);
+  });
+  it('new blocks are solid or open as intended', () => {
+    for (const id of [B.CRYSTAL, B.GEODE, B.FOSSIL, B.BOOM, B.BOULDER, B.GOLD_CRYSTAL, B.DIAMOND_CRYSTAL, B.EMERALD_CRYSTAL]) expect(isSolid(id)).toBe(true);
+    for (const id of [B.WATER, B.BIGCHEST, B.BIGCHEST_R, B.EGG]) expect(isSolid(id)).toBe(false);
+  });
+  it('crystal rock and its ores need a diamond pick', () => {
+    for (const id of [B.CRYSTAL, B.DIAMOND_CRYSTAL, B.EMERALD_CRYSTAL, B.GOLD_CRYSTAL]) {
+      expect([0, 1, 2].map((p) => mineTime(id, p))).toEqual([Infinity, Infinity, 0.6]);
+    }
+    expect(dropOf(B.DIAMOND_CRYSTAL)).toBe('diamond');
+    expect(dropOf(B.GOLD_CRYSTAL)).toBe('gold');
+  });
+  it('boom blocks and boulders are never mined (the scene handles them)', () => {
+    expect(mineTime(B.BOOM, 2)).toBe(Infinity);
+    expect(mineTime(B.BOULDER, 2)).toBe(Infinity);
+    expect(mineTime(B.GEODE, 0)).toBe(mineTime(B.STONE, 0));
+    expect(mineTime(B.FOSSIL, 0)).toBe(mineTime(B.DIRT, 0));
+  });
+});

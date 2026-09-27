@@ -4,7 +4,7 @@ export const TILE = 16;
 
 // ---- the mine ----
 export const MINE_W = 48;
-export const MINE_H = 150;
+export const MINE_H = 190;
 export const SKY_ROWS = 6; // open rows above row 0 before an invisible ceiling
 export const SHAFT_X = 24;
 export const SHAFT_DEPTH = 4; // shaft ladders in rows 0..SHAFT_DEPTH-1
@@ -12,6 +12,7 @@ export const LAYERS = {
   dirt: { top: 1, bottom: 40 },
   stone: { top: 41, bottom: 95 },
   deep: { top: 96, bottom: 148 },
+  crystal: { top: 149, bottom: 188 },
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -19,6 +20,7 @@ export const ORE_VEINS = {
   dirt: { per1000: 20, weights: { coal: 1 } },
   stone: { per1000: 36, weights: { coal: 2, iron: 4, gold: 1.6 } },
   deep: { per1000: 34, weights: { gold: 3, diamond: 1.5, emerald: 1.2 } },
+  crystal: { per1000: 44, weights: { gold: 2, diamond: 2, emerald: 1.6 } },
 };
 export const VEIN_SIZE = { min: 2, max: 5 };
 export const GRAVEL_POCKETS = { stone: 10, deep: 8, size: { min: 3, max: 6 } };
@@ -26,15 +28,18 @@ export const CAVES = {
   dirt: { count: 5, length: { min: 10, max: 22 }, radius: 1 },
   stone: { count: 7, length: { min: 18, max: 32 }, radius: 1.5 },
   deep: { count: 8, length: { min: 22, max: 40 }, radius: 2 },
+  crystal: { count: 9, length: { min: 26, max: 44 }, radius: 2.4 },
 };
 export const LAVA_POOLS = 7;
-export const CHESTS = 3;
+export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
+export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9 };
 
 // ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
 export const MINE_TIME = {
   soft: [0.25, 0.2, 0.12],
   stone: [0.6, 0.4, 0.25],
   deep: [Infinity, 0.7, 0.4],
+  crystal: [Infinity, Infinity, 0.6],
   bedrock: [Infinity, Infinity, Infinity],
 };
 
@@ -52,6 +57,10 @@ export const PLAYER = {
   knockTime: 0.25,
   knockLift: 170,
   lavaHop: 260,
+  swimGravity: 0.25, // fraction of normal gravity in water
+  swimMaxFall: 50,
+  swimUp: 70,
+  swimSlow: 0.75, // walking speed in water
 };
 
 // ---- upgrades: value per level ----
