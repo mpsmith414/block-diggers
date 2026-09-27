@@ -159,6 +159,21 @@ export function generateMine(seed) {
   return { grid, chests, decor, spawn: { x: SHAFT_X, y: -1 }, seed };
 }
 
+// The minecart station: a little room at `row` to start a trip in. Returns the
+// decorations that still have something to stand on or hang from.
+export function carveStation(mine, x0, row) {
+  const { grid } = mine;
+  for (let y = row - 2; y <= row; y++) {
+    for (let x = x0 - 3; x <= x0 + 3; x++) if (grid.get(x, y) !== B.CHEST) grid.set(x, y, B.AIR);
+  }
+  for (let x = x0 - 3; x <= x0 + 3; x++) {
+    if (!isSolid(grid.get(x, row + 1))) grid.set(x, row + 1, HOST[layerAt(row + 1)]);
+  }
+  mine.decor = mine.decor.filter((d) => grid.get(d.x, d.y) === B.AIR &&
+    isSolid(d.on === 'floor' ? grid.get(d.x, d.y + 1) : grid.get(d.x, d.y - 1)));
+  return mine.decor;
+}
+
 export function layerAt(y) {
   if (y <= LAYERS.dirt.bottom) return 'dirt';
   if (y <= LAYERS.stone.bottom) return 'stone';

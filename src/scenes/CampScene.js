@@ -13,6 +13,10 @@ import { getState, setState } from '../save/store.js';
 import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
+import { createPerksView } from './camp/perksView.js';
+import { earnSticker } from './common/stickers.js';
+import { growGarden, leavePenGift, cartStartRow } from '../game/perks.js';
+import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
 const W = CAMP.w * TILE;
@@ -50,6 +54,10 @@ export class CampScene extends Phaser.Scene {
     this.drawGround();
     this.drawProps();
     this.placeBuildings();
+    this.perks = createPerksView(this);
+    this.perks.refresh();
+    // older saves: back-fill stickers for buildings already standing
+    for (const id of getState(this.registry).plots) if (id) earnSticker(this, `bld-${id}`, { quiet: true });
 
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, W, (CAMP.h + SKY_ROWS) * TILE);
@@ -63,7 +71,7 @@ export class CampScene extends Phaser.Scene {
     this.scene.launch('CampHud', { camp: this });
     this.events.once('shutdown', () => this.scene.stop('CampHud'));
 
-    if (this.arrived) this.time.delayedCall(500, () => this.depositArrivals());
+    if (this.arrived) this.time.delayedCall(500, () => this.showSummary());
   }
 
   // ---------- scenery ----------
@@ -183,7 +191,7 @@ export class CampScene extends Phaser.Scene {
     const x = CAMP.plots[plot] * TILE;
     const sprite = this.add.image(x, GROUND_Y, `bld-${id}`).setOrigin(0, 1).setDepth(3);
     this.stakes[plot].setVisible(false);
-    const b = { plot, id, sprite, x, t: 0 };
+    const b = { plot, id, sprite, x, t: 0, building: animate };
     this.buildings[plot] = b;
     if (animate) {
       sprite.setCrop(0, BUILDING_SIZE.h, BUILDING_SIZE.w, 0);
@@ -200,6 +208,9 @@ export class CampScene extends Phaser.Scene {
         },
         onComplete: () => {
           sprite.setCrop();
+          b.building = false;
+          this.perks.refresh();
+          earnSticker(this, `bld-${id}`);
           this.effects.sparkle(x + BUILDING_SIZE.w / 2, GROUND_Y - 40, 0xffffff, 10);
           this.cameras.main.flash(200, 255, 240, 200);
           this.addExtras(b);
@@ -286,7 +297,9 @@ export class CampScene extends Phaser.Scene {
     if (Math.abs(cx - CAMP.shaftX) <= 1) return { kind: 'shaft' };
     if (Math.abs(cx - CAMP.benchX) <= 1) return { kind: 'bench' };
     const plot = CAMP.plots.findIndex((px) => cx >= px && cx < px + CAMP.plotW);
-    if (plot >= 0 && !getState(this.registry).plots[plot]) return { kind: 'plot', plot };
+    const here = plot >= 0 ? getState(this.registry).plots[plot] : undefined;
+    if (plot >= 0 && !here) return { kind: 'plot', plot };
+    if (here === 'minecart' && this.buildings[plot] && !this.buildings[plot].building) return { kind: 'cart', plot };
     return null;
   }
 
@@ -316,9 +329,10 @@ export class CampScene extends Phaser.Scene {
         stepPlayer(a.p, IDLE, this.grid, { dt, canMine: false });
       } else if (!this.leaving) {
         let move = i;
-        if (zone && (zone.kind === 'bench' || zone.kind === 'plot')) {
-          move = { ...i, jump: false }; // A opens the picker here instead of jumping
-          if (e.a && !hud.picker) this.openPicker(hud, a, zone);
+        if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart')) {
+          move = { ...i, jump: false }; // A opens the picker (or rides the cart) instead of jumping
+          if (e.a && !hud.picker && zone.kind === 'cart') this.startTrip({ cart: true });
+          else if (e.a && !hud.picker) this.openPicker(hud, a, zone);
         }
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
         if (stepPlayer(a.p, move, this.grid, { dt, canMine: false }).jumped) this.events.emit('jump', a);
@@ -340,6 +354,7 @@ export class CampScene extends Phaser.Scene {
     this.downPrompt.setVisible(!!downPrompt).setPosition(CAMP.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
 
     this.updateStars(time, prompt);
+    this.perks.update(time);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
   }
@@ -454,6 +469,17 @@ export class CampScene extends Phaser.Scene {
     }
   }
 
+  // The trip card first (records, stickers), then the ores fly into the bank.
+  showSummary() {
+    const { packs, deepest = 0, chests = 0, stickers = [] } = this.arrived;
+    let state = leavePenGift(growGarden(getState(this.registry)));
+    const summary = summarizeTrip({ packs, deepest, chests, stickers }, state.records);
+    state = setState(this.registry, { ...state, records: summary.records });
+    this.perks.refresh();
+    const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
+    this.scene.launch('Summary', { summary, packs, chars, onDone: () => this.depositArrivals() });
+  }
+
   depositArrivals() {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
@@ -462,7 +488,7 @@ export class CampScene extends Phaser.Scene {
     this.arrived = null;
   }
 
-  startTrip() {
+  startTrip({ cart = false } = {}) {
     if (this.leaving) return;
     this.leaving = true;
     const hud = this.scene.get('CampHud');
@@ -473,7 +499,12 @@ export class CampScene extends Phaser.Scene {
     }
     this.cameras.main.fadeOut(500, 20, 12, 30);
     this.cameras.main.once('camerafadeoutcomplete', () => {
-      this.scene.start('Mine', { seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0, upgrades: getState(this.registry).upgrades });
+      const state = getState(this.registry);
+      this.scene.start('Mine', {
+        seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0,
+        upgrades: state.upgrades,
+        startRow: cart ? cartStartRow(state) : null,
+      });
     });
   }
 }

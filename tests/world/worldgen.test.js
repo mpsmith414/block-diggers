@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMine } from '../../src/world/worldgen.js';
+import { generateMine, carveStation } from '../../src/world/worldgen.js';
 import { B, isSolid } from '../../src/world/blocks.js';
 import { MINE_W, MINE_H, SHAFT_X, SHAFT_DEPTH } from '../../src/tuning.js';
 
@@ -133,5 +133,25 @@ describe('cave decorations', () => {
       }
     }
     expect(total / mines.length).toBeGreaterThan(30);
+  });
+});
+
+describe('carveStation (minecart start)', () => {
+  it('clears a 7x3 room with a solid floor, keeps chests, drops decorations that lost their support', () => {
+    const mine = generateMine(4242);
+    const { grid } = mine;
+    const row = 42;
+    const decor = carveStation(mine, SHAFT_X, row);
+    for (let y = row - 2; y <= row; y++) {
+      for (let x = SHAFT_X - 3; x <= SHAFT_X + 3; x++) {
+        const id = grid.get(x, y);
+        expect(id === B.AIR || id === B.CHEST).toBe(true);
+      }
+    }
+    for (let x = SHAFT_X - 3; x <= SHAFT_X + 3; x++) expect(isSolid(grid.get(x, row + 1))).toBe(true);
+    for (const d of decor) {
+      expect(grid.get(d.x, d.y)).toBe(B.AIR);
+      expect(isSolid(d.on === 'floor' ? grid.get(d.x, d.y + 1) : grid.get(d.x, d.y - 1))).toBe(true);
+    }
   });
 });

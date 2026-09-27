@@ -35,6 +35,18 @@ export function createDecorView(scene, decor) {
     filled(x, y) {
       remove(x, y);
     },
+    // decoration kinds within r cells of (cx, cy)
+    kindsNear(cx, cy, r) {
+      const out = new Set();
+      const ri = Math.ceil(r);
+      for (let y = cy - ri; y <= cy + ri; y++) {
+        for (let x = cx - ri; x <= cx + ri; x++) {
+          const d = byCell.get(key(x, y));
+          if (d && Math.hypot(x - cx, y - cy) <= r) out.add(d.kind);
+        }
+      }
+      return out;
+    },
     // glowing things near the view, as lights for the darkness
     lights(view, flicker) {
       const out = [];

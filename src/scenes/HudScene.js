@@ -49,7 +49,8 @@ export class HudScene extends Phaser.Scene {
     const { x, top, scale } = this.meter;
     this.source.world.chests.forEach((c, i) => {
       const open = this.source.grid.get(c.x, c.y) !== B.CHEST;
-      this.chestDots[i].setVisible(!open).setAlpha(0.6 + Math.sin(time / 300 + i) * 0.4);
+      const known = this.source.revealAll || this.source.seenChests.has(i);
+      this.chestDots[i].setVisible(!open && known).setAlpha(0.6 + Math.sin(time / 300 + i) * 0.4);
     });
     for (const a of this.source.avatars) {
       if (!a) continue;

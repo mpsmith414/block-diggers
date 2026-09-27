@@ -432,6 +432,98 @@ function drawIcons(scene, canvasTexture, rect) {
     '.oRRRRRRo.',
     '..oooooo..',
   ], { o: '#5a1a1a', r: '#e0503a', R: '#a8322a', w: '#ffffff' }));
+  one('ribbon', 12, 14, (ctx) => drawMap(ctx, 0, 0, [
+    '...oooooo...',
+    '..oyyyyyyo..',
+    '.oyyYYYYyyo.',
+    '.oyYyyyyYyo.',
+    '.oyYyyyyYyo.',
+    '.oyyYYYYyyo.',
+    '..oyyyyyyo..',
+    '...oooooo...',
+    '...orroRo...',
+    '..orro.oRro.',
+    '..oro...oRo.',
+    '.orro...oRRo',
+    '.ooo.....ooo',
+    '............',
+  ], { o: '#5a3a10', y: '#ffd84a', Y: '#fff2a0', r: '#e0503a', R: '#a8322a' }));
+  const TROPHY_GEMS = ['#4de3f0', '#7ad65a', '#b98cff', '#ffd84a', '#e0503a', '#ff8fa3'];
+  TROPHY_GEMS.forEach((gem, i) => one(`trophy-${i}`, 12, 14, (ctx) => drawMap(ctx, 0, 0, [
+    'oooooooooooo',
+    'oyyyyyyyyyyo',
+    'yoyyyggyyyoy',
+    'yoyyyggyyyoy',
+    '.oyyyyyyyyo.',
+    '..oyyyyyyo..',
+    '...oyyyyo...',
+    '....oyyo....',
+    '.....yy.....',
+    '.....yy.....',
+    '....oyyo....',
+    '...oYYYYo...',
+    '..oYYYYYYo..',
+    '..oooooooo..',
+  ], { o: '#7a5a10', y: '#ffd84a', Y: '#c89a20', g: gem })));
+  one('perk-bag', 12, 12, (ctx) => {
+    rect(ctx, '#8a5a34', 1, 4, 8, 7); rect(ctx, '#6b4424', 3, 2, 4, 2); rect(ctx, '#a3703f', 2, 6, 6, 2);
+    rect(ctx, '#4cc24a', 8, 0, 4, 1); rect(ctx, '#4cc24a', 9, -1, 2, 4); rect(ctx, '#1f4a1f', 8, 1, 4, 1);
+    rect(ctx, '#4cc24a', 9, 0, 2, 3);
+  });
+  one('perk-eye', 12, 12, (ctx) => drawMap(ctx, 0, 0, [
+    '............',
+    '...oooooo...',
+    '.oowwwwwwoo.',
+    'owwwbbbbwwwo',
+    'owwbbkkbbwwo',
+    'owwbkkkkbwwo',
+    'owwbbkkbbwwo',
+    'owwwbbbbwwwo',
+    '.oowwwwwwoo.',
+    '...oooooo...',
+    '............',
+    '............',
+  ], { o: OUT, w: '#ffffff', b: '#4a92b8', k: '#1b1428' }));
+  one('perk-luck', 12, 12, (ctx) => drawMap(ctx, 0, 0, [
+    '...oo..oo...',
+    '..oggoogg o.',
+    '..oggggggo..',
+    '.ooogggggooo',
+    'oggoggggoggo',
+    'oggggGGggggo',
+    'oggoggggoggo',
+    '.ooogggggooo',
+    '..oggggggo..',
+    '..ogg.oggo..',
+    '....ob......',
+    '.....ob.....',
+  ], { o: '#1f4a1f', g: '#4cc24a', G: '#9ae67a', b: '#3d8a48' }));
+  one('gift', 12, 12, (ctx) => drawMap(ctx, 0, 0, [
+    '...rr..rr...',
+    '..r..rr..r..',
+    '...rrrrrr...',
+    'oooooooooooo',
+    'obbbbrrbbbbo',
+    'oBBBBrrBBBBo',
+    '.obbbrrbbbo.',
+    '.obbbrrbbbo.',
+    '.obbbrrbbbo.',
+    '.obbbrrbbbo.',
+    '.oBBBrrBBBo.',
+    '.oooooooooo.',
+  ], { o: OUT, b: '#8ec5ff', B: '#5d93cc', r: '#e0503a' }));
+  one('gem-bud', 8, 10, (ctx) => drawMap(ctx, 0, 0, [
+    '...oo...',
+    '..oppo..',
+    '.oppPpo.',
+    '.opPppo.',
+    '..oppo..',
+    '...oo...',
+    '...g....',
+    '...gg...',
+    '..g.g...',
+    '...g....',
+  ], { o: '#5a2a6a', p: '#e080ff', P: '#ffd0ff', g: '#4f9a40' }));
   one('icon-pause', 12, 12, (ctx) => {
     rect(ctx, OUT, 1, 0, 4, 12); rect(ctx, '#fff6e0', 2, 1, 2, 10);
     rect(ctx, OUT, 7, 0, 4, 12); rect(ctx, '#fff6e0', 8, 1, 2, 10);

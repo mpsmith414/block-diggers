@@ -104,6 +104,9 @@ export function createSfx(audio) {
     open() { tone({ type: 'square', freq: 520, to: 780, dur: 0.08, gain: 0.05 }); },
     close() { tone({ type: 'square', freq: 700, to: 460, dur: 0.08, gain: 0.05 }); },
     nope() { tone({ type: 'triangle', freq: 200, dur: 0.08, gain: 0.12 }); tone({ type: 'triangle', freq: 170, dur: 0.1, gain: 0.12, at: 0.09 }); },
+    sticker() {
+      ['E6', 'G6', 'C7'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.22, gain: 0.08, at: i * 0.07 }));
+    },
     join() { ['E5', 'A5'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.07, at: i * 0.08 })); },
     lava() { noise({ dur: 0.3, gain: 0.15, freq: 400, to: 1500, q: 1, type: 'lowpass' }); },
     gravel() { noise({ dur: 0.2, gain: 0.25, freq: 600, to: 150, q: 0.8, type: 'lowpass' }); },

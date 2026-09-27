@@ -151,6 +151,28 @@ export class CampHudScene extends Phaser.Scene {
       .setScale(side > 0 ? 1 : -1, 1);
   }
 
+  // Ores fly from a spot in the world (the garden, a gift box) into the bank.
+  flyList(worldX, worldY, ores, finalBank) {
+    const cam = this.camp.cameras.main;
+    const sx = (worldX - cam.worldView.x) * cam.zoom;
+    const sy = (worldY - cam.worldView.y) * cam.zoom;
+    ores.forEach((ore, i) => {
+      this.time.delayedCall(i * 90, () => {
+        const target = this.bankIcons[ore].icon;
+        const img = this.add.image(sx + (Math.random() - 0.5) * 16, sy, `ore-${ore}`).setScale(1.3);
+        this.tweens.add({
+          targets: img, x: target.x + 5, y: target.y + 5, scale: 1, duration: 500, ease: 'Cubic.easeIn',
+          onComplete: () => {
+            img.destroy();
+            this.bump(ore);
+            this.camp.events.emit('deposit', ore, i);
+          },
+        });
+      });
+    });
+    this.time.delayedCall(ores.length * 90 + 600, () => this.syncBank(finalBank));
+  }
+
   // ---------- picker ----------
 
   openPicker(p) {

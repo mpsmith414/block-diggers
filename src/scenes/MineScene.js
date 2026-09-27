@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { generateMine } from '../world/worldgen.js';
+import { generateMine, carveStation } from '../world/worldgen.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
@@ -17,6 +17,8 @@ import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
+import { packCap, revealsChests } from '../game/perks.js';
+import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
@@ -36,12 +38,14 @@ export class MineScene extends Phaser.Scene {
   init(data) {
     this.seed = data?.seed ?? (Date.now() >>> 0);
     this.upgrades = data?.upgrades ?? this.registry.get('upgrades') ?? DEFAULT_UPGRADES;
+    this.startRow = data?.startRow ?? null;
   }
 
   create() {
     this.session = this.registry.get('input');
     this.world = generateMine(this.seed);
     this.grid = this.world.grid;
+    if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     // Phaser reuses this object across trips: reset all per-trip state here.
     this.avatars = [];
@@ -50,10 +54,16 @@ export class MineScene extends Phaser.Scene {
     this.goingHome = false;
     this.offscreenGraceUntil = 0;
     this.glintT = 0;
+    this.trip = { deepest: 0, chests: 0, stickers: [] };
+    this.seenChests = new Set();
+    this.revealAll = revealsChests(getState(this.registry));
+    this.scanT = 0;
+    this.events.on('sticker', (id) => this.trip.stickers.push(id));
 
     this.drawSky();
     this.mapView = createMapView(this, this.grid);
     this.drawEntrance();
+    if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
     this.decor = createDecorView(this, this.world.decor);
     this.firstTrip = (getState(this.registry)?.trips ?? 0) === 0;
@@ -68,7 +78,7 @@ export class MineScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, MINE_W * TILE, (MINE_H + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
-    this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: -TILE };
+    this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: (this.startRow ?? -1) * TILE };
     cam.setZoom(this.cam.zoom);
     cam.centerOn(this.cam.x, this.cam.y);
     this.wall = wallLimits({ w: this.scale.width, h: this.scale.height });
@@ -118,12 +128,12 @@ export class MineScene extends Phaser.Scene {
     const partner = this.avatars.find(Boolean);
     const start = partner
       ? { x: partner.p.x, y: partner.p.y }
-      : standAt(this.world.spawn.x + slot, this.world.spawn.y);
+      : standAt(this.world.spawn.x + slot, this.startRow ?? this.world.spawn.y);
     const a = {
       slot,
       char,
       p: createPlayer(start),
-      pack: createBackpack(BACKPACK[this.upgrades.pack]),
+      pack: createBackpack(packCap({ ...getState(this.registry), upgrades: this.upgrades })),
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
       crack: this.add.image(0, 0, 'cracks', 0).setOrigin(0).setDepth(20).setVisible(false),
       full: this.add.image(0, 0, 'icon-full').setDepth(61).setVisible(false),
@@ -231,6 +241,7 @@ export class MineScene extends Phaser.Scene {
     this.updateCamera(dt);
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
+    this.scanSurroundings(dt);
     this.drawLights(time);
   }
 
@@ -282,7 +293,9 @@ export class MineScene extends Phaser.Scene {
     this.cameras.main.once('camerafadeoutcomplete', () => {
       const packs = [];
       for (const a of players) packs[a.slot] = { ...a.pack.ores };
-      this.scene.start('Camp', { arrived: { packs: packs.map((p) => p ?? {}) } });
+      this.scene.start('Camp', {
+        arrived: { packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests, stickers: this.trip.stickers },
+      });
     });
   }
 
@@ -358,12 +371,14 @@ export class MineScene extends Phaser.Scene {
     const { list, collected } = collectPickups(this.pickups, box, a.pack);
     this.pickups = list;
     for (const ore of collected) {
+      earnSticker(this, `ore-${ore}`);
       this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xfff2a0, 3);
       this.events.emit('oreCollected', { slot: a.slot, ore });
     }
   }
 
   giveOre(a, ore, cx, cy) {
+    earnSticker(this, `ore-${ore}`);
     if (addOre(a.pack, ore)) {
       this.effects.orePop(cx, cy, ore, a.sprite);
       this.events.emit('oreCollected', { slot: a.slot, ore });
@@ -403,7 +418,8 @@ export class MineScene extends Phaser.Scene {
   }
 
   // A hazard touched a player: knock back, scatter up to 3 ores, brief safety.
-  bonk(a, fromX, { noKnock = false } = {}) {
+  bonk(a, fromX, { noKnock = false, kind = null } = {}) {
+    if (kind && !a.bubbling && a.invuln <= 0) earnSticker(this, `creature-${kind}`);
     if (a.bubbling || a.invuln > 0) return;
     a.invuln = BONK.invuln;
     const dir = Math.sign(a.p.x + PLAYER.w / 2 - fromX) || -a.p.facing || 1;
@@ -424,6 +440,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   squash(a, e) {
+    earnSticker(this, e.golden ? 'creature-goldslime' : 'creature-slime');
     this.hazards.squash(e);
     a.p.vy = -200;
     this.effects.sparkle(e.x + e.w / 2, e.y + e.h / 2, 0x9ae67a, 8);
@@ -443,6 +460,7 @@ export class MineScene extends Phaser.Scene {
     }
     this.effects.sparkle(x, y, 0xffe066, 8);
     this.cameras.main.flash(120, 255, 230, 150);
+    this.trip.chests++;
     this.events.emit('chestOpened', { x: cx, y: cy });
   }
 
@@ -566,6 +584,36 @@ export class MineScene extends Phaser.Scene {
     this.tweens.add({ targets: d, x: x + dx, y: y - 4, scale: 0.9, alpha: 0, duration: 380, onComplete: () => d.destroy() });
   }
 
+  // A cosy little station where the minecart drops you off.
+  drawStation() {
+    const y = (this.startRow + 1) * TILE;
+    const x0 = (SHAFT_X - 3) * TILE;
+    const g = this.add.graphics().setDepth(12);
+    g.fillStyle(0x6b4424, 1);
+    for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
+    g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
+    this.add.image(x0 + 12, y - 2, 'cart', 0).setOrigin(0.5, 1).setDepth(13);
+    this.stationLight = { x: SHAFT_X * TILE + 8, y: y - 20 };
+  }
+
+  // Twice a second: note the deepest row, chests the lanterns have found,
+  // and cave life you've seen (for stickers).
+  scanSurroundings(dt) {
+    for (const a of this.avatars) if (a) this.trip.deepest = Math.max(this.trip.deepest, Math.floor((a.p.y + PLAYER.h / 2) / TILE));
+    this.scanT -= dt;
+    if (this.scanT > 0) return;
+    this.scanT = 0.5;
+    const r = LANTERN[this.upgrades.lantern];
+    for (const a of this.avatars) {
+      if (!a) continue;
+      const { cx, cy } = playerCell(a.p);
+      this.world.chests.forEach((c, i) => {
+        if (Math.hypot(c.x - cx, c.y - cy) <= r) this.seenChests.add(i);
+      });
+      for (const kind of this.decor.kindsNear(cx, cy, r - 0.5)) earnSticker(this, `cave-${kind}`);
+    }
+  }
+
   drawLights(time) {
     const lights = [];
     const flicker = 1 + Math.sin(time / 130) * 0.03 + Math.sin(time / 57) * 0.02;
@@ -584,6 +632,7 @@ export class MineScene extends Phaser.Scene {
       lights.push({ x, y, r: 1.6 * flicker, glow: 0.12, color: 0xff6a2a });
     }
     lights.push(...this.decor.lights(view, flicker));
+    if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     for (const c of this.world.chests) {
       if (this.grid.get(c.x, c.y) !== B.CHEST) continue;
       lights.push({ x: c.x * TILE + TILE / 2, y: c.y * TILE + TILE / 2, r: 1.3 * flicker, glow: 0.14, color: 0xffd86b });
