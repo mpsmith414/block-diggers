@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { explode, pushBoulder, bigChestReady, geodeLoot, FOSSIL_KINDS } from '../../src/game/finds.js';
+import { explode, pushBoulder, bigChestReady, geodeLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft } from '../../src/game/finds.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
 import { createRng } from '../../src/world/rng.js';
@@ -71,5 +71,30 @@ describe('treasure loot', () => {
   });
   it('knows the three fossils', () => {
     expect(FOSSIL_KINDS).toEqual(['shell', 'bone', 'dino']);
+  });
+});
+
+describe('meteorites', () => {
+  it('crack open into a shower of star shards', () => {
+    const rng = createRng(9);
+    for (let i = 0; i < 20; i++) {
+      const loot = meteoriteLoot(rng);
+      expect(loot.filter((o) => o === 'star').length).toBeGreaterThanOrEqual(5);
+      expect(loot.length).toBeLessThanOrEqual(8);
+      loot.forEach((o) => expect(['star', 'diamond']).toContain(o));
+    }
+  });
+});
+
+describe('the Heart of the World', () => {
+  it('counts how many of its 9 cells are still there', () => {
+    const g = createGrid(8, 8);
+    for (let y = 2; y <= 4; y++) for (let x = 2; x <= 4; x++) g.set(x, y, B.HEART);
+    const heart = { x: 2, y: 2 };
+    expect(heartLeft(g, heart)).toBe(9);
+    g.set(3, 3, B.AIR);
+    expect(heartLeft(g, heart)).toBe(8);
+    for (let y = 2; y <= 4; y++) for (let x = 2; x <= 4; x++) g.set(x, y, B.AIR);
+    expect(heartLeft(g, heart)).toBe(0);
   });
 });

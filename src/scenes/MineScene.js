@@ -3,6 +3,7 @@ import { generateMine, carveStation } from '../world/worldgen.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
+import { discovery } from '../game/trip.js';
 import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
@@ -26,9 +27,12 @@ import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
+  LAYERS, LOW_GRAVITY,
 } from '../tuning.js';
 
-const GLINT_COLORS = { coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0 };
+const GLINT_COLORS = {
+  coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0, amber: 0xffc060, brick: 0xff7a6a, star: 0xfffbe0,
+};
 const HUD_STRIP = 36; // screen pixels at the top used by the HUD
 const DEFAULT_UPGRADES = { pick: 0, pack: 0, lantern: 0 };
 
@@ -60,6 +64,7 @@ export class MineScene extends Phaser.Scene {
     this.offscreenGraceUntil = 0;
     this.glintT = 0;
     this.trip = { deepest: 0, chests: 0, stickers: [] };
+    this.knownLayers = [...(saved.records?.layers ?? [])];
     this.seenChests = new Set();
     this.revealAll = revealsChests(getState(this.registry));
     this.scanT = 0;
@@ -81,8 +86,13 @@ export class MineScene extends Phaser.Scene {
     this.pets = createPetsView(this, saved.pets ?? []);
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
     this.lavaCells = [];
+    this.meteorites = [];
     for (let y = 0; y < MINE_H; y++) {
-      for (let x = 0; x < MINE_W; x++) if (this.grid.get(x, y) === B.LAVA) this.lavaCells.push({ x, y });
+      for (let x = 0; x < MINE_W; x++) {
+        const id = this.grid.get(x, y);
+        if (id === B.LAVA) this.lavaCells.push({ x, y });
+        else if (id === B.METEORITE) this.meteorites.push({ x, y });
+      }
     }
 
     const cam = this.cameras.main;
@@ -310,7 +320,7 @@ export class MineScene extends Phaser.Scene {
       this.scene.start('Camp', {
         arrived: {
           packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
-          stickers: this.trip.stickers, eggs: [...this.finds.carried],
+          stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
         },
       });
     });
@@ -360,8 +370,16 @@ export class MineScene extends Phaser.Scene {
   stepAvatar(a, intent, dt) {
     const mul = multipliers(a.pu);
     // drinking: stand still and glug
+    const row = (a.p.y + PLAYER.h / 2) / TILE;
+    const floaty = row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom;
     const r = stepPlayer(a.p, mul.drinking ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
-      { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk });
+      { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk, gravityMul: floaty ? LOW_GRAVITY : 1 });
+    if (r.sprung) {
+      this.events.emit('spring', a);
+      earnSticker(this, 'find-spring');
+      a.sprite.setScale(1.3, 0.7);
+      this.effects.sparkle(a.sprite.x, a.sprite.y, 0x6ae07a, 6);
+    }
     for (const ev of stepPowerups(a.pu, dt, { inWater: a.p.inWater && !a.bubbling })) this.powerupEvent(a, ev);
     if (r.jumped) this.events.emit('jump', a);
     for (const m of r.mined) {
@@ -620,6 +638,13 @@ export class MineScene extends Phaser.Scene {
       const y = cy + this.rng.int(-8, 8);
       if (Math.hypot(x - cx, y - cy) < lit) continue;
       const id = this.grid.get(x, y);
+      // the meteor field's rock twinkles with tiny stars
+      if (id === B.METEOR) {
+        const s = this.add.image(x * TILE + this.rng.int(2, 14), y * TILE + this.rng.int(2, 14), 'pixel')
+          .setDepth(55).setTint(this.rng.pick([0xffffff, 0xffe066, 0x9ff6ff])).setAlpha(0);
+        this.tweens.add({ targets: s, alpha: 0.8, duration: 500, yoyo: true, hold: 600, onComplete: () => s.destroy() });
+        return;
+      }
       const ore = dropOf(id);
       if (!ore && id !== B.CHEST) continue;
       const color = id === B.CHEST ? 0xffe066 : GLINT_COLORS[ore];
@@ -689,7 +714,13 @@ export class MineScene extends Phaser.Scene {
   // Twice a second: note the deepest row, chests the lanterns have found,
   // and cave life you've seen (for stickers).
   scanSurroundings(dt) {
-    for (const a of this.avatars) if (a) this.trip.deepest = Math.max(this.trip.deepest, Math.floor((a.p.y + PLAYER.h / 2) / TILE));
+    for (const a of this.avatars) {
+      if (!a) continue;
+      const row = Math.floor((a.p.y + PLAYER.h / 2) / TILE);
+      this.trip.deepest = Math.max(this.trip.deepest, row);
+      const found = discovery(row, this.knownLayers);
+      if (found) this.discover(found, a);
+    }
     this.scanT -= dt;
     if (this.scanT > 0) return;
     this.scanT = 0.5;
@@ -700,8 +731,17 @@ export class MineScene extends Phaser.Scene {
       this.world.chests.forEach((c, i) => {
         if (Math.hypot(c.x - cx, c.y - cy) <= r) this.seenChests.add(i);
       });
-      for (const kind of this.decor.kindsNear(cx, cy, r - 0.5)) earnSticker(this, `cave-${kind}`);
+      for (const kind of this.decor.kindsNear(cx, cy, r - 0.5)) earnSticker(this, kind === 'skeleton' ? 'find-skeleton' : `cave-${kind}`);
     }
+  }
+
+  // First time in one of the deep layers: a banner, a fanfare and a badge.
+  discover(layer, a) {
+    this.knownLayers.push(layer);
+    this.events.emit('discover', layer);
+    this.effects.confetti(a.sprite.x, a.sprite.y - 12);
+    this.scene.get('Hud')?.banner(layer);
+    this.time.delayedCall(3800, () => earnSticker(this, `badge-${layer}`)); // after the banner
   }
 
   drawLights(time) {
@@ -726,6 +766,11 @@ export class MineScene extends Phaser.Scene {
     lights.push(...this.pets.lights());
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
+    const heart = this.finds.heart;
+    if (heart && heart.s) lights.push({ x: heart.s.x, y: heart.s.y, r: 4 * flicker, glow: 0.3, color: 0xff6a9a });
+    for (const m of this.meteorites) {
+      if (this.grid.get(m.x, m.y) === B.METEORITE) lights.push({ x: m.x * TILE + 8, y: m.y * TILE + 8, r: 1.2 * flicker, glow: 0.12, color: 0xffb04a });
+    }
     for (const c of this.world.chests) {
       if (this.grid.get(c.x, c.y) !== B.CHEST) continue;
       lights.push({ x: c.x * TILE + TILE / 2, y: c.y * TILE + TILE / 2, r: 1.3 * flicker, glow: 0.14, color: 0xffd86b });

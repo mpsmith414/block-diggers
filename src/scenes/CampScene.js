@@ -572,7 +572,8 @@ export class CampScene extends Phaser.Scene {
   depositArrivals() {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
-    const state = setState(this.registry, { ...depositPacks(getState(this.registry), packs), trips: (getState(this.registry).trips ?? 0) + 1 });
+    const hearts = this.arrived.hearts ?? 0;
+    const state = setState(this.registry, { ...depositPacks(getState(this.registry), packs, { hearts }), trips: (getState(this.registry).trips ?? 0) + 1 });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
     const eggs = this.arrived.eggs ?? [];
     this.time.delayedCall(flyTime + 400, () => {

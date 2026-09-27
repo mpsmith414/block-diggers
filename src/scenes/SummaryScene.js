@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { stickerById } from '../game/stickers.js';
 import { createEdge } from '../input/intents.js';
-import { MINE_H } from '../tuning.js';
+import { MINE_H, LAYERS, LAYER_COLORS } from '../tuning.js';
 import { shownOres } from '../game/ores.js';
 import { getState } from '../save/store.js';
 
@@ -73,10 +73,7 @@ export class SummaryScene extends Phaser.Scene {
     const barY = ry + 10;
     const bar = this.add.graphics();
     const seg = (from, to, color) => bar.fillStyle(color, 1).fillRect(barX + (from / MINE_H) * barW, barY, ((to - from) / MINE_H) * barW, 8);
-    seg(0, 41, 0x8a5a34);
-    seg(41, 96, 0x7d7d86);
-    seg(96, 149, 0x3f3d4f);
-    seg(149, MINE_H, 0x6a4fa8);
+    for (const [name, l] of Object.entries(LAYERS)) seg(name === 'dirt' ? 0 : l.top, l.bottom + 1, LAYER_COLORS[name]);
     c.add(bar);
     const marker = this.add.image(barX, barY + 4, `char-${this.chars[0]}`, 0).setScale(0.8);
     c.add(marker);

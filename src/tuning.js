@@ -19,6 +19,12 @@ export const LAYERS = {
   core: { top: 339, bottom: 388 },
 };
 
+// Each layer's colour on the depth meter and the trip summary.
+export const LAYER_COLORS = {
+  dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
+  dino: 0xd0a868, brick: 0xe0403a, meteor: 0x2a2860, core: 0xff7a2a,
+};
+
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
 export const ORE_VEINS = {
   dirt: { per1000: 20, weights: { coal: 1 } },
@@ -111,6 +117,9 @@ export const PUSH_TIME = 0.5; // seconds of pushing to roll a boulder
 export const GOLDEN_SLIME = 0.08;
 
 // ---- the player's own requests ----
+// the meteor field (and the Moon) have low gravity: big floaty jumps
+export const LOW_GRAVITY = 0.45;
+
 export const POWERUPS = {
   lavaTime: 8, // seconds as a lava monster
   drinkAfter: 1, // seconds in water before you start drinking

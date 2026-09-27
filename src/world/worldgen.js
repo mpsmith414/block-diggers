@@ -266,7 +266,7 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
 
   // the Heart of the World: a 3x3 gem in a chamber at the very bottom
   const hx = Math.floor(MINE_W / 2) - 1;
-  const hy = MINE_H - 6;
+  const hy = MINE_H - 5; // resting on the chamber floor
   for (let y = hy - 3; y <= MINE_H - 2; y++) for (let x = hx - 4; x <= hx + 6; x++) grid.set(x, y, B.AIR);
   for (let x = hx - 4; x <= hx + 6; x++) grid.set(x, MINE_H - 2, B.CORE);
   for (let y = hy; y <= hy + 2; y++) for (let x = hx; x <= hx + 2; x++) grid.set(x, y, B.HEART);

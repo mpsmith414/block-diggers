@@ -53,8 +53,9 @@ export function buildOnPlot(state, plot, id) {
   return { ...state, bank: spend(state.bank, bp.cost), plots };
 }
 
-export function depositPacks(state, packs) {
+export function depositPacks(state, packs, { hearts = 0 } = {}) {
   const bank = { ...state.bank };
   for (const pack of packs) for (const ore of ORES) bank[ore] = (bank[ore] ?? 0) + (pack[ore] ?? 0);
+  bank.heart = (bank.heart ?? 0) + hearts;
   return { ...state, bank };
 }

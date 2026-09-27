@@ -7,7 +7,9 @@ export function createDecorView(scene, decor) {
   const byCell = new Map();
   const key = (x, y) => `${x},${y}`;
   for (const d of decor) {
-    const img = scene.add.image(d.x * TILE, d.y * TILE, `decor-${d.kind}`, d.v).setOrigin(0).setDepth(11);
+    const img = d.kind === 'skeleton'
+      ? scene.add.image(d.x * TILE, (d.y + 1) * TILE, 'decor-skeleton', d.v).setOrigin(0, 1).setDepth(9).setAlpha(0.85)
+      : scene.add.image(d.x * TILE, d.y * TILE, `decor-${d.kind}`, d.v).setOrigin(0).setDepth(11);
     if (Math.random() < 0.5) img.setFlipX(true);
     if (d.kind === 'grass' || d.kind === 'flower') {
       scene.tweens.add({ targets: img, skewX: { from: -0.05, to: 0.05 }, duration: 1500 + Math.random() * 800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });

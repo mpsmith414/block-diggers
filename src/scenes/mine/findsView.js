@@ -3,7 +3,7 @@
 // fossils, and bubbles in the water.
 
 import { B } from '../../world/blocks.js';
-import { explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS } from '../../game/finds.js';
+import { explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft } from '../../game/finds.js';
 import { knockback, playerCell } from '../../game/player.js';
 import { createPickup } from '../../game/loot.js';
 import { overlaps } from '../../game/hazards.js';
@@ -29,6 +29,14 @@ export function createFindsView(scene) {
   });
 
   const together = scene.add.image(0, 0, 'icon-together').setDepth(64).setVisible(false);
+
+  // the Heart of the World: a big glowing gem over its 3x3 cells
+  const heart = world.heart ? {
+    ...world.heart,
+    s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, 'heart-big').setDepth(22),
+    left: 9,
+  } : null;
+  let hearts = 0;
 
   const burst = (x, y, ores, spread = 140) => {
     for (const ore of ores) {
@@ -202,10 +210,29 @@ export function createFindsView(scene) {
     }
   }
 
+  // All 9 cells dug: the Heart is yours! It floats up and rides home with you.
+  function winHeart() {
+    hearts++;
+    const s = heart.s;
+    scene.tweens.killTweensOf(s);
+    s.setAlpha(1).setScale(1);
+    scene.tweens.add({ targets: s, scale: 1.6, duration: 500, ease: 'Back.easeOut', yoyo: true, hold: 700 });
+    scene.tweens.add({ targets: s, y: s.y - 60, alpha: 0, delay: 1400, duration: 900, ease: 'Quad.easeIn', onComplete: () => s.destroy() });
+    for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 300, () => scene.effects.confetti(s.x + (i - 1) * 20, s.y));
+    scene.cameras.main.flash(300, 255, 180, 210);
+    scene.cameras.main.shake(300, 0.005);
+    burst(s.x, s.y, ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], 220);
+    earnSticker(scene, 'find-heart');
+    scene.events.emit('heart', heart);
+    heart.s = null;
+  }
+
   return {
     carried,
     eggs,
     light,
+    get hearts() { return hearts; },
+    heart,
 
     // A block was dug: geodes and fossils give their treasure.
     mined(m) {
@@ -224,10 +251,25 @@ export function createFindsView(scene) {
         burst(x, y, ['gold', 'gold'], 60);
         earnSticker(scene, `find-fossil-${FOSSIL_KINDS[v]}`);
         scene.events.emit('fossil', m);
+      } else if (m.id === B.METEORITE) {
+        burst(x, y, meteoriteLoot(scene.rng), 150);
+        scene.effects.sparkle(x, y, 0xffe066, 14);
+        scene.cameras.main.flash(100, 255, 240, 180);
+        earnSticker(scene, 'find-meteorite');
+        scene.events.emit('meteorite', m);
+      } else if (m.id === B.HEART && heart) {
+        heart.left = heartLeft(grid, heart);
+        scene.effects.sparkle(x, y, 0xff8ab0, 10);
+        scene.events.emit('heartChip', m);
+        if (heart.left === 0) winHeart();
       }
     },
 
     update(dt, time) {
+      if (heart && heart.s) {
+        // it pulses gently, and fades as you dig it free
+        heart.s.setScale(1 + Math.sin(time / 300) * 0.04).setAlpha(0.35 + (heart.left / 9) * 0.65);
+      }
       updateBooms(dt, time);
       const lonely = updateBoulders(dt);
       const chestNeedsTwo = updateBigChest();

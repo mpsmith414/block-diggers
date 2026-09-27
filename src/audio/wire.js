@@ -29,6 +29,11 @@ const MINE = {
   cooldown: (s) => s.play('hiss'),
   glug: (s) => s.play('glug'),
   burp: (s) => s.play('burp'),
+  spring: (s) => s.play('boing'),
+  discover: (s) => s.play('fanfare'),
+  heart: (s) => s.play('heart'),
+  heartChip: (s) => s.play('crack'),
+  meteorite: (s) => s.play('crack'),
 };
 
 const CAMP = {

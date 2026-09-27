@@ -55,6 +55,20 @@ export function geodeLoot(row, rng) {
 
 export const FOSSIL_KINDS = ['shell', 'bone', 'dino'];
 
+// A meteorite cracks open into a shower of star shards (and sometimes a diamond).
+export function meteoriteLoot(rng) {
+  const loot = Array.from({ length: rng.int(5, 7) }, () => 'star');
+  if (rng.chance(0.4)) loot.push('diamond');
+  return loot;
+}
+
+// How many of the Heart of the World's 9 cells are still in the rock.
+export function heartLeft(grid, heart) {
+  let n = 0;
+  for (let y = heart.y; y < heart.y + 3; y++) for (let x = heart.x; x < heart.x + 3; x++) if (grid.get(x, y) === B.HEART) n++;
+  return n;
+}
+
 export function bigChestLoot(row, rng) {
   const ore = row > LAYERS.stone.bottom ? rng.pick(['diamond', 'emerald']) : 'gold';
   return Array.from({ length: rng.int(8, 12) }, () => ore);

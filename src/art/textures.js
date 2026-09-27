@@ -12,6 +12,7 @@ import { drawPets } from './pets.js';
 import { drawFriends } from './friends.js';
 import { drawDecorItems } from './decorItems.js';
 import { drawAdventures } from './adventures.js';
+import { drawDeep, toyBrick } from './deep.js';
 
 const T = 16;
 
@@ -27,14 +28,21 @@ export const ORE_COLORS = {
 };
 
 // Background (back wall) tiles live after the block tiles in the tileset.
-export const BACK = { dirt: BLOCK_COUNT, stone: BLOCK_COUNT + 1, deep: BLOCK_COUNT + 2, crystal: BLOCK_COUNT + 3 };
-const TILE_FRAMES = BLOCK_COUNT + 4;
+export const BACK = {
+  dirt: BLOCK_COUNT, stone: BLOCK_COUNT + 1, deep: BLOCK_COUNT + 2, crystal: BLOCK_COUNT + 3,
+  dino: BLOCK_COUNT + 4, brick: BLOCK_COUNT + 5, meteor: BLOCK_COUNT + 6, core: BLOCK_COUNT + 7, moon: BLOCK_COUNT + 8,
+};
+const TILE_FRAMES = BLOCK_COUNT + 9;
 
 const HOSTS = {
   [B.DIRT]: { base: '#8a5a34', dark: '#6b4424', light: '#a3703f' },
   [B.STONE]: { base: '#7d7d86', dark: '#5f5f68', light: '#9a9aa3' },
   [B.DEEP]: { base: '#3f3d4f', dark: '#2d2b3a', light: '#555368' },
   [B.CRYSTAL]: { base: '#4b3f8a', dark: '#3a2f6e', light: '#8a7fe0' },
+  [B.SAND]: { base: '#c0985a', dark: '#a07c46', light: '#d8b47a' },
+  [B.METEOR]: { base: '#1e1c3a', dark: '#141230', light: '#34305e' },
+  [B.CORE]: { base: '#5a2418', dark: '#3e160e', light: '#7a3420' },
+  [B.MOONROCK]: { base: '#b8b8c8', dark: '#9898aa', light: '#dcdcea' },
 };
 
 function canvasTexture(scene, key, w, h) {
@@ -206,6 +214,8 @@ function drawTiles(scene) {
   rect(ctx, '#f5c629', cx + 7, 8, 2, 4);
   rect(ctx, '#3d2410', cx + 1, 9, 14, 1);
 
+  drawDeepTiles(ctx, at, rng);
+
   // back walls: darker, low-contrast versions of each host rock
   const back = (frame, pal) => {
     speckle(ctx, frame * T, rng, pal, 4);
@@ -214,6 +224,21 @@ function drawTiles(scene) {
   back(BACK.stone, { base: '#34343b', dark: '#2a2a30', light: '#3d3d45' });
   back(BACK.deep, { base: '#1c1b25', dark: '#15141c', light: '#23222e' });
   back(BACK.crystal, { base: '#221a3e', dark: '#1a1432', light: '#2c2350' });
+  back(BACK.dino, { base: '#4a3620', dark: '#3a2a18', light: '#56402a' });
+  for (let y = 5; y < T; y += 6) rect(ctx, '#3e2e1a', BACK.dino * T, y, T, 1);
+  // brick wall at the back: faint toy bricks
+  rect(ctx, '#2a2036', BACK.brick * T, 0, T, T);
+  for (let row = 0; row < 4; row++) {
+    for (let k = -1; k < 2; k++) {
+      const x = k * 8 + (row % 2) * 4;
+      rect(ctx, '#342a44', BACK.brick * T + Math.max(0, x), row * 4, Math.min(7, 7 + Math.min(0, x), T - x), 3);
+    }
+  }
+  back(BACK.meteor, { base: '#0c0a1e', dark: '#08071a', light: '#141230' });
+  for (const [x, y] of [[3, 4], [11, 2], [7, 12], [13, 10]]) rect(ctx, '#5a5690', BACK.meteor * T + x, y);
+  back(BACK.core, { base: '#2e120c', dark: '#220c08', light: '#3a1a10' });
+  rect(ctx, '#4a1a0e', BACK.core * T + 4, 9, 5, 1);
+  back(BACK.moon, { base: '#44445a', dark: '#383848', light: '#50506a' });
 
   const P = T + TILE_SPACING;
   const { tex, ctx: out } = canvasTexture(scene, 'tiles', TILE_MARGIN * 2 + P * TILE_FRAMES - TILE_SPACING, T + TILE_MARGIN * 2);
@@ -228,6 +253,141 @@ function drawTiles(scene) {
     tex.add(i, 0, dx, dy, T, T);
   }
   tex.refresh();
+}
+
+// The deeper world's rock: sand, toy bricks, space rock, the core, the Moon.
+function drawDeepTiles(ctx, at, rng) {
+  // sandstone with bands
+  const sand = (id) => {
+    speckle(ctx, at(id), rng, HOSTS[B.SAND], 6);
+    rect(ctx, '#ab8650', at(id), 4, T, 1);
+    rect(ctx, '#ab8650', at(id), 11, T, 1);
+    rect(ctx, '#dcbc84', at(id), 5, T, 1);
+  };
+  sand(B.SAND);
+  sand(B.AMBER);
+  // amber: honey drops with a bug inside one
+  for (const [x, y] of [[3, 2], [10, 7], [4, 11]]) {
+    rect(ctx, '#b8701a', at(B.AMBER) + x, y, 4, 4);
+    rect(ctx, '#f0a030', at(B.AMBER) + x, y, 3, 3);
+    rect(ctx, '#ffe0a0', at(B.AMBER) + x, y, 1, 1);
+  }
+  rect(ctx, '#5a3010', at(B.AMBER) + 11, 8, 1, 1);
+
+  // toy brick wall: offset rows of chunky bricks in soft toy colours
+  // muted, so the bright red ore bricks and the caves stand out
+  const BRICK_TONES = [['#7a5058', '#8e6068', '#523640'], ['#4e5a7a', '#5e6c8e', '#363e56'], ['#7a6c4a', '#8e8058', '#544a32'], ['#4e6a58', '#5e7e68', '#36483e']];
+  const brickWall = (id) => {
+    const ox = at(id);
+    rect(ctx, '#2a2230', ox, 0, T, T);
+    let n = 0;
+    for (let row = 0; row < 4; row++) {
+      for (let k = -1; k < 2; k++) {
+        const x0 = Math.max(0, k * 8 + (row % 2) * 4);
+        const x1 = Math.min(T, k * 8 + (row % 2) * 4 + 8);
+        if (x1 - x0 < 2) continue;
+        const [c, hi, dark] = BRICK_TONES[(row * 3 + k + 1 + n++) % 4];
+        rect(ctx, dark, ox + x0, row * 4, x1 - x0 - 1, 3);
+        rect(ctx, c, ox + x0, row * 4, x1 - x0 - 1, 2);
+        rect(ctx, hi, ox + x0, row * 4, x1 - x0 - 1, 1);
+      }
+    }
+  };
+  brickWall(B.BRICKS);
+  brickWall(B.BRICK_ORE);
+  // the ore: a bright red toy brick poking out, with studs
+  rect(ctx, '#3a2e3e', at(B.BRICK_ORE) + 2, 5, 12, 8);
+  toyBrick(ctx, rect, at(B.BRICK_ORE) + 3, 8, 10, ['#ff3a2a', '#ffb0a0', '#8a1010']);
+  rect(ctx, '#ffffff', at(B.BRICK_ORE) + 4, 8, 2, 1);
+
+  // spring: a bouncy green pad on a coil
+  {
+    const ox = at(B.SPRING);
+    brickWall(B.SPRING);
+    rect(ctx, '#3a2e3e', ox + 1, 0, 14, 12);
+    for (let k = 0; k < 4; k++) rect(ctx, '#d4dce6', ox + (k % 2 ? 4 : 6), 4 + k * 2, 6, 1);
+    rect(ctx, '#8a94a8', ox + 3, 11, 10, 1);
+    rect(ctx, '#2f8a3a', ox, 0, T, 4);
+    rect(ctx, '#6ae07a', ox, 0, T, 3);
+    rect(ctx, '#c8ffc8', ox + 1, 0, 14, 1);
+  }
+
+  // meteor field rock: dark blue with tiny stars and a crater
+  const spaceRock = (id) => {
+    // (the twinkling stars are added in the mine, so they don't repeat in a grid)
+    speckle(ctx, at(id), rng, HOSTS[B.METEOR], 5);
+    rect(ctx, '#3e3a70', at(id) + 4, 3);
+    rect(ctx, '#0e0c24', at(id) + 9, 10, 4, 2);
+    rect(ctx, '#3a3668', at(id) + 9, 12, 4, 1);
+  };
+  spaceRock(B.METEOR);
+  spaceRock(B.STAR);
+  // star shards: two chunky glowing stars
+  for (const [x, y] of [[1, 1], [8, 8]]) {
+    const ox = at(B.STAR) + x;
+    rect(ctx, 'rgba(255,224,102,0.35)', ox, y + 1, 7, 5);
+    rect(ctx, '#ffe066', ox + 3, y, 1, 7);
+    rect(ctx, '#ffe066', ox, y + 3, 7, 1);
+    rect(ctx, '#ffe066', ox + 2, y + 2, 3, 3);
+    rect(ctx, '#fffbe0', ox + 3, y + 2, 1, 3);
+    rect(ctx, '#fffbe0', ox + 2, y + 3, 3, 1);
+  }
+  // meteorite: a scorched lump with glowing star bits
+  spaceRock(B.METEORITE);
+  {
+    const ox = at(B.METEORITE);
+    rect(ctx, '#0a0816', ox + 2, 3, 12, 10);
+    rect(ctx, '#0a0816', ox + 3, 2, 10, 12);
+    rect(ctx, '#4a3040', ox + 3, 3, 10, 10);
+    rect(ctx, '#6a4050', ox + 4, 4, 4, 2);
+    for (const [x, y] of [[5, 7], [9, 5], [8, 10]]) {
+      rect(ctx, '#ff8a3a', ox + x, y, 2, 2);
+      rect(ctx, '#ffe066', ox + x, y, 1, 1);
+    }
+  }
+
+  // the core: warm rock with glowing cracks
+  const coreRock = (id) => {
+    speckle(ctx, at(id), rng, HOSTS[B.CORE], 6);
+    rect(ctx, '#ff6a2a', at(id) + 2, 5, 4, 1);
+    rect(ctx, '#ff6a2a', at(id) + 5, 6, 1, 3);
+    rect(ctx, '#ffb34a', at(id) + 5, 6, 1, 1);
+    rect(ctx, '#ff6a2a', at(id) + 10, 11, 4, 1);
+    rect(ctx, '#ffd23f', at(id) + 12, 11, 1, 1);
+  };
+  coreRock(B.CORE);
+  // the Heart's cells: core rock with pink veins (the big gem is drawn over them)
+  {
+    const ox = at(B.HEART);
+    speckle(ctx, ox, rng, HOSTS[B.CORE], 6);
+    rect(ctx, '#ff5a8a', ox + 2, 4, 5, 1);
+    rect(ctx, '#ff5a8a', ox + 6, 5, 1, 4);
+    rect(ctx, '#ffb0c8', ox + 6, 5, 1, 1);
+    rect(ctx, '#ff5a8a', ox + 9, 12, 5, 1);
+    rect(ctx, '#ffb0c8', ox + 12, 12, 1, 1);
+  }
+
+  // the Moon: pale rock with craters; space crystals; moon cheese
+  const moonRock = (id) => {
+    speckle(ctx, at(id), rng, HOSTS[B.MOONROCK], 5);
+    rect(ctx, '#8a8a9c', at(id) + 3, 4, 5, 1);
+    rect(ctx, '#8a8a9c', at(id) + 2, 5, 1, 2);
+    rect(ctx, '#ececf6', at(id) + 3, 7, 5, 1);
+    rect(ctx, '#8a8a9c', at(id) + 10, 11, 3, 1);
+  };
+  moonRock(B.MOONROCK);
+  moonRock(B.SPACE_CRYSTAL);
+  oreNuggets(ctx, at(B.SPACE_CRYSTAL), rng, 'diamond');
+  {
+    const ox = at(B.CHEESE);
+    rect(ctx, '#e0b030', ox, 0, T, T);
+    rect(ctx, '#ffd84a', ox, 0, T, 15);
+    rect(ctx, '#fff0a0', ox, 0, T, 1);
+    for (const [x, y, r] of [[4, 5, 2], [11, 3, 1], [10, 10, 2], [3, 12, 1]]) {
+      rect(ctx, '#d09a20', ox + x - r, y - r + 1, r * 2, r * 2 - 1);
+      rect(ctx, '#d09a20', ox + x - r + 1, y - r, r * 2 - 2, r * 2 + 1);
+    }
+  }
 }
 
 function drawCracks(scene) {
@@ -490,4 +650,5 @@ export function drawTextures(scene) {
   drawFriends(scene, canvasTexture, rect);
   drawDecorItems(scene, canvasTexture, rect);
   drawAdventures(scene, canvasTexture, rect);
+  drawDeep(scene, canvasTexture, rect);
 }
