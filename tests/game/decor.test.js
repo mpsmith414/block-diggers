@@ -77,6 +77,6 @@ describe('brick decorations', () => {
     expect(decorUnlocked(s, 'lamp')).toBe(true);
   });
   it('a trophy for every sticker page', () => {
-    for (let i = 0; i < 9; i++) expect(decorById(`trophy-${i}`)).toBeTruthy();
+    for (let i = 0; i < 10; i++) expect(decorById(`trophy-${i}`)).toBeTruthy();
   });
 });

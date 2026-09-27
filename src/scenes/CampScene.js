@@ -323,7 +323,7 @@ export class CampScene extends Phaser.Scene {
       char,
       p: createPlayer(start),
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
-      edges: { a: createEdge(), b: createEdge(), left: createEdge(), right: createEdge(), down: createEdge() },
+      edges: { a: createEdge(), b: createEdge(), y: createEdge(), left: createEdge(), right: createEdge(), down: createEdge() },
       walkT: 0,
     };
     this.avatars[slot] = a;
@@ -362,7 +362,9 @@ export class CampScene extends Phaser.Scene {
         left: a.edges.left(i.moveX < -0.5),
         right: a.edges.right(i.moveX > 0.5),
         down: a.edges.down(i.moveY > 0.5),
+        y: a.edges.y(!!i.bubble),
       };
+      if (e.y && !this.leaving) this.campPets.trick(a);
       const picking = hud.picker && hud.picker.slot === slot;
       const zone = this.zoneOf(a);
       if (picking) {

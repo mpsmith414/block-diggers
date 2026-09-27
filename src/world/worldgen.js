@@ -7,7 +7,7 @@ import { createGrid } from './grid.js';
 import { B, isSolid } from './blocks.js';
 import {
   MINE_W, MINE_H, SHAFT_X, SHAFT_DEPTH, LAYERS, ORE_VEINS, VEIN_SIZE,
-  GRAVEL_POCKETS, CAVES, LAVA_POOLS, CHESTS, FINDS,
+  GRAVEL_POCKETS, CAVES, LAVA_POOLS, CHESTS, FINDS, SILLY,
 } from '../tuning.js';
 
 export const HOST = {
@@ -305,7 +305,22 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     decor.push({ x: c.x, y: c.y, on: 'wall', kind: 'skeleton', v: rng.int(0, 1) });
   }
 
-  return { grid, chests, decor, eggs, bigChest, boulders, fossils, heart, spawn: { x: SHAFT_X, y: -1 }, seed };
+  // joke finds, placed last: rubber ducks bobbing on pools, whoopee cushions on floors
+  const pondTops = [];
+  for (let y = 1; y < MINE_H - 1; y++) {
+    for (let x = 1; x < MINE_W - 1; x++) if (grid.get(x, y) === B.WATER && grid.get(x, y - 1) === B.AIR) pondTops.push({ x, y });
+  }
+  const ducks = [];
+  for (let i = 0; i < SILLY.ducks * 4 && ducks.length < SILLY.ducks && pondTops.length; i++) {
+    const c = rng.pick(pondTops);
+    if (!ducks.some((d) => Math.abs(d.x - c.x) + Math.abs(d.y - c.y) < 6)) ducks.push(c);
+  }
+  const cushions = takeSpots(
+    floors(LAYERS.dirt.top + 2, LAYERS.crystal.bottom).filter((c) => safe(c) && Math.abs(c.x - SHAFT_X) > 1),
+    SILLY.cushions, 14,
+  );
+
+  return { grid, chests, decor, eggs, bigChest, boulders, fossils, heart, ducks, cushions, spawn: { x: SHAFT_X, y: -1 }, seed };
 }
 
 // The minecart station: a little room at `row` to start a trip in. Returns the

@@ -31,6 +31,13 @@ const MINE = {
   burp: (s) => s.play('burp'),
   spring: (s) => s.play('boing'),
   rawr: (s) => s.play('rawr'),
+  quack: (s) => s.play('quack'),
+  sock: (s) => s.play('peeyew'),
+  pffbt: (s) => s.play('pffbt'),
+  achoo: (s) => s.play('achoo'),
+  dizzy: (s) => s.play('dizzy'),
+  trick: (s) => s.play('trick'),
+  critter: (s, voice) => s.play(voice),
   discover: (s) => s.play('fanfare'),
   heart: (s) => s.play('heart'),
   heartChip: (s) => s.play('crack'),
@@ -57,6 +64,7 @@ const CAMP = {
   thanks: (s) => s.play('egg'),
   glug: (s) => s.play('glug'),
   burp: (s) => s.play('burp'),
+  trick: (s) => s.play('trick'),
 };
 
 const MENU = {

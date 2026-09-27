@@ -2,10 +2,11 @@ import Phaser from 'phaser';
 import { generateMine, carveStation } from '../world/worldgen.js';
 import { generateMoon } from '../world/moon.js';
 import { createRng } from '../world/rng.js';
-import { B, dropOf } from '../world/blocks.js';
+import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
 import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
+import { createSneeze, addDust, createFall, trackFall, chestSock } from '../game/silly.js';
 import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
@@ -29,7 +30,7 @@ import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
-  LAYERS, LOW_GRAVITY,
+  LAYERS, LOW_GRAVITY, SILLY,
 } from '../tuning.js';
 
 const GLINT_COLORS = {
@@ -199,6 +200,11 @@ export class MineScene extends Phaser.Scene {
       invuln: 0,
       pu: createPowerups(),
       emberT: 0,
+      sneeze: createSneeze(this.rng),
+      sneezeT: 0,
+      fall: createFall(),
+      dizzyT: 0,
+      stars: [0, 1, 2].map(() => this.add.image(0, 0, 'dizzy-star').setDepth(33).setVisible(false)),
       bubbleEdge: createEdge(),
       homeHold: createHoldTimer(HOME_HOLD_MS),
       ring: this.add.graphics().setDepth(63),
@@ -289,6 +295,8 @@ export class MineScene extends Phaser.Scene {
         const wantsBubble = a.bubbleEdge(intent.bubble);
         if (partner && wantsBubble && Math.hypot(partner.p.x - a.p.x, partner.p.y - a.p.y) > BUBBLE.minDistance) {
           this.startBubble(a);
+        } else if (!partner && wantsBubble) {
+          this.pets.trick(); // playing alone, Y makes the pets do a trick
         }
       }
       this.drawAvatar(a, dt, time);
@@ -441,8 +449,10 @@ export class MineScene extends Phaser.Scene {
     // drinking: stand still and glug
     const row = (a.p.y + PLAYER.h / 2) / TILE;
     const floaty = this.moon || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom);
-    const r = stepPlayer(a.p, mul.drinking ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
+    const still = mul.drinking || a.sneezeT > 0; // drinking or sneezing: stand still
+    const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk, gravityMul: floaty ? LOW_GRAVITY : 1 });
+    this.stepSilly(a, dt, floaty);
     if (r.sprung) {
       this.events.emit('spring', a);
       earnSticker(this, 'find-spring');
@@ -459,6 +469,7 @@ export class MineScene extends Phaser.Scene {
       this.decor.mined(m.x, m.y);
       this.finds.mined(m);
       if (m.id === B.MOONROCK) earnSticker(this, 'moon-rock');
+      if (addDust(a.sneeze, hardnessOf(m.id), this.rng) && a.sneezeT <= 0) this.startSneeze(a);
       this.dugCount++;
       if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
     }
@@ -486,6 +497,48 @@ export class MineScene extends Phaser.Scene {
       this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xfff2a0, 3);
       this.events.emit('oreCollected', { slot: a.slot, ore });
     }
+  }
+
+  // ---- silly things ----
+
+  startSneeze(a) {
+    a.sneezeT = 0.9;
+    this.events.emit('achoo', a);
+  }
+
+  stepSilly(a, dt, floaty) {
+    // sneeze: lean back ("ah... ah..."), then ACHOO with a dust cloud
+    if (a.sneezeT > 0) {
+      const before = a.sneezeT;
+      a.sneezeT -= dt;
+      if (before > 0.45 && a.sneezeT <= 0.45) {
+        const f = a.p.facing;
+        const cloud = this.add.image(a.sprite.x + f * 14, a.sprite.y - 10, 'achoo').setDepth(41).setFlipX(f < 0).setScale(0.4);
+        this.tweens.add({ targets: cloud, scale: 1.6, x: cloud.x + f * 10, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => cloud.destroy() });
+        if (a.p.grounded) a.p.vy = -90;
+        this.cameras.main.shake(80, 0.002);
+        earnSticker(this, 'silly-sneeze');
+      }
+    }
+    // dizzy after a big fall (not in the floaty low gravity, where big falls are normal)
+    if (a.bubbling || floaty) a.fall = createFall();
+    else if (trackFall(a.fall, a.p) === 'dizzy') {
+      a.dizzyT = SILLY.dizzyTime;
+      this.events.emit('dizzy', a);
+      earnSticker(this, 'silly-dizzy');
+    }
+    a.dizzyT = Math.max(0, a.dizzyT - dt);
+  }
+
+  // a smelly sock pops out of a chest, with stink lines
+  sockPop(x, y) {
+    const sock = this.add.image(x, y, 'sock').setDepth(42);
+    const lines = [0, 1].map((i) => this.add.image(x, y, 'stink').setDepth(42).setAlpha(0));
+    this.tweens.add({ targets: sock, y: y - 22, angle: 200, duration: 450, ease: 'Quad.easeOut' });
+    lines.forEach((l, i) => this.tweens.add({ targets: l, alpha: 0.9, y: y - 36 - i * 4, x: x + (i ? 5 : -5), delay: 450, duration: 600, yoyo: true, hold: 700 }));
+    this.tweens.add({ targets: sock, alpha: 0, delay: 2200, duration: 400, onComplete: () => { sock.destroy(); lines.forEach((l) => l.destroy()); } });
+    this.events.emit('sock');
+    earnSticker(this, 'silly-sock');
   }
 
   giveOre(a, ore, cx, cy) {
@@ -614,6 +667,7 @@ export class MineScene extends Phaser.Scene {
     }
     this.effects.sparkle(x, y, 0xffe066, 8);
     this.cameras.main.flash(120, 255, 230, 150);
+    if (chestSock(this.rng)) this.time.delayedCall(300, () => this.sockPop(x, y));
     this.trip.chests++;
     this.events.emit('chestOpened', { x: cx, y: cy });
   }
@@ -666,8 +720,16 @@ export class MineScene extends Phaser.Scene {
     } else if (!a.bonkFlash) {
       sprite.clearTint();
     }
-    // drinking: tip the head down
-    sprite.setAngle(a.pu.drinking > 0 ? a.p.facing * 18 + Math.sin(time / 60) * 4 : 0);
+    // drinking: tip the head down; sneezing: lean back, then forward; dizzy: wobble
+    let angle = a.pu.drinking > 0 ? a.p.facing * 18 + Math.sin(time / 60) * 4 : 0;
+    if (a.sneezeT > 0.45) angle = -a.p.facing * 14;
+    else if (a.sneezeT > 0) angle = a.p.facing * 16;
+    if (a.dizzyT > 0) angle += Math.sin(time / 90) * 10;
+    sprite.setAngle(angle);
+    a.stars.forEach((s, i) => {
+      const t = time / 220 + (i * Math.PI * 2) / 3;
+      s.setVisible(a.dizzyT > 0).setPosition(sprite.x + Math.cos(t) * 8, sprite.y - 18 + Math.sin(t) * 3).setDepth(Math.sin(t) > 0 ? 33 : 29);
+    });
     const digging = p.mining && p.mining.need !== Infinity;
     this.drawPick(a, time);
     this.dust(a, dt);

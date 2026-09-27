@@ -7,6 +7,7 @@ import { sniff, follow, nearestPickup, roarTargets } from '../../game/pets.js';
 import { addOre } from '../../game/loot.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
+import { playTrick, trickOffset } from '../common/petTricks.js';
 import { TILE, PLAYER, PETS } from '../../tuning.js';
 
 export function createPetsView(scene, kinds) {
@@ -47,6 +48,12 @@ export function createPetsView(scene, kinds) {
 
   function roar(pet, near) {
     scene.events.emit('rawr', pet);
+    // a big stomp: the ground shakes and dust flies
+    scene.cameras.main.shake(160, 0.004);
+    for (const dx of [-6, 6]) {
+      const d = scene.add.image(pet.pos.x + dx, pet.pos.y + 5, 'smoke').setDepth(30).setScale(0.6).setTint(0xd8c8b0);
+      scene.tweens.add({ targets: d, x: d.x + dx * 2, y: d.y - 4, scale: 1.4, alpha: 0, duration: 450, onComplete: () => d.destroy() });
+    }
     pet.sprite.setScale(1.4);
     scene.tweens.add({ targets: pet.sprite, scale: 1, duration: 300, ease: 'Back.easeOut' });
     for (let i = 0; i < 2; i++) {
@@ -62,6 +69,9 @@ export function createPetsView(scene, kinds) {
   return {
     has: (kind) => kinds.includes(kind),
     sprites: () => pets.map((p) => p.sprite),
+    trick() {
+      for (const pet of pets) playTrick(scene, pet);
+    },
     // extra light from the glow-bug
     lights() {
       return pets.filter((p) => p.kind === 'glowbug' && p.placed)
@@ -116,7 +126,9 @@ export function createPetsView(scene, kinds) {
           pet.placed = true;
         }
         follow(pet.pos, target, dt, pet.carrying ? PETS.speed * 1.4 : PETS.speed);
-        pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y))
+        const tr = trickOffset(pet, dt);
+        pet.sprite.setAngle(tr.angle);
+        pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y + tr.y))
           .setFrame(Math.floor(time / (WALKERS.includes(pet.kind) ? 180 : 110)) % 2)
           .setFlipX(target.x < pet.pos.x - 1);
         pet.sprite.setVisible(!a.bubbling && !scene.goingHome);

@@ -126,6 +126,38 @@ export function createSfx(audio) {
       ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: 0.12 + i * 0.07 }));
     },
     wobble() { tone({ type: 'sine', freq: 300, to: 360, dur: 0.1, gain: 0.06 }); },
+    // ---- silly noises (all gentle) ----
+    quack() {
+      tone({ type: 'sawtooth', freq: 620, to: 480, dur: 0.12, gain: 0.06 });
+      tone({ type: 'square', freq: 900, to: 700, dur: 0.1, gain: 0.03, at: 0.02 });
+      tone({ type: 'sawtooth', freq: 600, to: 440, dur: 0.14, gain: 0.06, at: 0.18 });
+    },
+    peeyew() {
+      tone({ type: 'sine', freq: 1200, to: 300, dur: 0.7, gain: 0.08 });
+      tone({ type: 'triangle', freq: 1210, to: 310, dur: 0.7, gain: 0.04 });
+    },
+    pffbt() {
+      noise({ dur: 0.5, gain: 0.14, freq: 180, to: 90, q: 6, type: 'bandpass' });
+      tone({ type: 'sawtooth', freq: 95, to: 70, dur: 0.5, gain: 0.07 });
+      tone({ type: 'square', freq: 140, to: 60, dur: 0.15, gain: 0.03, at: 0.4 });
+    },
+    achoo() {
+      tone({ type: 'sine', freq: 500, to: 800, dur: 0.35, gain: 0.05 });
+      noise({ dur: 0.4, gain: 0.14, freq: 3000, to: 900, q: 0.9, type: 'bandpass', at: 0.4 });
+      tone({ type: 'triangle', freq: 700, to: 250, dur: 0.25, gain: 0.07, at: 0.4 });
+    },
+    dizzy() {
+      [0, 0.18, 0.36].forEach((at) => tone({ type: 'sine', freq: 1500, to: 1900, dur: 0.1, gain: 0.05, at }));
+    },
+    giggle() {
+      [0, 0.1, 0.2, 0.3].forEach((at, i) => tone({ type: 'triangle', freq: 900 + i * 60, to: 1100 + i * 60, dur: 0.07, gain: 0.05, at }));
+    },
+    caw() { tone({ type: 'sawtooth', freq: 700, to: 420, dur: 0.22, gain: 0.04 }); },
+    squeak() { tone({ type: 'sine', freq: 2200, to: 2600, dur: 0.06, gain: 0.03 }); },
+    whirr() { tone({ type: 'square', freq: 220, to: 260, dur: 0.3, gain: 0.025 }); },
+    blorp() { tone({ type: 'sine', freq: 180, to: 420, dur: 0.14, gain: 0.06 }); },
+    crackle() { noise({ dur: 0.18, gain: 0.05, freq: 5000, q: 1.5, type: 'highpass' }); },
+    trick() { ['C6', 'E6', 'G6', 'E6', 'C7'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.12, gain: 0.06, at: i * 0.07 })); },
     rawr() {
       tone({ type: 'sawtooth', freq: 320, to: 180, dur: 0.35, gain: 0.07 });
       tone({ type: 'square', freq: 480, to: 260, dur: 0.3, gain: 0.04 });

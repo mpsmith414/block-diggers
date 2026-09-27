@@ -120,6 +120,15 @@ export const GOLDEN_SLIME = 0.08;
 // the meteor field (and the Moon) have low gravity: big floaty jumps
 export const LOW_GRAVITY = 0.45;
 
+// the silly things
+export const SILLY = {
+  sneezeMin: 18, sneezeMax: 30, // dusty blocks dug between sneezes
+  dizzyRows: 6, dizzyTime: 1.5,
+  sockChance: 0.2,
+  ducks: 3, cushions: 4, cushionFlat: 3,
+  voiceEvery: [4, 9], // seconds between creature noises
+};
+
 export const POWERUPS = {
   lavaTime: 8, // seconds as a lava monster
   drinkAfter: 1, // seconds in water before you start drinking

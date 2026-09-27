@@ -35,6 +35,13 @@ export function createDecorView(camp) {
           },
         });
         parts.push(fish);
+        // once you've found a rubber duck in the mine, one floats here
+        if (getState(camp.registry).stickers['silly-duck']) {
+          const duck = camp.add.image(d.x + 6, groundY - 1, 'duck').setOrigin(0.5, 1).setDepth(12);
+          camp.tweens.add({ targets: duck, y: groundY, angle: { from: -6, to: 6 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+          camp.tweens.add({ targets: duck, x: d.x - 6, duration: 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', onYoyo: () => duck.setFlipX(!duck.flipX), onRepeat: () => duck.setFlipX(!duck.flipX) });
+          parts.push(duck);
+        }
       }
       if (look.glow && (night || !look.nightOnly)) {
         const glow = camp.add.image(d.x, groundY - look.glowY, 'light').setTint(look.glow)

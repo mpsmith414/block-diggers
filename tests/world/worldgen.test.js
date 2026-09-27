@@ -304,3 +304,28 @@ describe('dino eggs', () => {
     expect(m.eggs.some((e) => e.kind === 'rex' || e.kind === 'trike')).toBe(false);
   });
 });
+
+describe('joke finds in the mine', () => {
+  it('rubber ducks float on pools: on water, with air above', () => {
+    for (const { grid, ducks } of mines) {
+      expect(ducks.length).toBeLessThanOrEqual(3);
+      for (const d of ducks) {
+        expect(grid.get(d.x, d.y)).toBe(B.WATER);
+        expect(grid.get(d.x, d.y - 1)).toBe(B.AIR);
+      }
+    }
+    expect(mines.some((m) => m.ducks.length > 0)).toBe(true);
+  });
+  it('4 whoopee cushions on cave floors, from the dirt to the crystal caverns', () => {
+    for (const { grid, cushions, chests, eggs } of mines) {
+      expect(cushions).toHaveLength(4);
+      for (const c of cushions) {
+        expect(grid.get(c.x, c.y)).toBe(B.AIR);
+        expect(isSolid(grid.get(c.x, c.y + 1))).toBe(true);
+        expect(c.y).toBeGreaterThanOrEqual(1);
+        expect(c.y).toBeLessThanOrEqual(188);
+        expect([...chests, ...eggs].some((o) => o.x === c.x && o.y === c.y)).toBe(false);
+      }
+    }
+  });
+});
