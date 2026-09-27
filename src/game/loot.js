@@ -96,3 +96,21 @@ export function attractPickups(list, center, pack, dt) {
     p.vy = 0;
   }
 }
+
+// A bonk knocks up to `max` ores out of the pack (random, by how many you hold).
+export function scatterOres(pack, rng, max = 3) {
+  const out = [];
+  while (out.length < max && pack.count > 0) {
+    let r = rng.int(1, pack.count);
+    for (const ore of ORES) {
+      r -= pack.ores[ore];
+      if (r <= 0) {
+        pack.ores[ore]--;
+        pack.count--;
+        out.push(ore);
+        break;
+      }
+    }
+  }
+  return out;
+}

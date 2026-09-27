@@ -12,8 +12,16 @@ export function createPlayer({ x, y }) {
   return {
     x, y, vx: 0, vy: 0,
     grounded: false, climbing: false, facing: 1,
-    mining: null, jumpHeld: false,
+    mining: null, jumpHeld: false, knock: null,
   };
+}
+
+// Bonked: fly back a little, away from `dir`'s opposite (dir = -1 pushes left).
+export function knockback(p, dir) {
+  p.knock = { vx: dir * PLAYER.knockSpeed, t: PLAYER.knockTime };
+  p.vy = -PLAYER.knockLift;
+  p.mining = null;
+  p.climbing = false;
 }
 
 // Top-left pixel position that stands a player on the floor of cell (cx, cy).
@@ -44,6 +52,13 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt }) {
   const out = { mined: [], bounced: false, stepped: false };
   let ix = intent.moveX || 0;
   let iy = intent.moveY || 0;
+  const knocked = p.knock && p.knock.t > 0;
+  if (knocked) {
+    p.knock.t -= dt;
+    ix = 0;
+    iy = 0;
+    intent = { ...intent, jump: false };
+  }
   if (Math.abs(iy) > Math.abs(ix)) ix = 0;
   else iy = 0;
   if (ix) p.facing = Math.sign(ix);
@@ -83,7 +98,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt }) {
   } else {
     p.vy = Math.min(PLAYER.maxFall, p.vy + PLAYER.gravity * dt);
   }
-  p.vx = ix * PLAYER.walkSpeed;
+  p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed;
   // Stepping sideways off a ladder: line up with the row first, so the box
   // doesn't straddle two rows and snag on the one we didn't dig.
   if (ix && inLadder && !p.climbing && p.vy === 0) p.y = (cy + 1) * T - PLAYER.h;

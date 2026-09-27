@@ -48,6 +48,9 @@ export const PLAYER = {
   maxFall: 420,
   jumpSpeed: 190, // ≈ 1.25 blocks high
   climbSnap: 10, // how fast x eases to the ladder column (1/s)
+  knockSpeed: 110,
+  knockTime: 0.25,
+  knockLift: 170,
 };
 
 // ---- upgrades: value per level ----
@@ -59,6 +62,13 @@ export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6
 
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
+
+// ---- hazards ----
+export const BONK = { invuln: 1.5, scatter: 3 };
+export const SLIME = { hopEvery: 1.4, hopSpeed: 150, hopDrift: 45, gravity: 700, max: 6 };
+export const BAT = { speed: 34, waveSpeed: 3, waveHeight: 6, max: 4 };
+export const GRAVEL = { shake: 0.5, gravity: 700, maxFall: 360 };
+export const SPAWN = { every: 1.5, despawnRows: 40 };
 
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, emptyPack, attractPickups,
+  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, emptyPack, attractPickups, scatterOres,
 } from '../../src/game/loot.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
@@ -120,5 +120,27 @@ describe('attractPickups', () => {
       ({ list, collected: got } = collectPickups(list, box, pack));
     }
     expect(got).toEqual(['gold']);
+  });
+});
+
+describe('scatterOres', () => {
+  it('takes at most 3 ores, and only what the pack has', () => {
+    const rng = createRng(1);
+    const pack = createBackpack(20);
+    for (let i = 0; i < 5; i++) addOre(pack, 'coal');
+    addOre(pack, 'gold');
+    const out = scatterOres(pack, rng);
+    expect(out).toHaveLength(3);
+    expect(pack.count).toBe(3);
+    const total = pack.ores.coal + pack.ores.gold;
+    expect(total).toBe(3);
+  });
+  it('an almost empty pack loses what it has; an empty one loses nothing', () => {
+    const rng = createRng(2);
+    const pack = createBackpack(20);
+    addOre(pack, 'iron');
+    expect(scatterOres(pack, rng)).toEqual(['iron']);
+    expect(scatterOres(pack, rng)).toEqual([]);
+    expect(pack.count).toBe(0);
   });
 });

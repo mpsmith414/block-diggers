@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createPlayer, stepPlayer, standAt, playerCell } from '../../src/game/player.js';
+import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../../src/game/player.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
 import { TILE, PLAYER } from '../../src/tuning.js';
@@ -197,5 +197,19 @@ describe('ladders', () => {
     const p = createPlayer({ x: 2 * TILE + 2, y: 0 });
     run(p, idle, g, 0.5);
     expect(p.y).toBeLessThan(TILE);
+  });
+});
+
+describe('knockback', () => {
+  it('pushes the player away even while they push toward the hazard', () => {
+    const g = makeGrid(['#########', '#.......#', '#.......#', '#########']);
+    const p = createPlayer(standAt(4, 2));
+    settle(p, g);
+    const x0 = p.x;
+    knockback(p, -1);
+    run(p, { ...idle, moveX: 1 }, g, 0.2);
+    expect(p.x).toBeLessThan(x0);
+    run(p, idle, g, 1);
+    expect(p.grounded).toBe(true);
   });
 });
