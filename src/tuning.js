@@ -16,11 +16,11 @@ export const LAYERS = {
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
 export const ORE_VEINS = {
-  dirt: { per1000: 22, weights: { coal: 1 } },
-  stone: { per1000: 26, weights: { coal: 4, iron: 4, gold: 1.5 } },
-  deep: { per1000: 24, weights: { gold: 3, diamond: 1.4, emerald: 1.1 } },
+  dirt: { per1000: 42, weights: { coal: 1 } },
+  stone: { per1000: 44, weights: { coal: 3, iron: 4, gold: 1.6 } },
+  deep: { per1000: 40, weights: { gold: 3, diamond: 1.5, emerald: 1.2 } },
 };
-export const VEIN_SIZE = { min: 1, max: 4 };
+export const VEIN_SIZE = { min: 2, max: 5 };
 export const GRAVEL_POCKETS = { stone: 10, deep: 8, size: { min: 3, max: 6 } };
 export const CAVES = {
   dirt: { count: 5, length: { min: 10, max: 22 }, radius: 1 },
@@ -55,7 +55,10 @@ export const BACKPACK = [20, 40, 80];
 export const LANTERN = [3, 5, 7]; // light radius in blocks
 
 // ---- pickups ----
-export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6 };
+export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
+
+// ---- camera ----
+export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
 
 // ---- going home ----
 export const HOME_HOLD_MS = 2000;

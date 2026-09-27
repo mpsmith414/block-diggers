@@ -1,14 +1,23 @@
 import Phaser from 'phaser';
-import { InputTestScene } from './scenes/InputTestScene.js';
+import { BootScene } from './scenes/BootScene.js';
+import { MineScene } from './scenes/MineScene.js';
+import { HudScene } from './scenes/HudScene.js';
 
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   width: 480,
   height: 270,
   pixelArt: true,
+  roundPixels: true,
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [InputTestScene],
+  scene: [BootScene, MineScene, HudScene],
 });
+
+// Dev-only handle for debugging and screenshots.
+if (import.meta.env.DEV) {
+  window.__game = game;
+  import('./dev/harness.js').then((m) => m.installHarness(game));
+}

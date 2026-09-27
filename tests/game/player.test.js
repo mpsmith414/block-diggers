@@ -175,6 +175,23 @@ describe('ladders', () => {
     expect(p.grounded).toBe(true);
   });
 
+  it('can dig sideways while hanging on a ladder, and walk into the new tunnel', () => {
+    const rows = ['#...#', '#...#', 'ggggg'];
+    for (let i = 0; i < 8; i++) rows.push('#ddd#');
+    rows.push('XXXXX');
+    const g = makeGrid(rows);
+    const p = createPlayer(standAt(2, 1));
+    settle(p, g);
+    run(p, { ...idle, moveY: 1 }, g, 1.3); // part-way down the new shaft
+    run(p, idle, g, 0.1);
+    p.y = Math.floor(p.y / TILE) * TILE + 5; // hanging between two rows
+    const { cy } = playerCell(p);
+    const ev = run(p, { ...idle, moveX: 1 }, g, 1);
+    expect(ev.mined.length).toBeGreaterThan(0);
+    expect(g.get(3, cy)).toBe(B.AIR);
+    expect(playerCell(p).cx).toBe(3);
+  });
+
   it('hangs on a ladder with no input and catches a fall', () => {
     const g = makeGrid(['#.L.#', '#.L.#', '#.L.#', '#.L.#', '#####']);
     const p = createPlayer({ x: 2 * TILE + 2, y: 0 });

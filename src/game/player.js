@@ -84,6 +84,9 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt }) {
     p.vy = Math.min(PLAYER.maxFall, p.vy + PLAYER.gravity * dt);
   }
   p.vx = ix * PLAYER.walkSpeed;
+  // Stepping sideways off a ladder: line up with the row first, so the box
+  // doesn't straddle two rows and snag on the one we didn't dig.
+  if (ix && inLadder && !p.climbing && p.vy === 0) p.y = (cy + 1) * T - PLAYER.h;
 
   // move x
   let blockedX = 0;

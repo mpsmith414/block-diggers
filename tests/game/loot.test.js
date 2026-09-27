@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
-  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups,
+  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, emptyPack, attractPickups,
 } from '../../src/game/loot.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
+import { createRng } from '../../src/world/rng.js';
 import { TILE, PICKUP } from '../../src/tuning.js';
 
 describe('backpack', () => {
@@ -63,5 +64,61 @@ describe('pickups', () => {
     let list = [createPickup({ x: 24, y: 40, ore: 'gold', delay: 0.5 })];
     for (let i = 0; i < 40; i++) list = stepPickups(list, g, 1 / 60);
     expect(list[0].delay).toBe(0);
+  });
+});
+
+describe('chestLoot', () => {
+  it('gives 3-6 of the best ore for the layer', () => {
+    const rng = createRng(5);
+    for (let i = 0; i < 50; i++) {
+      const stone = chestLoot(60, rng);
+      expect(stone.length).toBeGreaterThanOrEqual(3);
+      expect(stone.length).toBeLessThanOrEqual(6);
+      expect(new Set(stone)).toEqual(new Set(['gold']));
+      const deep = chestLoot(120, rng);
+      expect(deep.every((o) => o === deep[0])).toBe(true);
+      expect(['diamond', 'emerald']).toContain(deep[0]);
+    }
+  });
+});
+
+describe('emptyPack', () => {
+  it('returns the ores and empties the pack', () => {
+    const pack = createBackpack(5);
+    addOre(pack, 'coal');
+    addOre(pack, 'coal');
+    expect(emptyPack(pack)).toMatchObject({ coal: 2, iron: 0 });
+    expect(pack.count).toBe(0);
+    expect(pack.ores.coal).toBe(0);
+  });
+});
+
+describe('attractPickups', () => {
+  it('pulls nearby, collectable pickups toward the player', () => {
+    const near = createPickup({ x: 50, y: 40, ore: 'coal' });
+    const far = createPickup({ x: 300, y: 40, ore: 'coal' });
+    const delayed = createPickup({ x: 50, y: 40, ore: 'coal', delay: 1 });
+    attractPickups([near, far, delayed], { x: 20, y: 40 }, createBackpack(5), 1 / 60);
+    expect(near.x).toBeLessThan(50);
+    expect(far.x).toBe(300);
+    expect(delayed.x).toBe(50);
+  });
+  it('does nothing when the pack is full', () => {
+    const pack = createBackpack(1);
+    addOre(pack, 'coal');
+    const near = createPickup({ x: 50, y: 40, ore: 'coal' });
+    attractPickups([near], { x: 20, y: 40 }, pack, 1 / 60);
+    expect(near.x).toBe(50);
+  });
+  it('a pickup that gets pulled in is collected soon after', () => {
+    const pack = createBackpack(5);
+    let list = [createPickup({ x: 60, y: 40, ore: 'gold' })];
+    const box = { x: 14, y: 33, w: 12, h: 14 };
+    let got = [];
+    for (let i = 0; i < 60 && !got.length; i++) {
+      attractPickups(list, { x: 20, y: 40 }, pack, 1 / 60);
+      ({ list, collected: got } = collectPickups(list, box, pack));
+    }
+    expect(got).toEqual(['gold']);
   });
 });

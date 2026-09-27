@@ -1,7 +1,7 @@
 // Backpacks and ores lying in the world.
 
 import { ORES, isSolid } from '../world/blocks.js';
-import { TILE, PICKUP } from '../tuning.js';
+import { TILE, PICKUP, LAYERS } from '../tuning.js';
 
 export function createBackpack(cap) {
   return { cap, ores: Object.fromEntries(ORES.map((o) => [o, 0])), count: 0 };
@@ -72,4 +72,27 @@ export function collectPickups(list, box, pack) {
     else left.push(p);
   }
   return { list: left, collected };
+}
+
+// A treasure chest holds 3-6 of the best ore for its layer.
+export function chestLoot(row, rng) {
+  const ore = row > LAYERS.stone.bottom ? rng.pick(['diamond', 'emerald']) : 'gold';
+  return Array.from({ length: rng.int(3, 6) }, () => ore);
+}
+
+// Loose ore near a player with room in their pack floats into them.
+export function attractPickups(list, center, pack, dt) {
+  if (packFull(pack)) return;
+  for (const p of list) {
+    if (p.delay > 0) continue;
+    const dx = center.x - p.x;
+    const dy = center.y - p.y;
+    const d = Math.hypot(dx, dy);
+    if (d > PICKUP.magnetRadius || d < 0.5) continue;
+    const step = Math.min(d, PICKUP.magnetSpeed * dt);
+    p.x += (dx / d) * step;
+    p.y += (dy / d) * step;
+    p.vx = 0;
+    p.vy = 0;
+  }
 }
