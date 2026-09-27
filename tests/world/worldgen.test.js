@@ -197,14 +197,18 @@ describe('finds', () => {
     expect(cellsOf(lucky.grid, B.FOSSIL).length).toBe(Math.round(FINDS.fossils * 1.5));
     expect(lucky.eggs.length).toBe(Math.round(FINDS.eggs * 1.5));
   });
-  it('boulders sit on a floor with cave air on one side and ore behind them', () => {
+  it('boulders can be pushed from the cave into a pit, which opens the way to ore beyond', () => {
     for (const { grid, boulders } of mines) {
       expect(boulders.length).toBeGreaterThan(0);
       for (const b of boulders) {
         expect(grid.get(b.x, b.y)).toBe(B.BOULDER);
         expect(isSolid(grid.get(b.x, b.y + 1))).toBe(true);
-        expect(grid.get(b.x - b.dir, b.y)).toBe(B.AIR);
-        expect(dropOf(grid.get(b.x + b.dir, b.y))).not.toBeNull();
+        expect(grid.get(b.x - b.dir, b.y)).toBe(B.AIR); // you stand here and push…
+        expect(isSolid(grid.get(b.x - b.dir, b.y + 1))).toBe(true); // …on solid ground
+        expect(grid.get(b.x + b.dir, b.y)).toBe(B.AIR); // the pit
+        expect(grid.get(b.x + b.dir, b.y + 1)).toBe(B.AIR);
+        expect(isSolid(grid.get(b.x + b.dir, b.y + 2))).toBe(true);
+        expect(dropOf(grid.get(b.x + 2 * b.dir, b.y))).not.toBeNull(); // the prize
       }
     }
   });

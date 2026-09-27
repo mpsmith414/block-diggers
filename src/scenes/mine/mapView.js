@@ -20,7 +20,7 @@ export function createMapView(scene, grid) {
     for (let x = 0; x < grid.w; x++) {
       b.push(y === 0 ? BACK.dirt : BACK[layerAt(y)]);
       const id = grid.get(x, y);
-      f.push(id === B.AIR ? -1 : id);
+      f.push(id === B.AIR || id === B.EGG ? -1 : id);
     }
     backRows.push(b);
     frontRows.push(f);
@@ -30,7 +30,7 @@ export function createMapView(scene, grid) {
 
   const sync = (x, y) => {
     const id = grid.get(x, y);
-    if (id === B.AIR) front.removeTileAt(x, y);
+    if (id === B.AIR || id === B.EGG) front.removeTileAt(x, y);
     else front.putTileAt(id, x, y);
   };
 

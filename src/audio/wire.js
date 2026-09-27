@@ -17,6 +17,13 @@ const MINE = {
   lava: (s) => s.play('lava'),
   gravelLanded: (s) => s.play('gravel'),
   joined: (s) => s.play('join'),
+  fuse: (s) => s.play('fuse'),
+  boom: (s) => s.play('boom'),
+  boulder: (s) => s.play('rumble'),
+  geode: (s) => s.play('crack'),
+  fossil: (s) => s.play('crack'),
+  splash: (s) => s.play('splash'),
+  egg: (s) => s.play('egg'),
 };
 
 const CAMP = {

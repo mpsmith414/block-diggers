@@ -144,7 +144,7 @@ export function lavaEscape(grid, cx, cy) {
 // ---- spawning ----
 
 export function spawnSpot(grid, rng, { kind, near, avoid }) {
-  const [top, bottom] = kind === 'bat' ? [LAYERS.deep.top, LAYERS.deep.bottom] : [LAYERS.dirt.top + 2, LAYERS.stone.bottom];
+  const [top, bottom] = kind === 'bat' ? [LAYERS.deep.top, LAYERS.crystal.bottom] : [LAYERS.dirt.top + 2, LAYERS.stone.bottom];
   for (let i = 0; i < 30; i++) {
     const cx = near.cx + rng.int(-20, 20);
     const cy = near.cy + rng.int(-12, 12);
@@ -152,7 +152,7 @@ export function spawnSpot(grid, rng, { kind, near, avoid }) {
     if (avoid && cx >= avoid.x0 && cx <= avoid.x1 && cy >= avoid.y0 && cy <= avoid.y1) continue;
     if (grid.get(cx, cy) !== B.AIR) continue;
     if (kind === 'slime' && !isSolid(grid.get(cx, cy + 1))) continue;
-    if (kind === 'bat' && grid.get(cx, cy + 1) === B.LAVA) continue;
+    if (kind === 'bat' && (grid.get(cx, cy + 1) === B.LAVA || grid.get(cx, cy + 1) === B.WATER)) continue;
     return { cx, cy };
   }
   return null;

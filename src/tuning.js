@@ -84,6 +84,11 @@ export const BAT = { speed: 34, waveSpeed: 3, waveHeight: 6, max: 4 };
 export const GRAVEL = { shake: 0.5, gravity: 700, maxFall: 360 };
 export const SPAWN = { every: 1.5, despawnRows: 40 };
 
+// ---- finds ----
+export const FUSE = 1.5; // seconds a boom block flashes before going poof
+export const PUSH_TIME = 0.5; // seconds of pushing to roll a boulder
+export const GOLDEN_SLIME = 0.08;
+
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };
 

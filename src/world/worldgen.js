@@ -183,27 +183,37 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     grid.set(bigChest.x + 1, bigChest.y, B.BIGCHEST_R);
   }
 
-  // boulders: on a cave floor, blocking a little alcove of ore behind them
-  const boulders = [];
-  const boulderSpots = floors(LAYERS.stone.top, LAYERS.crystal.bottom).filter((c) => safe(c));
-  for (let attempt = 0; boulders.length < FINDS.boulders && attempt < 300 && boulderSpots.length; attempt++) {
-    const c = rng.pick(boulderSpots);
-    const dir = rng.chance(0.5) ? 1 : -1;
-    const host = HOST[layerAt(c.y)];
-    if (grid.get(c.x, c.y) !== B.AIR || grid.get(c.x - dir, c.y) !== B.AIR) continue;
-    if (grid.get(c.x + dir, c.y) !== host || grid.get(c.x + 2 * dir, c.y) !== host) continue;
-    if (boulders.some((o) => Math.abs(o.x - c.x) + Math.abs(o.y - c.y) < 8)) continue;
-    grid.set(c.x, c.y, B.BOULDER);
-    const ore = ORE_BLOCK[layerAt(c.y)][BEST_ORE[layerAt(c.y)]];
-    grid.set(c.x + dir, c.y, ore);
-    grid.set(c.x + 2 * dir, c.y, ore);
-    boulders.push({ x: c.x, y: c.y, dir });
-  }
-
   // pet eggs on deep and crystal cave floors
   const eggs = takeSpots(floors(LAYERS.deep.top, LAYERS.crystal.bottom).filter(safe), lucky(FINDS.eggs), 16)
     .map((c, i) => ({ ...c, kind: eggKinds.length ? eggKinds[i % eggKinds.length] : 'golden' }));
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
+
+  // boulders: at the edge of a cave, in front of a one-block pit with ore
+  // beyond it. Push the boulder in to fill the pit and walk over to the ore.
+  const boulders = [];
+  const boulderSpots = floors(LAYERS.stone.top, LAYERS.crystal.bottom).filter((c) => safe(c));
+  for (let attempt = 0; boulders.length < FINDS.boulders && attempt < 400 && boulderSpots.length; attempt++) {
+    const c = rng.pick(boulderSpots);
+    const dir = rng.chance(0.5) ? 1 : -1;
+    const host = HOST[layerAt(c.y)];
+    const px = c.x + dir;
+    if (grid.get(c.x, c.y) !== B.AIR || grid.get(c.x - dir, c.y) !== B.AIR) continue;
+    if (!isSolid(grid.get(c.x - dir, c.y + 1))) continue; // somewhere to stand and push
+    if (![px, px + dir, px + 2 * dir].every((x) => x >= 2 && x <= MINE_W - 3)) continue;
+    if (grid.get(px, c.y) !== host || grid.get(px, c.y + 1) !== host || grid.get(px + dir, c.y) !== host || grid.get(px + 2 * dir, c.y) !== host) continue;
+    if (!isSolid(grid.get(px, c.y + 2)) || grid.get(px, c.y + 2) === B.BEDROCK) continue;
+    // never carve the floor out from under a chest
+    if ([B.CHEST, B.BIGCHEST, B.BIGCHEST_R].includes(grid.get(px, c.y - 1))) continue;
+    if (boulders.some((o) => Math.abs(o.x - c.x) + Math.abs(o.y - c.y) < 8)) continue;
+    grid.set(c.x, c.y, B.BOULDER);
+    grid.set(px, c.y, B.AIR);
+    grid.set(px, c.y + 1, B.AIR);
+    const ore = ORE_BLOCK[layerAt(c.y)][BEST_ORE[layerAt(c.y)]];
+    grid.set(px + dir, c.y, ore);
+    grid.set(px + 2 * dir, c.y, ore);
+    if (grid.get(px + dir, c.y - 1) === host) grid.set(px + dir, c.y - 1, ore);
+    boulders.push({ x: c.x, y: c.y, dir });
+  }
 
   // treasures sealed in the rock: replace host rock cells
   const inRock = (top, bottom, n, id) => {

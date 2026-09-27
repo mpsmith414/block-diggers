@@ -7,7 +7,7 @@ import {
 } from '../../game/hazards.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
-import { TILE, PLAYER, SLIME, BAT, SPAWN } from '../../tuning.js';
+import { TILE, PLAYER, SLIME, BAT, SPAWN, GOLDEN_SLIME } from '../../tuning.js';
 
 export function createHazards(scene) {
   let enemies = [];
@@ -18,7 +18,7 @@ export function createHazards(scene) {
   const spriteFor = (e) => {
     let s = sprites.get(e);
     if (!s) {
-      if (e.kind === 'slime') s = scene.add.sprite(0, 0, 'slime', 0).setOrigin(0.5, 1).setDepth(28);
+      if (e.kind === 'slime') s = scene.add.sprite(0, 0, e.golden ? 'slime-gold' : 'slime', 0).setOrigin(0.5, 1).setDepth(28);
       else if (e.kind === 'bat') s = scene.add.sprite(0, 0, 'bat', 0).setOrigin(0.5, 0.5).setDepth(28);
       else s = scene.add.image(0, 0, 'tiles', B.GRAVEL).setOrigin(0, 0).setDepth(12);
       sprites.set(e, s);
@@ -52,9 +52,11 @@ export function createHazards(scene) {
     const spot = spawnSpot(scene.grid, scene.rng, { kind, near, avoid });
     if (!spot) return;
     const dir = scene.rng.chance(0.5) ? 1 : -1;
-    enemies.push(kind === 'slime'
+    const e = kind === 'slime'
       ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir)
-      : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir));
+      : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir);
+    if (kind === 'slime') e.golden = scene.rng.chance(GOLDEN_SLIME * (scene.luck ?? 1));
+    enemies.push(e);
   }
 
   function despawnFar() {

@@ -139,7 +139,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true 
     const tc = blockedX > 0 ? Math.floor((p.x + PLAYER.w + 0.5) / T) : Math.floor((p.x - 0.5) / T);
     const row = cy;
     if (isSolid(grid.get(tc, row))) {
-      const canStep = p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
+      const leanOn = grid.get(tc, row) === B.BOULDER || grid.get(tc, row) === B.BOOM; // push or light it instead
+      const canStep = !leanOn && p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
       if (canStep) {
         p.y = row * T - PLAYER.h;
         p.x = blockedX > 0 ? tc * T + 4 - PLAYER.w : (tc + 1) * T - 4;

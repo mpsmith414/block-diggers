@@ -1,5 +1,7 @@
 // The sticker book: 40 things to find, on 6 pages. A full page earns a trophy.
 
+import { B } from '../world/blocks.js';
+
 const page = (name, icon, stickers) => ({ name, icon, stickers: stickers.map(([id, tex, frame = 0]) => ({ id, icon: tex, frame })) });
 
 export const STICKER_PAGES = [
@@ -17,10 +19,10 @@ export const STICKER_PAGES = [
     ['cave-crystal', 'decor-crystal'], ['cave-stalactite', 'decor-stalactite'], ['cave-giantshroom', 'decor-giantshroom'],
     ['cave-moss', 'decor-moss'], ['cave-amethyst', 'decor-amethyst'],
   ]),
-  page('treasures', 'tiles-chest', [
+  page('treasures', 'find-bigchest', [
     ['find-geode', 'find-geode'], ['find-fossil-shell', 'find-fossil', 0], ['find-fossil-bone', 'find-fossil', 1],
-    ['find-fossil-dino', 'find-fossil', 2], ['find-boom', 'find-boom'], ['find-bigchest', 'find-bigchest'],
-    ['find-boulder', 'find-boulder'], ['find-egg', 'egg', 0], ['find-goldegg', 'egg', 3],
+    ['find-fossil-dino', 'find-fossil', 2], ['find-boom', 'tiles', B.BOOM], ['find-bigchest', 'find-bigchest'],
+    ['find-boulder', 'tiles', B.BOULDER], ['find-egg', 'egg', 0], ['find-goldegg', 'egg', 3],
   ]),
   page('camp', 'icon-hammer', [
     ['bld-garden', 'bld-garden'], ['bld-house', 'bld-house'], ['bld-pen', 'bld-pen'],

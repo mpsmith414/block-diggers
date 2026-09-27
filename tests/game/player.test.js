@@ -4,7 +4,7 @@ import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
 import { TILE, PLAYER } from '../../src/tuning.js';
 
-const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS, w: B.WATER };
+const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS, w: B.WATER, O: B.BOULDER, T: B.BOOM };
 
 // Rows of characters -> grid. Everything outside reads as bedrock.
 function makeGrid(rows) {
@@ -260,4 +260,19 @@ describe('water', () => {
     }
     expect(top).toBeLessThan(2 * TILE - PLAYER.h); // feet above the water line
   });
+});
+
+describe('boulders and boom blocks are pushed or lit, never stepped onto', () => {
+  for (const [name, ch, id] of [['boulder', 'O', B.BOULDER], ['boom block', 'T', B.BOOM]]) {
+    it(`walking into a 1-high ${name} leans on it instead of climbing it`, () => {
+      const g = makeGrid(['######', '#....#', `#..${ch}.#`, '######']);
+      const p = createPlayer(standAt(1, 2));
+      settle(p, g);
+      const ev = run(p, { ...idle, moveX: 1 }, g, 0.8);
+      expect(ev.stepped).toBe(0);
+      expect(playerCell(p).cy).toBe(2);
+      expect(p.mining).toMatchObject({ cx: 3, cy: 2 });
+      expect(g.get(3, 2)).toBe(id);
+    });
+  }
 });

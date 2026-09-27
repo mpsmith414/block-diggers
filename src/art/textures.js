@@ -7,6 +7,7 @@ import { drawCharacters } from './characters.js';
 import { drawCampArt } from './camp.js';
 import { drawLogo } from './logo.js';
 import { drawDecor } from './decor.js';
+import { drawFindsArt } from './finds.js';
 
 const T = 16;
 
@@ -19,13 +20,14 @@ export const ORE_COLORS = {
 };
 
 // Background (back wall) tiles live after the block tiles in the tileset.
-export const BACK = { dirt: BLOCK_COUNT, stone: BLOCK_COUNT + 1, deep: BLOCK_COUNT + 2 };
-const TILE_FRAMES = BLOCK_COUNT + 3;
+export const BACK = { dirt: BLOCK_COUNT, stone: BLOCK_COUNT + 1, deep: BLOCK_COUNT + 2, crystal: BLOCK_COUNT + 3 };
+const TILE_FRAMES = BLOCK_COUNT + 4;
 
 const HOSTS = {
   [B.DIRT]: { base: '#8a5a34', dark: '#6b4424', light: '#a3703f' },
   [B.STONE]: { base: '#7d7d86', dark: '#5f5f68', light: '#9a9aa3' },
   [B.DEEP]: { base: '#3f3d4f', dark: '#2d2b3a', light: '#555368' },
+  [B.CRYSTAL]: { base: '#4b3f8a', dark: '#3a2f6e', light: '#8a7fe0' },
 };
 
 function canvasTexture(scene, key, w, h) {
@@ -108,6 +110,76 @@ function drawTiles(scene) {
   oreOn(B.DIAMOND, B.DEEP, 'diamond');
   oreOn(B.EMERALD, B.DEEP, 'emerald');
 
+  // crystal rock: glossy violet with diagonal shine
+  const crystalRock = (id) => {
+    speckle(ctx, at(id), rng, HOSTS[B.CRYSTAL], 5);
+    for (let k = 0; k < 3; k++) {
+      const sx = rng.int(0, 10);
+      const sy = rng.int(0, 10);
+      for (let d = 0; d < 4; d++) rect(ctx, '#a89cff', at(id) + sx + d, sy + 3 - d);
+    }
+  };
+  crystalRock(B.CRYSTAL);
+  for (const [id, ore] of [[B.GOLD_CRYSTAL, 'gold'], [B.DIAMOND_CRYSTAL, 'diamond'], [B.EMERALD_CRYSTAL, 'emerald']]) {
+    crystalRock(id);
+    oreNuggets(ctx, at(id), rng, ore);
+  }
+
+  // water: see-through, glowing teal with a bright top line and bubbles
+  rect(ctx, 'rgba(58,170,210,0.55)', at(B.WATER), 0, T, T);
+  rect(ctx, 'rgba(160,240,255,0.8)', at(B.WATER), 0, T, 1);
+  rect(ctx, 'rgba(255,255,255,0.6)', at(B.WATER) + 4, 6, 1, 1);
+  rect(ctx, 'rgba(255,255,255,0.5)', at(B.WATER) + 11, 10, 2, 2);
+
+  // geode: a stone block with a round crystal nest showing
+  speckle(ctx, at(B.GEODE), rng, HOSTS[B.STONE]);
+  rect(ctx, '#3a3548', at(B.GEODE) + 3, 3, 10, 10);
+  rect(ctx, '#3a3548', at(B.GEODE) + 2, 5, 12, 6);
+  rect(ctx, '#b98cff', at(B.GEODE) + 4, 5, 8, 6);
+  rect(ctx, '#f0e0ff', at(B.GEODE) + 5, 6, 2, 2);
+  rect(ctx, '#8a5fd0', at(B.GEODE) + 8, 8, 3, 2);
+
+  // fossil: an old shell curl pressed into the rock
+  speckle(ctx, at(B.FOSSIL), rng, HOSTS[B.DIRT]);
+  const fx = at(B.FOSSIL);
+  for (const [x, y] of [[5, 4], [6, 4], [7, 4], [8, 5], [9, 6], [9, 7], [9, 8], [8, 9], [7, 10], [6, 10], [5, 9], [4, 8], [4, 7], [5, 6], [6, 6], [7, 7], [6, 8]]) {
+    rect(ctx, '#f0e6cf', fx + x, y, 1, 1);
+  }
+  rect(ctx, '#f0e6cf', fx + 10, 3, 2, 1);
+
+  // boom block: red with a white star and a fuse on top
+  const bx = at(B.BOOM);
+  rect(ctx, '#7a1f1f', bx, 0, T, T);
+  rect(ctx, '#d8403a', bx + 1, 2, 14, 13);
+  rect(ctx, '#f0e0c0', bx + 1, 6, 14, 4);
+  rect(ctx, '#d8403a', bx + 7, 6, 2, 4);
+  rect(ctx, '#ffe066', bx + 6, 7, 4, 2);
+  rect(ctx, '#3a2a24', bx + 7, 0, 2, 2);
+  rect(ctx, '#ffb34a', bx + 8, 0, 1, 1);
+
+  // big chest: two tiles, purple with gold trim
+  for (const [id, left] of [[B.BIGCHEST, true], [B.BIGCHEST_R, false]]) {
+    const cx = at(id);
+    rect(ctx, '#3a1f4a', cx, 3, T, 13);
+    rect(ctx, '#7a4ab0', cx + (left ? 1 : 0), 4, 15, 5);
+    rect(ctx, '#7a4ab0', cx + (left ? 1 : 0), 10, 15, 5);
+    rect(ctx, '#ffd84a', cx, 9, T, 1);
+    rect(ctx, '#ffd84a', cx + (left ? 1 : 14), 4, 1, 11);
+    if (!left) { rect(ctx, '#ffd84a', cx, 7, 2, 5); rect(ctx, '#fff2a0', cx, 8, 1, 1); }
+    else { rect(ctx, '#ffd84a', cx + 14, 7, 2, 5); }
+  }
+
+  // boulder: a big round rock on an empty cell
+  const ox = at(B.BOULDER);
+  ctx.fillStyle = '#2a2530';
+  ctx.beginPath(); ctx.arc(ox + 8, 9, 7.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#8a8494';
+  ctx.beginPath(); ctx.arc(ox + 8, 9, 6.5, 0, Math.PI * 2); ctx.fill();
+  rect(ctx, '#b0aabb', ox + 5, 5, 3, 2);
+  rect(ctx, '#6a6474', ox + 9, 11, 3, 2);
+  rect(ctx, '#6a6474', ox + 4, 10, 2, 1);
+  // egg cells are drawn by a sprite (so each egg can have its own colour)
+
   // ladder: two rails and rungs on a transparent cell
   const lx = at(B.LADDER);
   rect(ctx, '#a0703c', lx + 3, 0, 2, T);
@@ -134,6 +206,7 @@ function drawTiles(scene) {
   back(BACK.dirt, { base: '#3b2616', dark: '#2e1d10', light: '#45301d' });
   back(BACK.stone, { base: '#34343b', dark: '#2a2a30', light: '#3d3d45' });
   back(BACK.deep, { base: '#1c1b25', dark: '#15141c', light: '#23222e' });
+  back(BACK.crystal, { base: '#221a3e', dark: '#1a1432', light: '#2c2350' });
 
   const P = T + TILE_SPACING;
   const { tex, ctx: out } = canvasTexture(scene, 'tiles', TILE_MARGIN * 2 + P * TILE_FRAMES - TILE_SPACING, T + TILE_MARGIN * 2);
@@ -379,4 +452,5 @@ export function drawTextures(scene) {
   drawCampArt(scene, canvasTexture, rect);
   drawLogo(scene, canvasTexture, rect);
   drawDecor(scene, canvasTexture, rect);
+  drawFindsArt(scene, canvasTexture, rect);
 }

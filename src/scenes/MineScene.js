@@ -17,7 +17,8 @@ import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
-import { packCap, revealsChests } from '../game/perks.js';
+import { packCap, revealsChests, luck } from '../game/perks.js';
+import { createFindsView } from './mine/findsView.js';
 import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { attachAudio } from '../audio/wire.js';
@@ -43,7 +44,10 @@ export class MineScene extends Phaser.Scene {
 
   create() {
     this.session = this.registry.get('input');
-    this.world = generateMine(this.seed);
+    const saved = getState(this.registry);
+    this.eggKinds = ['mole', 'glowbug', 'batbuddy'].filter((k) => !(saved.pets ?? []).includes(k));
+    this.luck = luck(saved);
+    this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds });
     this.grid = this.world.grid;
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
@@ -69,6 +73,7 @@ export class MineScene extends Phaser.Scene {
     this.firstTrip = (getState(this.registry)?.trips ?? 0) === 0;
     this.dugCount = 0;
     this.hazards = createHazards(this);
+    this.finds = createFindsView(this);
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
     this.lavaCells = [];
     for (let y = 0; y < MINE_H; y++) {
@@ -236,6 +241,7 @@ export class MineScene extends Phaser.Scene {
       this.drawAvatar(a, dt, time);
     }
     this.hazards.update(dt, time);
+    this.finds.update(dt, time);
     for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
     if (coop) this.catchOffscreen(dt);
     this.updateCamera(dt);
@@ -294,7 +300,10 @@ export class MineScene extends Phaser.Scene {
       const packs = [];
       for (const a of players) packs[a.slot] = { ...a.pack.ores };
       this.scene.start('Camp', {
-        arrived: { packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests, stickers: this.trip.stickers },
+        arrived: {
+          packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
+          stickers: this.trip.stickers, eggs: [...this.finds.carried],
+        },
       });
     });
   }
@@ -349,10 +358,13 @@ export class MineScene extends Phaser.Scene {
       this.events.emit('blockMined', m);
       this.hazards.mined(m.x, m.y);
       this.decor.mined(m.x, m.y);
+      this.finds.mined(m);
       this.dugCount++;
       if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
     }
-    if (r.bounced) {
+    const target = a.p.mining ? this.grid.get(a.p.mining.cx, a.p.mining.cy) : null;
+    if (r.bounced && target === B.BOOM) this.finds.light(a.p.mining.cx, a.p.mining.cy);
+    if (r.bounced && target !== B.BOOM && target !== B.BOULDER) {
       const { cx, cy } = a.p.mining ?? playerCell(a.p);
       this.effects.sparkle(cx * TILE + TILE / 2, cy * TILE + TILE / 2, 0xaaaaaa, 3);
       this.cameras.main.shake(80, 0.002);
@@ -441,6 +453,12 @@ export class MineScene extends Phaser.Scene {
 
   squash(a, e) {
     earnSticker(this, e.golden ? 'creature-goldslime' : 'creature-slime');
+    if (e.golden) {
+      for (let i = 0; i < 5; i++) {
+        this.pickups.push(createPickup({ x: e.x + 6, y: e.y, ore: 'gold', delay: 0.3, vx: (this.rng.next() - 0.5) * 140, vy: -140 - this.rng.next() * 60 }));
+      }
+      this.effects.confetti(e.x + 6, e.y);
+    }
     this.hazards.squash(e);
     a.p.vy = -200;
     this.effects.sparkle(e.x + e.w / 2, e.y + e.h / 2, 0x9ae67a, 8);
@@ -632,6 +650,7 @@ export class MineScene extends Phaser.Scene {
       lights.push({ x, y, r: 1.6 * flicker, glow: 0.12, color: 0xff6a2a });
     }
     lights.push(...this.decor.lights(view, flicker));
+    for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     for (const c of this.world.chests) {
       if (this.grid.get(c.x, c.y) !== B.CHEST) continue;

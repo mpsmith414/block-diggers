@@ -93,6 +93,36 @@ const DECOR = {
       '................', '................', '................', '................', '................', '................',
       '................', '................', '................', '................'],
   ],
+  giantshroom: [
+    ['................', '................', '.....oooooo.....', '...ooccCccCoo...', '..occcccccccCo..', '.occCccccccccco.', '.oooooossoooooo.', '.......ss.......',
+      '.......ss.......', '......oSSo......', '.......ss.......', '.......ss.......', '.......ss.......', '......oSSo......', '.....ossss o....', '....oSSSSSSo....'],
+    ['................', '................', '................', '......ooooo.....', '....ooccCcco....', '...occcccccCo...', '...ooooossooo...', '........ss......',
+      '........ss......', '.ooo....ss......', 'occCo...ss......', '.oso....ss......', '.oso...oSSo.....', '.oso....ss......', '.oSo...ossso....', '.oSo..oSSSSSo...'],
+    ['................', '..ooooo.........', '.occCcco........', 'occccccCo.......', 'ooooosooo.......', '....ss....ooooo.', '....ss...ocCccCo', '....ss...oooosoo',
+      '....ss......ss..', '...oSSo.....ss..', '....ss......ss..', '....ss.....oSSo.', '....ss......ss..', '...ossso....ss..', '..oSSSSo...osso.', '..oSSSSo..oSSSSo'],
+  ],
+  moss: [
+    ['................', '................', '................', '................', '................', '................',
+      '................', '................', '................', '................', '................', '..m.......m.....',
+      '.mMm..m..mMm..m.', 'mmMmmmMmmmMmmmMm', 'mMmmMmmMmmmMmmMm', 'MmmMmmMmMmmMmmMm'],
+    ['................', '................', '................', '................', '................', '................',
+      '................', '................', '................', '................', '................', '......m.........',
+      '.m...mMm....m...', 'mMmmmmMmmm.mMmm.', 'mmMmmMmmMmmmmMmm', 'MmmMmmmMmmMmmmMm'],
+    ['................', '................', '................', '................', '................', '................',
+      '................', '................', '................', '................', '................', '...........m....',
+      '..m..m....mMm...', '.mMmmMm..mmmmm.m', 'mmmMmmmmMmmMmmMm', 'mMmmMmMmmMmmmMmm'],
+  ],
+  amethyst: [
+    ['................', '................', '................', '................', '......o.........', '.....oxo........',
+      '.....oxXo.......', '....oxxXo..o....', '....oxXxo.oxo...', '.o..oxxxooxXo...', 'oxo.oxXxooxxo...', 'oxXooxxxoxxxo.o.',
+      'oxxooxXxoxXxooxo', 'oxXooxxxoxxxooXo', 'ooxxoxxxxoxxoxxo', 'oooooooooooooooo'],
+    ['................', '................', '................', '................', '................', '........o.......',
+      '.......oxo......', '..o....oxXo.....', '.oxo..oxxXo.....', '.oxXo.oxxxo..o..', '.oxxo.oxXxo.oxo.', '.oxxooxxxxo.oXo.',
+      'ooxXooxXxxooxxo.', 'oxxxooxxxxooxxo.', 'ooxxoxxxxxoxxxo.', 'oooooooooooooooo'],
+    ['oooooooooooooooo', 'ooxxoxxxxooxxxoo', '.oxXooxXxo.oxXo.', '.oxxo.oxxo..oxo.', '..oxo.oxXo...o..', '..oo..oxxo......',
+      '.......oxo......', '.......oo.......', '................', '................', '................', '................',
+      '................', '................', '................', '................'],
+  ],
 };
 
 const PAL = {
@@ -104,9 +134,14 @@ const PAL = {
   glowshroom: { o: '#1b2a4a', c: '#5ad8ff', C: '#d4fbff', s: '#bfe8f0', S: '#8ab8c8', O: '#1b2a4a' },
   crystal: { o: '#2a1d4a', x: '#b98cff', X: '#f0e0ff' },
   stalactite: { k: '#4a4860', K: '#6a6880' },
+  giantshroom: { o: '#1b2a4a', c: '#6ff0ff', C: '#e8ffff', s: '#c8f0f8', S: '#8ab8c8' },
+  moss: { m: '#3fd07a', M: '#aaffc8' },
+  amethyst: { o: '#3a1f5a', x: '#d08cff', X: '#ffe8ff' },
 };
 
-export const GLOWING = { mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff };
+export const GLOWING = {
+  mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff, giantshroom: 0x6ff0ff, moss: 0x7aff9a, amethyst: 0xd08cff,
+};
 
 const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff'];
 

@@ -107,6 +107,19 @@ export function createSfx(audio) {
     sticker() {
       ['E6', 'G6', 'C7'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.22, gain: 0.08, at: i * 0.07 }));
     },
+    fuse() { noise({ dur: 0.4, gain: 0.08, freq: 4000, q: 2 }); },
+    boom() {
+      noise({ dur: 0.7, gain: 0.35, freq: 800, to: 90, q: 0.7, type: 'lowpass' });
+      tone({ type: 'sine', freq: 120, to: 50, dur: 0.5, gain: 0.25 });
+      ['C5', 'E5', 'G5'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.2, gain: 0.05, at: 0.15 + i * 0.05 }));
+    },
+    rumble() { noise({ dur: 0.45, gain: 0.25, freq: 300, to: 120, q: 0.8, type: 'lowpass' }); },
+    crack() {
+      noise({ dur: 0.08, gain: 0.25, freq: 3000, q: 3 });
+      ['G5', 'B5', 'D6', 'G6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.25, gain: 0.06, at: 0.05 + i * 0.05 }));
+    },
+    splash() { noise({ dur: 0.35, gain: 0.18, freq: 1200, to: 400, q: 1, type: 'bandpass' }); },
+    egg() { ['C6', 'E6', 'G6', 'C7'].forEach((n, i) => tone({ type: 'sine', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: i * 0.06 })); },
     join() { ['E5', 'A5'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.07, at: i * 0.08 })); },
     lava() { noise({ dur: 0.3, gain: 0.15, freq: 400, to: 1500, q: 1, type: 'lowpass' }); },
     gravel() { noise({ dur: 0.2, gain: 0.25, freq: 600, to: 150, q: 0.8, type: 'lowpass' }); },

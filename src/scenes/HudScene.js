@@ -41,7 +41,13 @@ export class HudScene extends Phaser.Scene {
     band(LAYERS.dirt.top, LAYERS.dirt.bottom, 0x8a5a34);
     band(LAYERS.stone.top, LAYERS.stone.bottom, 0x7d7d86);
     band(LAYERS.deep.top, LAYERS.deep.bottom, 0x3f3d4f);
+    band(LAYERS.crystal.top, LAYERS.crystal.bottom, 0x6a4fa8);
     this.chestDots = this.source.world.chests.map((c) => this.add.rectangle(x - 4, top + c.y * this.meter.scale, 3, 3, 0xffd84a).setOrigin(0.5));
+    this.eggDots = this.source.world.eggs.map((e) => this.add.rectangle(x + 5, top + e.y * this.meter.scale, 3, 4, 0xfff6d0).setOrigin(0.5));
+    const bc = this.source.world.bigChest;
+    this.bigDot = bc ? this.add.rectangle(x - 4, top + bc.y * this.meter.scale, 4, 3, 0xd08cff).setOrigin(0.5) : null;
+    this.carriedEggs = this.add.container(4, 38);
+    this.carriedShown = 0;
     this.faces = [];
   }
 
@@ -52,6 +58,23 @@ export class HudScene extends Phaser.Scene {
       const known = this.source.revealAll || this.source.seenChests.has(i);
       this.chestDots[i].setVisible(!open && known).setAlpha(0.6 + Math.sin(time / 300 + i) * 0.4);
     });
+    const reveal = this.source.revealAll;
+    this.source.finds.eggs.forEach((e, i) => this.eggDots[i].setVisible(reveal && !e.taken));
+    if (this.bigDot) {
+      const bc = this.source.world.bigChest;
+      this.bigDot.setVisible(reveal && this.source.grid.get(bc.x, bc.y) === B.BIGCHEST);
+    }
+    // eggs you're carrying home
+    const carried = this.source.finds.carried;
+    if (carried.length !== this.carriedShown) {
+      this.carriedShown = carried.length;
+      this.carriedEggs.removeAll(true);
+      carried.forEach((kind, i) => {
+        const img = this.add.image(i * 13 + 6, 7, 'egg', ['mole', 'glowbug', 'batbuddy', 'golden'].indexOf(kind));
+        this.carriedEggs.add(img);
+        if (i === carried.length - 1) this.tweens.add({ targets: img, scale: { from: 2, to: 1 }, duration: 300, ease: 'Back.easeOut' });
+      });
+    }
     for (const a of this.source.avatars) {
       if (!a) continue;
       if (!this.faces[a.slot]) {
