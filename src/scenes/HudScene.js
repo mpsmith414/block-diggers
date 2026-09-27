@@ -57,7 +57,7 @@ export class HudScene extends Phaser.Scene {
         this.faces[a.slot] = this.add.image(0, 0, `char-${a.char}`, 0).setScale(0.6);
       }
       const row = Math.max(0, (a.p.y + 7) / TILE);
-      this.faces[a.slot].setPosition(x - 10 - a.slot * 2, top + row * scale);
+      this.faces[a.slot].setPosition(x - 10 - a.slot * 9, top + row * scale);
     }
   }
 

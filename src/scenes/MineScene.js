@@ -171,7 +171,16 @@ export class MineScene extends Phaser.Scene {
       a.bubble.setVisible(false);
       return;
     }
-    if (partner.bubbling) return; // wait for them to land first
+    if (partner.bubbling) {
+      // both bubbling (never wait on each other): player 1 pops, player 2 floats over
+      if (a.slot < partner.slot) {
+        a.bubbling = false;
+        a.bubble.setVisible(false);
+        this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xc8f0ff, 8);
+        this.events.emit('bubblePop', a);
+      }
+      return;
+    }
     if (stepBubble(a.p, { x: partner.p.x, y: partner.p.y }, dt)) {
       a.bubbling = false;
       a.p.grounded = partner.p.grounded;
@@ -218,7 +227,7 @@ export class MineScene extends Phaser.Scene {
     }
     this.hazards.update(dt, time);
     for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
-    if (coop) this.catchOffscreen();
+    if (coop) this.catchOffscreen(dt);
     this.updateCamera(dt);
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
@@ -285,11 +294,17 @@ export class MineScene extends Phaser.Scene {
   }
 
   // Fell or got knocked out of view anyway: bubble them back to their partner.
-  catchOffscreen() {
+  catchOffscreen(dt) {
     if (this.time.now < (this.offscreenGraceUntil ?? 0)) return;
+    if (this.avatars.some((a) => a && a.bubbling)) return; // one bubble at a time
     const view = this.cameras.main.worldView;
-    const out = this.avatars.filter((a) => a && !a.bubbling &&
-      isOffscreen({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, view));
+    for (const a of this.avatars) {
+      if (!a) continue;
+      const off = isOffscreen({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, view);
+      a.offT = off ? (a.offT ?? 0) + dt : 0;
+    }
+    // only once they've been out of view for a moment (the camera can lag a fast fall)
+    const out = this.avatars.filter((a) => a && a.offT > 0.5);
     if (!out.length) return;
     // if both are "out" (camera can't fit them), bubble the one who is falling, else the lower one
     const pick = out.find((a) => !a.p.grounded) ?? out.sort((m, n) => n.p.y - m.p.y)[0];
