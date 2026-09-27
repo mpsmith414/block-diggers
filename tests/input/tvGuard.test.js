@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  installBackGuard, installFocusGuard, setCursorHidden,
+  installBackGuard, installFocusGuard, setCursorHidden, installIdleCursor,
   setPointerLock, setFullscreen, createEventBlocker,
 } from '../../src/input/tvGuard.js';
 
@@ -128,5 +128,46 @@ describe('turning the experiments back off', () => {
     expect(await setFullscreen({ fullscreenElement: {}, exitFullscreen }, {}, false)).toBe('ok');
     expect(exitFullscreen).toHaveBeenCalledTimes(1);
     expect(await setFullscreen({ fullscreenElement: {} }, {}, false)).toBe('unsupported');
+  });
+});
+
+describe('installIdleCursor', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('starts hidden, shows on movement, hides again after idleMs', () => {
+    vi.useFakeTimers();
+    const c = installIdleCursor({ doc: document, win: window, idleMs: 2000 });
+    expect(c.hidden()).toBe(true);
+    expect(document.getElementById('cursor-hide')).not.toBeNull();
+    window.dispatchEvent(new Event('pointermove'));
+    expect(c.hidden()).toBe(false);
+    vi.advanceTimersByTime(1999);
+    expect(c.hidden()).toBe(false);
+    vi.advanceTimersByTime(1);
+    expect(c.hidden()).toBe(true);
+    c.destroy();
+  });
+
+  it('movement during the idle window restarts the timer', () => {
+    vi.useFakeTimers();
+    const c = installIdleCursor({ doc: document, win: window, idleMs: 2000 });
+    window.dispatchEvent(new Event('pointermove'));
+    vi.advanceTimersByTime(1500);
+    window.dispatchEvent(new Event('pointerdown'));
+    vi.advanceTimersByTime(1500);
+    expect(c.hidden()).toBe(false);
+    vi.advanceTimersByTime(500);
+    expect(c.hidden()).toBe(true);
+    c.destroy();
+  });
+
+  it('destroy removes listeners and shows the cursor', () => {
+    vi.useFakeTimers();
+    const c = installIdleCursor({ doc: document, win: window });
+    c.destroy();
+    expect(document.getElementById('cursor-hide')).toBeNull();
+    window.dispatchEvent(new Event('pointermove'));
+    vi.advanceTimersByTime(5000);
+    expect(document.getElementById('cursor-hide')).toBeNull();
   });
 });

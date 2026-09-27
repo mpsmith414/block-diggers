@@ -80,6 +80,30 @@ export function setCursorHidden(doc, on) {
   return on;
 }
 
+// When streaming (Sunshine captures the PC cursor into the video) an unmoved
+// mouse would sit in the middle of the TV. Hide it until the mouse moves,
+// and again after idleMs of stillness.
+export function installIdleCursor({ doc, win, idleMs = 2000 }) {
+  let hidden = setCursorHidden(doc, true);
+  let timer = null;
+  const onMove = () => {
+    if (hidden) hidden = setCursorHidden(doc, false);
+    win.clearTimeout(timer);
+    timer = win.setTimeout(() => { hidden = setCursorHidden(doc, true); }, idleMs);
+  };
+  win.addEventListener('pointermove', onMove, true);
+  win.addEventListener('pointerdown', onMove, true);
+  return {
+    hidden: () => hidden,
+    destroy() {
+      win.clearTimeout(timer);
+      win.removeEventListener('pointermove', onMove, true);
+      win.removeEventListener('pointerdown', onMove, true);
+      hidden = setCursorHidden(doc, false);
+    },
+  };
+}
+
 async function attempt(fn) {
   try {
     const r = fn();

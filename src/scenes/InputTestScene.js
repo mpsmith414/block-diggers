@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { createDevices } from '../input/devices.js';
 import { createPlayers } from '../input/players.js';
 import { toIntent, createEdge } from '../input/intents.js';
-import { installBackGuard, installFocusGuard } from '../input/tvGuard.js';
+import { installBackGuard, installFocusGuard, installIdleCursor } from '../input/tvGuard.js';
 
 // Throwaway milestone-1 scene: press A to join, move a coloured block.
 // Proves input, scaling and frame rate on the Fire TV Cube.
@@ -34,9 +34,11 @@ export class InputTestScene extends Phaser.Scene {
 
     const removeBack = installBackGuard(window, () => this.togglePause());
     const guard = installFocusGuard({ doc: document, win: window });
+    const cursor = installIdleCursor({ doc: document, win: window });
     this.events.once('shutdown', () => {
       removeBack();
       guard.destroy();
+      cursor.destroy();
       this.devices.destroy();
     });
   }
