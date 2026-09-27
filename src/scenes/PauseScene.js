@@ -57,6 +57,7 @@ export class PauseScene extends Phaser.Scene {
     const inMine = this.target === 'Mine';
     this.options = [
       { id: 'resume', icon: 'icon-play' },
+      { id: 'book', icon: 'icon-book' },
       { id: 'sound', icon: this.audio?.core.muted ? 'icon-mute' : 'icon-sound' },
       ...(inMine ? [{ id: 'home', icon: 'icon-home' }] : []),
       { id: 'title', icon: 'icon-door' },
@@ -118,9 +119,14 @@ export class PauseScene extends Phaser.Scene {
       const muted = !this.audio.core.muted;
       this.audio.core.setMuted(muted);
       setState(this.registry, { ...getState(this.registry), muted });
-      this.options[1].icon = muted ? 'icon-mute' : 'icon-sound';
-      this.icons[1].setTexture(this.options[1].icon);
+      const i = this.options.findIndex((o) => o.id === 'sound');
+      this.options[i].icon = muted ? 'icon-mute' : 'icon-sound';
+      this.icons[i].setTexture(this.options[i].icon);
       this.events.emit('pickerMove');
+      return;
+    }
+    if (id === 'book') {
+      this.scene.start('Book', { target: this.target });
       return;
     }
     if (id === 'home') {

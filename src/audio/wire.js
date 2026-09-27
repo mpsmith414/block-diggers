@@ -54,7 +54,7 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU };
+const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp' };
 
 export function attachAudio(scene) {

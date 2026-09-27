@@ -150,6 +150,8 @@ export class CampScene extends Phaser.Scene {
     }
     // mine entrance
     this.add.image(CAMP.shaftX * TILE + TILE / 2, GROUND_Y + 16, 'shaft').setOrigin(0.5, 1).setDepth(12);
+    // the sticker book on its lectern
+    this.add.image(CAMP.lecternX * TILE + TILE / 2, GROUND_Y, 'lectern').setOrigin(0.5, 1).setDepth(5);
     // upgrade bench
     this.add.image(CAMP.benchX * TILE + TILE / 2, GROUND_Y, 'bench').setOrigin(0.5, 1).setDepth(5);
     // campfire with flicker, glow and embers
@@ -299,6 +301,7 @@ export class CampScene extends Phaser.Scene {
     const { cx } = playerCell(a.p);
     if (Math.abs(cx - CAMP.shaftX) <= 1) return { kind: 'shaft' };
     if (Math.abs(cx - CAMP.benchX) <= 1) return { kind: 'bench' };
+    if (cx === CAMP.lecternX) return { kind: 'lectern' };
     const plot = CAMP.plots.findIndex((px) => cx >= px && cx < px + CAMP.plotW);
     const here = plot >= 0 ? getState(this.registry).plots[plot] : undefined;
     if (plot >= 0 && !here) return { kind: 'plot', plot };
@@ -332,6 +335,13 @@ export class CampScene extends Phaser.Scene {
         stepPlayer(a.p, IDLE, this.grid, { dt, canMine: false });
       } else if (!this.leaving) {
         let move = i;
+        if (zone && zone.kind === 'lectern') {
+          move = { ...i, jump: false };
+          if (e.a && !hud.picker) {
+            this.scene.pause();
+            this.scene.launch('Book', { target: 'Camp' });
+          }
+        }
         if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart')) {
           move = { ...i, jump: false }; // A opens the picker (or rides the cart) instead of jumping
           if (e.a && !hud.picker && zone.kind === 'cart') this.startTrip({ cart: true });
@@ -349,7 +359,9 @@ export class CampScene extends Phaser.Scene {
     // floating prompts over the thing you can use
     const bob = Math.sin(time / 200) * 2;
     if (prompt) {
-      const x = prompt.kind === 'bench' ? CAMP.benchX * TILE + TILE / 2 : CAMP.plots[prompt.plot] * TILE + (CAMP.plotW * TILE) / 2;
+      const x = prompt.kind === 'bench' ? CAMP.benchX * TILE + TILE / 2
+        : prompt.kind === 'lectern' ? CAMP.lecternX * TILE + TILE / 2
+          : CAMP.plots[prompt.plot] * TILE + (CAMP.plotW * TILE) / 2;
       this.prompt.setVisible(true).setPosition(x, GROUND_Y - 34 + bob);
     } else {
       this.prompt.setVisible(false);

@@ -102,6 +102,7 @@ export const CAMP = {
   ground: 11, // first solid row
   shaftX: 5,
   benchX: 10,
+  lecternX: 12,
   fireX: 15,
   plots: [19, 26, 33, 40, 47, 54],
   plotW: 6,
