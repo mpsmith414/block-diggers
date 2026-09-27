@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import { generateMine } from '../world/worldgen.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
-import { createPlayer, stepPlayer, standAt, playerCell } from '../game/player.js';
+import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
+import { lavaEscape } from '../game/hazards.js';
 import {
-  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups,
+  createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
 } from '../game/loot.js';
 import { frameCamera, wallLimits, applySoftWall, isOffscreen } from '../game/camera.js';
 import { stepBubble } from '../game/bubble.js';
@@ -13,8 +14,9 @@ import { CHARACTERS } from '../art/characters.js';
 import { createMapView } from './mine/mapView.js';
 import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
+import { createHazards } from './mine/hazardsView.js';
 import {
-  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE,
+  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK,
 } from '../tuning.js';
 
 const GLINT_COLORS = { coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0 };
@@ -44,6 +46,7 @@ export class MineScene extends Phaser.Scene {
     this.mapView = createMapView(this, this.grid);
     this.drawEntrance();
     this.effects = createEffects(this);
+    this.hazards = createHazards(this);
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
     this.lavaCells = [];
     for (let y = 0; y < MINE_H; y++) {
@@ -112,6 +115,7 @@ export class MineScene extends Phaser.Scene {
       full: this.add.image(0, 0, 'icon-full').setDepth(61).setVisible(false),
       bubble: this.add.image(0, 0, 'bubble').setDepth(62).setVisible(false),
       bubbling: false,
+      invuln: 0,
       bubbleEdge: createEdge(),
       walkT: 0,
     };
@@ -177,6 +181,8 @@ export class MineScene extends Phaser.Scene {
       }
       this.drawAvatar(a, dt, time);
     }
+    this.hazards.update(dt, time);
+    for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
     if (coop) this.catchOffscreen();
     this.updateCamera(dt);
     this.stepPickups(dt, time);
@@ -225,6 +231,7 @@ export class MineScene extends Phaser.Scene {
       this.mapView.syncMined(m.x, m.y);
       this.effects.chunks(m.x, m.y, m.id);
       this.events.emit('blockMined', m);
+      this.hazards.mined(m.x, m.y);
       if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
     }
     if (r.bounced) {
@@ -237,6 +244,8 @@ export class MineScene extends Phaser.Scene {
     // treasure chest: walk into it to open
     const { cx, cy } = playerCell(a.p);
     if (this.grid.get(cx, cy) === B.CHEST) this.openChest(cx, cy);
+    const lava = this.touchedLava(a);
+    if (lava) this.lavaBonk(a, lava);
 
     // collect ores lying around (nearby ones float in)
     attractPickups(this.pickups, { x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, a.pack, dt);
@@ -258,6 +267,62 @@ export class MineScene extends Phaser.Scene {
       this.effects.flash(a.sprite.x, a.sprite.y - 20, 'icon-full');
       this.events.emit('packFull', a);
     }
+  }
+
+  // The lava cell the player's box touches, or null.
+  touchedLava(a) {
+    const x0 = Math.floor((a.p.x + 1) / TILE);
+    const x1 = Math.floor((a.p.x + PLAYER.w - 1) / TILE);
+    const y0 = Math.floor((a.p.y + 2) / TILE);
+    const y1 = Math.floor((a.p.y + PLAYER.h - 1) / TILE);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (this.grid.get(x, y) === B.LAVA) return { x, y };
+    return null;
+  }
+
+  // Lava: pop up out of it (if you're in it) and hop well away from it.
+  lavaBonk(a, lava) {
+    const { cx, cy } = playerCell(a.p);
+    if (this.grid.get(cx, cy) === B.LAVA) {
+      const safe = lavaEscape(this.grid, cx, cy);
+      const s = standAt(safe.cx, safe.cy);
+      a.p.x = s.x;
+      a.p.y = s.y;
+    }
+    const wasSafe = a.invuln > 0;
+    this.bonk(a, lava.x * TILE + TILE / 2);
+    if (!wasSafe) {
+      a.p.vy = -PLAYER.lavaHop;
+      this.effects.sparkle(a.sprite.x, a.sprite.y, 0xff8a1f, 8);
+    }
+  }
+
+  // A hazard touched a player: knock back, scatter up to 3 ores, brief safety.
+  bonk(a, fromX, { noKnock = false } = {}) {
+    if (a.bubbling || a.invuln > 0) return;
+    a.invuln = BONK.invuln;
+    const dir = Math.sign(a.p.x + PLAYER.w / 2 - fromX) || -a.p.facing || 1;
+    if (!noKnock) knockback(a.p, dir);
+    const x = a.p.x + PLAYER.w / 2;
+    const y = a.p.y + 4;
+    for (const ore of scatterOres(a.pack, this.rng, BONK.scatter)) {
+      this.pickups.push(createPickup({
+        x, y, ore, ttl: PICKUP.scatterTtl, delay: PICKUP.scatterDelay,
+        vx: (this.rng.next() - 0.5) * 160, vy: -120 - this.rng.next() * 60,
+      }));
+    }
+    this.cameras.main.shake(120, 0.004);
+    this.effects.sparkle(x, y, 0xffffff, 6);
+    a.sprite.setTintFill(0xffffff);
+    this.time.delayedCall(90, () => a.sprite.clearTint());
+    this.events.emit('bonk', a);
+  }
+
+  squash(a, e) {
+    this.hazards.squash(e);
+    a.p.vy = -200;
+    this.effects.sparkle(e.x + e.w / 2, e.y + e.h / 2, 0x9ae67a, 8);
+    this.effects.chunks(Math.floor((e.x + 6) / TILE), Math.floor(e.y / TILE), 99);
+    this.events.emit('squash', a);
   }
 
   openChest(cx, cy) {
@@ -309,6 +374,7 @@ export class MineScene extends Phaser.Scene {
       frame = 1 + (Math.floor(a.walkT * 8) % 2);
     } else if (!p.grounded) frame = 1;
     sprite.setFrame(frame);
+    sprite.setAlpha(a.invuln > 0 && Math.floor(time / 90) % 2 === 0 ? 0.35 : 1);
     // a tiny squash while mining, so digging feels like effort
     const digging = p.mining && p.mining.need !== Infinity;
     sprite.setScale(1, digging ? 1 - 0.06 * Math.abs(Math.sin(time / 60)) : 1);

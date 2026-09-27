@@ -142,6 +142,7 @@ function drawTiles(scene) {
     out.drawImage(raw, i * T, T - 1, T, 1, dx, dy + T, T, 1); // bottom edge
     out.drawImage(out.canvas, dx, dy - 1, 1, T + 2, dx - 1, dy - 1, 1, T + 2); // left
     out.drawImage(out.canvas, dx + T - 1, dy - 1, 1, T + 2, dx + T, dy - 1, 1, T + 2); // right
+    tex.add(i, 0, dx, dy, T, T);
   }
   tex.refresh();
 }
@@ -230,6 +231,61 @@ function drawLight(scene) {
   tex.refresh();
 }
 
+// Slime: a jelly blob, 2 frames (sitting, squished mid-hop).
+function drawSlime(scene) {
+  const { tex, ctx } = canvasTexture(scene, 'slime', 32, 12);
+  const body = '#7ad65a';
+  const dark = '#3f8f3a';
+  const OUT = '#244a22';
+  const frame = (ox, squish) => {
+    const top = squish ? 5 : 2;
+    rect(ctx, OUT, ox + 2, top - 1, 12, 12 - top + 1);
+    rect(ctx, OUT, ox + 1, top + 1, 14, 12 - top - 1);
+    rect(ctx, body, ox + 2, top, 12, 11 - top);
+    rect(ctx, body, ox + 1, top + 2, 14, 11 - top - 3);
+    rect(ctx, dark, ox + 2, 10, 12, 1);
+    rect(ctx, '#c8f7b0', ox + 4, top + 1, 3, 2);
+    rect(ctx, OUT, ox + 5, top + 4, 2, 2);
+    rect(ctx, OUT, ox + 9, top + 4, 2, 2);
+    rect(ctx, '#ffffff', ox + 5, top + 4, 1, 1);
+    rect(ctx, '#ffffff', ox + 9, top + 4, 1, 1);
+    rect(ctx, '#ff8fa3', ox + 3, top + 6, 1, 1);
+    rect(ctx, '#ff8fa3', ox + 12, top + 6, 1, 1);
+  };
+  frame(0, false);
+  frame(16, true);
+  tex.add(0, 0, 0, 0, 16, 12);
+  tex.add(1, 0, 16, 0, 16, 12);
+  tex.refresh();
+}
+
+// Bat: purple and round, 2 wing frames.
+function drawBat(scene) {
+  const { tex, ctx } = canvasTexture(scene, 'bat', 32, 12);
+  const body = '#8a6fc9';
+  const OUT = '#2e2346';
+  const frame = (ox, up) => {
+    // wings
+    if (up) {
+      rect(ctx, OUT, ox + 0, 1, 5, 4); rect(ctx, '#6a52a8', ox + 1, 2, 3, 2);
+      rect(ctx, OUT, ox + 11, 1, 5, 4); rect(ctx, '#6a52a8', ox + 12, 2, 3, 2);
+    } else {
+      rect(ctx, OUT, ox + 0, 6, 5, 4); rect(ctx, '#6a52a8', ox + 1, 7, 3, 2);
+      rect(ctx, OUT, ox + 11, 6, 5, 4); rect(ctx, '#6a52a8', ox + 12, 7, 3, 2);
+    }
+    rect(ctx, OUT, ox + 4, 2, 8, 9);
+    rect(ctx, body, ox + 5, 3, 6, 7);
+    rect(ctx, OUT, ox + 5, 1, 2, 2); rect(ctx, OUT, ox + 9, 1, 2, 2); // ears
+    rect(ctx, '#ffe066', ox + 6, 5, 1, 1); rect(ctx, '#ffe066', ox + 9, 5, 1, 1);
+    rect(ctx, '#ffffff', ox + 7, 8, 1, 1); rect(ctx, '#ffffff', ox + 8, 8, 1, 1);
+  };
+  frame(0, true);
+  frame(16, false);
+  tex.add(0, 0, 0, 0, 16, 12);
+  tex.add(1, 0, 16, 0, 16, 12);
+  tex.refresh();
+}
+
 // Soap bubble for "bubble to partner".
 function drawBubble(scene) {
   const S = 28;
@@ -312,6 +368,8 @@ export function drawTextures(scene) {
   drawLight(scene);
   drawFade(scene);
   drawBubble(scene);
+  drawSlime(scene);
+  drawBat(scene);
   drawGlint(scene);
   drawFont(scene);
   drawCharacters(scene, canvasTexture, rect);

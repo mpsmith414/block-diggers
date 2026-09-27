@@ -8,6 +8,7 @@ const MAX_BITS = 30;
 export const BLOCK_CHUNK_COLORS = {
   1: 0x5aa63c, 2: 0x8a5a34, 3: 0x7d7d86, 4: 0x3f3d4f, 6: 0x77706a,
   7: 0x8a5a34, 8: 0x7d7d86, 9: 0x7d7d86, 10: 0x7d7d86, 11: 0x3f3d4f, 12: 0x3f3d4f, 13: 0x3f3d4f,
+  99: 0x7ad65a, // slime goo
 };
 
 export function createEffects(scene) {

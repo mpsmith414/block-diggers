@@ -51,6 +51,7 @@ export const PLAYER = {
   knockSpeed: 110,
   knockTime: 0.25,
   knockLift: 170,
+  lavaHop: 260,
 };
 
 // ---- upgrades: value per level ----
