@@ -5,6 +5,7 @@ import { B, BLOCK_COUNT, ORES } from '../world/blocks.js';
 import { createRng } from '../world/rng.js';
 import { drawCharacters } from './characters.js';
 import { drawCampArt } from './camp.js';
+import { drawLogo } from './logo.js';
 
 const T = 16;
 
@@ -375,4 +376,5 @@ export function drawTextures(scene) {
   drawFont(scene);
   drawCharacters(scene, canvasTexture, rect);
   drawCampArt(scene, canvasTexture, rect);
+  drawLogo(scene, canvasTexture, rect);
 }

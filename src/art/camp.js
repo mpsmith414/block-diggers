@@ -410,6 +410,16 @@ function drawIcons(scene, canvasTexture, rect) {
     rect(ctx, '#6d7480', 6, 0, 6, 4);
     rect(ctx, '#8e96a3', 6, 0, 6, 1);
   });
+  one('icon-pad', 16, 10, (ctx) => {
+    rect(ctx, OUT, 2, 1, 12, 7);
+    rect(ctx, OUT, 0, 3, 16, 7);
+    rect(ctx, '#e8e4f0', 1, 4, 14, 5);
+    rect(ctx, '#e8e4f0', 3, 2, 10, 2);
+    rect(ctx, '#55505e', 3, 5, 3, 1);
+    rect(ctx, '#55505e', 4, 4, 1, 3);
+    rect(ctx, '#4cc24a', 11, 4, 2, 2);
+    rect(ctx, '#e03a3a', 13, 6, 2, 2);
+  });
   one('rope', 3, 8, (ctx) => {
     rect(ctx, '#c8904e', 0, 0, 3, 8);
     rect(ctx, '#9a6a34', 0, 1, 3, 1);

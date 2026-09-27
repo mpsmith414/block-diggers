@@ -25,6 +25,6 @@ export class BootScene extends Phaser.Scene {
       core.setMuted(!!state.muted);
       this.registry.set('audio', { core, sfx: createSfx(core), music: createMusic(core) });
     }
-    this.scene.start('Camp');
+    this.scene.start('Title');
   }
 }
