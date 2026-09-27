@@ -115,3 +115,23 @@ describe('generateMine', () => {
     }
   });
 });
+
+describe('cave decorations', () => {
+  it('sit in open cells, on a solid floor or under a solid ceiling, in their layer', () => {
+    const LAYER_OF = { grass: 'dirt', flower: 'dirt', roots: 'dirt', mushroom: 'stone', pebbles: 'stone', glowshroom: 'deep', crystal: 'deep', stalactite: 'deep' };
+    const RANGE = { dirt: [1, 40], stone: [41, 95], deep: [96, 148] };
+    let total = 0;
+    for (const { grid, decor } of mines) {
+      for (const d of decor) {
+        total++;
+        expect(grid.get(d.x, d.y)).toBe(B.AIR);
+        const support = d.on === 'floor' ? grid.get(d.x, d.y + 1) : grid.get(d.x, d.y - 1);
+        expect(isSolid(support)).toBe(true);
+        const [top, bottom] = RANGE[LAYER_OF[d.kind]];
+        expect(d.y).toBeGreaterThanOrEqual(top);
+        expect(d.y).toBeLessThanOrEqual(bottom);
+      }
+    }
+    expect(total / mines.length).toBeGreaterThan(30);
+  });
+});

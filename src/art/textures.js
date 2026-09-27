@@ -6,6 +6,7 @@ import { createRng } from '../world/rng.js';
 import { drawCharacters } from './characters.js';
 import { drawCampArt } from './camp.js';
 import { drawLogo } from './logo.js';
+import { drawDecor } from './decor.js';
 
 const T = 16;
 
@@ -377,4 +378,5 @@ export function drawTextures(scene) {
   drawCharacters(scene, canvasTexture, rect);
   drawCampArt(scene, canvasTexture, rect);
   drawLogo(scene, canvasTexture, rect);
+  drawDecor(scene, canvasTexture, rect);
 }

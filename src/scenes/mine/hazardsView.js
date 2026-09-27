@@ -90,6 +90,7 @@ export function createHazards(scene) {
         scene.effects.chunks(c.x, c.y, B.GRAVEL);
         scene.cameras.main.shake(60, 0.002);
         scene.events.emit('gravelLanded', c);
+        scene.decor.filled(c.x, c.y);
       }
       for (const [e] of sprites) if (e.state && !fallers.includes(e)) dropSprite(e);
       for (const f of fallers) {

@@ -15,6 +15,8 @@ import { createMapView } from './mine/mapView.js';
 import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
+import { createDecorView } from './mine/decorView.js';
+import { getState } from '../save/store.js';
 import { animateCharacter } from './common/avatarView.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
@@ -53,6 +55,9 @@ export class MineScene extends Phaser.Scene {
     this.mapView = createMapView(this, this.grid);
     this.drawEntrance();
     this.effects = createEffects(this);
+    this.decor = createDecorView(this, this.world.decor);
+    this.firstTrip = (getState(this.registry)?.trips ?? 0) === 0;
+    this.dugCount = 0;
     this.hazards = createHazards(this);
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
     this.lavaCells = [];
@@ -129,6 +134,10 @@ export class MineScene extends Phaser.Scene {
       bubbleEdge: createEdge(),
       homeHold: createHoldTimer(HOME_HOLD_MS),
       ring: this.add.graphics().setDepth(63),
+      pick: this.add.image(0, 0, 'pick', this.upgrades.pick).setOrigin(0.15, 0.85).setDepth(31).setVisible(false),
+      hint: this.add.image(0, 0, 'icon-stick-down').setDepth(64).setVisible(false),
+      wasGrounded: true,
+      dustT: 0,
       walkT: 0,
     };
     this.avatars[slot] = a;
@@ -311,6 +320,8 @@ export class MineScene extends Phaser.Scene {
       this.effects.chunks(m.x, m.y, m.id);
       this.events.emit('blockMined', m);
       this.hazards.mined(m.x, m.y);
+      this.decor.mined(m.x, m.y);
+      this.dugCount++;
       if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
     }
     if (r.bounced) {
@@ -447,6 +458,11 @@ export class MineScene extends Phaser.Scene {
     animateCharacter(sprite, p, a, dt, time);
     sprite.setAlpha(a.invuln > 0 && Math.floor(time / 90) % 2 === 0 ? 0.35 : 1);
     const digging = p.mining && p.mining.need !== Infinity;
+    this.drawPick(a, time);
+    this.dust(a, dt);
+    // first trip ever: show "push the stick down" until a few blocks are dug
+    const showHint = this.firstTrip && this.dugCount < 3 && !a.bubbling && !this.goingHome;
+    a.hint.setVisible(showHint).setPosition(sprite.x, sprite.y - 30 + Math.sin(time / 180) * 3);
 
     if (digging) {
       const f = Math.min(3, Math.floor((p.mining.t / p.mining.need) * 4));
@@ -491,6 +507,50 @@ export class MineScene extends Phaser.Scene {
     }
   }
 
+  // The pickaxe appears in hand while digging and swings at the target.
+  drawPick(a, time) {
+    const m = a.p.mining;
+    if (!m || this.goingHome || a.bubbling) {
+      a.pick.setVisible(false);
+      return;
+    }
+    const cx = a.p.x + PLAYER.w / 2;
+    const cy = a.p.y + PLAYER.h / 2;
+    const tx = m.cx * TILE + TILE / 2;
+    const ty = m.cy * TILE + TILE / 2;
+    const base = Math.atan2(ty - cy, tx - cx);
+    const swing = Math.sin(time / 55) * 0.7;
+    const left = tx < cx - 1;
+    // the sprite points up-right (or up-left when flipped), handle at the origin
+    const natural = left ? (-3 * Math.PI) / 4 : -Math.PI / 4;
+    a.pick.setVisible(true)
+      .setFlipX(left)
+      .setOrigin(left ? 0.85 : 0.15, 0.85)
+      .setPosition(cx + Math.cos(base) * 6, cy + Math.sin(base) * 6)
+      .setRotation(base - natural + (left ? -swing : swing) - (left ? -0.5 : 0.5));
+  }
+
+  // Little puffs when landing, and now and then while walking.
+  dust(a, dt) {
+    const p = a.p;
+    const x = p.x + PLAYER.w / 2;
+    const y = p.y + PLAYER.h;
+    if (p.grounded && !a.wasGrounded) {
+      for (const dx of [-5, 5]) this.puff(x + dx, y, dx);
+    }
+    a.wasGrounded = p.grounded;
+    a.dustT -= dt;
+    if (p.grounded && p.vx !== 0 && a.dustT <= 0) {
+      a.dustT = 0.28;
+      this.puff(x - Math.sign(p.vx) * 5, y, -Math.sign(p.vx) * 3);
+    }
+  }
+
+  puff(x, y, dx) {
+    const d = this.add.image(x, y - 1, 'smoke').setDepth(29).setScale(0.4).setAlpha(0.6).setTint(0xd8c8b0);
+    this.tweens.add({ targets: d, x: x + dx, y: y - 4, scale: 0.9, alpha: 0, duration: 380, onComplete: () => d.destroy() });
+  }
+
   drawLights(time) {
     const lights = [];
     const flicker = 1 + Math.sin(time / 130) * 0.03 + Math.sin(time / 57) * 0.02;
@@ -508,6 +568,7 @@ export class MineScene extends Phaser.Scene {
       if (this.grid.get(c.x, c.y) !== B.LAVA) continue;
       lights.push({ x, y, r: 1.6 * flicker, glow: 0.12, color: 0xff6a2a });
     }
+    lights.push(...this.decor.lights(view, flicker));
     for (const c of this.world.chests) {
       if (this.grid.get(c.x, c.y) !== B.CHEST) continue;
       lights.push({ x: c.x * TILE + TILE / 2, y: c.y * TILE + TILE / 2, r: 1.3 * flicker, glow: 0.14, color: 0xffd86b });

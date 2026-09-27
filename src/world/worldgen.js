@@ -15,6 +15,11 @@ const ORE_BLOCK = {
   deep: { gold: B.GOLD_DEEP, diamond: B.DIAMOND, emerald: B.EMERALD },
 };
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const DECOR = {
+  dirt: { floorChance: 0.45, floor: { grass: 3, flower: 1 }, ceilChance: 0.3, ceil: { roots: 1 } },
+  stone: { floorChance: 0.3, floor: { mushroom: 2, pebbles: 1 }, ceilChance: 0, ceil: {} },
+  deep: { floorChance: 0.3, floor: { glowshroom: 2, crystal: 1 }, ceilChance: 0.2, ceil: { stalactite: 1 } },
+};
 
 export function generateMine(seed) {
   const rng = createRng(seed);
@@ -135,7 +140,23 @@ export function generateMine(seed) {
   // the shaft: a short ladder down through the grass
   for (let y = 0; y < SHAFT_DEPTH; y++) grid.set(SHAFT_X, y, B.LADDER);
 
-  return { grid, chests, spawn: { x: SHAFT_X, y: -1 }, seed };
+  // cave decorations: little things growing on cave floors and ceilings
+  const decor = [];
+  for (let y = 1; y < MINE_H - 1; y++) {
+    const kinds = DECOR[layerAt(y)];
+    for (let x = 1; x < MINE_W - 1; x++) {
+      if (grid.get(x, y) !== B.AIR) continue;
+      const below = grid.get(x, y + 1);
+      const above = grid.get(x, y - 1);
+      if (isSolid(below) && below !== B.BEDROCK && rng.chance(kinds.floorChance)) {
+        decor.push({ x, y, on: 'floor', kind: rng.weighted(kinds.floor), v: rng.int(0, 2) });
+      } else if (isSolid(above) && above !== B.BEDROCK && y > 1 && rng.chance(kinds.ceilChance)) {
+        decor.push({ x, y, on: 'ceil', kind: rng.weighted(kinds.ceil), v: rng.int(0, 2) });
+      }
+    }
+  }
+
+  return { grid, chests, decor, spawn: { x: SHAFT_X, y: -1 }, seed };
 }
 
 export function layerAt(y) {
