@@ -16,6 +16,7 @@ import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { animateCharacter } from './common/avatarView.js';
+import { attachAudio } from '../audio/wire.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
 } from '../tuning.js';
@@ -66,6 +67,7 @@ export class MineScene extends Phaser.Scene {
     cam.centerOn(this.cam.x, this.cam.y);
     this.wall = wallLimits({ w: this.scale.width, h: this.scale.height });
 
+    attachAudio(this);
     this.scene.launch('Hud', { source: this });
     this.events.once('shutdown', () => this.scene.stop('Hud'));
   }
@@ -133,6 +135,7 @@ export class MineScene extends Phaser.Scene {
     this.tweens.add({ targets: a.sprite, scale: 1, duration: 300, ease: 'Back.easeOut' });
     this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
     this.offscreenGraceUntil = this.time.now + 1500;
+    this.events.emit('joined', a);
     return a;
   }
 
@@ -298,6 +301,7 @@ export class MineScene extends Phaser.Scene {
 
   stepAvatar(a, intent, dt) {
     const r = stepPlayer(a.p, intent, this.grid, { pickLevel: this.upgrades.pick, dt });
+    if (r.jumped) this.events.emit('jump', a);
     for (const m of r.mined) {
       this.mapView.syncMined(m.x, m.y);
       this.effects.chunks(m.x, m.y, m.id);
@@ -362,6 +366,7 @@ export class MineScene extends Phaser.Scene {
     const wasSafe = a.invuln > 0;
     this.bonk(a, lava.x * TILE + TILE / 2);
     if (!wasSafe) {
+      this.events.emit('lava', a);
       a.p.vy = -PLAYER.lavaHop;
       this.effects.sparkle(a.sprite.x, a.sprite.y, 0xff8a1f, 8);
     }

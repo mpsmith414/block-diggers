@@ -100,11 +100,13 @@ export class CampHudScene extends Phaser.Scene {
     for (const ore of ORES) start[ore] = finalBank[ore] - packs.reduce((n, p) => n + (p[ore] ?? 0), 0);
     for (const ore of ORES) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); }
     let delay = 0;
+    let count = 0;
     const step = Math.max(35, Math.min(120, 2400 / Math.max(1, packs.reduce((n, p) => n + ORES.reduce((m, o) => m + (p[o] ?? 0), 0), 0))));
     packs.forEach((pack, slot) => {
       const a = avatars[slot];
       for (const ore of ORES) {
         for (let k = 0; k < (pack[ore] ?? 0); k++) {
+          const idx = count++;
           this.time.delayedCall(delay, () => {
             const sx = a ? (a.sprite.x - cam.worldView.x) * cam.zoom : this.scale.width / 2;
             const sy = a ? (a.sprite.y - 10 - cam.worldView.y) * cam.zoom : this.scale.height / 2;
@@ -120,7 +122,7 @@ export class CampHudScene extends Phaser.Scene {
               onComplete: () => {
                 img.destroy();
                 this.bump(ore);
-                this.camp.events.emit('deposit', ore);
+                this.camp.events.emit('deposit', ore, idx);
               },
             });
           });
@@ -141,6 +143,7 @@ export class CampHudScene extends Phaser.Scene {
   }
 
   closePicker() {
+    if (this.picker) this.camp.events.emit('pickerClose');
     if (this.pickerUi) this.pickerUi.destroy();
     this.pickerUi = null;
     this.picker = null;

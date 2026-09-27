@@ -49,7 +49,7 @@ const rowsOf = (y) => {
 };
 
 export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true }) {
-  const out = { mined: [], bounced: false, stepped: false };
+  const out = { mined: [], bounced: false, stepped: false, jumped: false };
   let ix = intent.moveX || 0;
   let iy = intent.moveY || 0;
   const knocked = p.knock && p.knock.t > 0;
@@ -91,6 +91,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true 
   if (jumpPressed && (p.grounded || inLadder)) {
     p.vy = -PLAYER.jumpSpeed;
     p.climbing = false;
+    out.jumped = true;
   } else if (p.climbing) {
     p.vy = iy * PLAYER.climbSpeed;
   } else if (inLadder && p.vy >= 0) {

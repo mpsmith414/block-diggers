@@ -10,6 +10,7 @@ import { BUILDING_SIZE } from '../art/camp.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
 import { getState, setState } from '../save/store.js';
+import { attachAudio } from '../audio/wire.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
 const W = CAMP.w * TILE;
@@ -52,6 +53,7 @@ export class CampScene extends Phaser.Scene {
     cam.setZoom(this.cam.zoom).centerOn(this.cam.x, this.cam.y);
     cam.fadeIn(400, 20, 12, 30);
 
+    attachAudio(this);
     this.scene.launch('CampHud', { camp: this });
     this.events.once('shutdown', () => this.scene.stop('CampHud'));
 
@@ -165,6 +167,7 @@ export class CampScene extends Phaser.Scene {
           const shown = Math.floor(tw.getValue() / 8) * 8;
           sprite.setCrop(0, BUILDING_SIZE.h - shown, BUILDING_SIZE.w, shown);
           if (Math.random() < 0.3) this.effects.sparkle(x + Math.random() * BUILDING_SIZE.w, GROUND_Y - shown, 0xffe9a0, 2);
+          if (shown !== b.lastShown) { b.lastShown = shown; this.events.emit('building', b); }
         },
         onComplete: () => {
           sprite.setCrop();
@@ -238,6 +241,7 @@ export class CampScene extends Phaser.Scene {
     this.avatars[slot] = a;
     animateCharacter(a.sprite, a.p, a, 0, 0);
     this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
+    this.events.emit('joined', a);
     return a;
   }
 
@@ -280,7 +284,7 @@ export class CampScene extends Phaser.Scene {
           if (e.a && !hud.picker) this.openPicker(hud, a, zone);
         }
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
-        stepPlayer(a.p, move, this.grid, { dt, canMine: false });
+        if (stepPlayer(a.p, move, this.grid, { dt, canMine: false }).jumped) this.events.emit('jump', a);
         if (zone && zone.kind !== 'shaft' && !hud.picker) prompt = zone;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
