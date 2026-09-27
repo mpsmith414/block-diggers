@@ -55,6 +55,8 @@ const CAMP = {
   gift: (s) => s.play('chest'),
   place: (s) => s.play('hammer'),
   thanks: (s) => s.play('egg'),
+  glug: (s) => s.play('glug'),
+  burp: (s) => s.play('burp'),
 };
 
 const MENU = {

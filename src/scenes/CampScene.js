@@ -418,6 +418,7 @@ export class CampScene extends Phaser.Scene {
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, W - PLAYER.w - 2);
       animateCharacter(a.sprite, a.p, a, dt, time);
+      this.pondDrink(a, dt, time);
     }
 
     // floating prompts over the thing you can use
@@ -436,6 +437,29 @@ export class CampScene extends Phaser.Scene {
     this.visitors.update(dt, time);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
+  }
+
+  // Stand still at the pond for a moment and you have a big drink (and a burp).
+  pondDrink(a, dt, time) {
+    const cx = a.p.x + PLAYER.w / 2;
+    const atPond = !a.carrying && a.p.grounded && a.p.vx === 0
+      && getState(this.registry).decor.placed.some((d) => d.id === 'pond' && Math.abs(d.x - cx) < 14);
+    a.pondT = atPond ? (a.pondT ?? 0) + dt : 0;
+    if (a.drinking > 0) {
+      a.drinking -= dt;
+      a.sprite.setAngle(a.p.facing * 18 + Math.sin(time / 60) * 4);
+      if (a.drinking <= 0) {
+        a.sprite.setAngle(0);
+        this.events.emit('burp', a);
+        const bub = this.add.image(a.sprite.x + a.p.facing * 6, a.sprite.y - 12, 'burp').setDepth(62).setScale(0.3);
+        this.tweens.add({ targets: bub, scale: 1.4, y: bub.y - 30, duration: 900, ease: 'Sine.easeOut', onComplete: () => { this.effects.sparkle(bub.x, bub.y, 0xc8f0ff, 8); bub.destroy(); } });
+        earnSticker(this, 'adv-drink');
+        a.pondT = -3; // a little rest before the next drink
+      }
+    } else if (a.pondT > 1) {
+      a.drinking = 1.4;
+      this.events.emit('glug', a);
+    }
   }
 
   updateStars(time, prompt) {

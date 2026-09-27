@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { nextGoal, oreTopRow } from '../../src/game/goals.js';
+import { nextGoal, oreTopRow, deepestMissing } from '../../src/game/goals.js';
 import { defaultState } from '../../src/save/save.js';
 
 const bank = (o) => ({ coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, ...o });
@@ -35,5 +35,13 @@ describe('oreTopRow', () => {
     expect(oreTopRow('gold')).toBe(41);
     expect(oreTopRow('diamond')).toBe(96);
     expect(oreTopRow('emerald')).toBe(96);
+  });
+});
+
+describe('the Heart goal', () => {
+  it('when the rocket needs the Heart, the arrow points at the bottom of the Core', () => {
+    const goal = { kind: 'blueprint', id: 'rocket', missing: { heart: 1, brick: 5 } };
+    expect(deepestMissing(goal)).toBe('heart');
+    expect(oreTopRow('heart')).toBeGreaterThan(380);
   });
 });

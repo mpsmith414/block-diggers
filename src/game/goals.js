@@ -37,12 +37,13 @@ export function oreTopRow(ore) {
   if (ore === 'amber') return 189;
   if (ore === 'brick') return 239;
   if (ore === 'star') return 289;
+  if (ore === 'heart') return LAYERS.core.bottom - 5;
   return LAYERS.deep.top;
 }
 
 // the missing ore that's deepest (the one worth heading down for)
 export function deepestMissing(goal) {
   if (!goal) return null;
-  const ores = ORES.filter((o) => goal.missing[o]);
+  const ores = [...ORES, 'heart'].filter((o) => goal.missing[o]);
   return ores.sort((a, b) => oreTopRow(b) - oreTopRow(a))[0] ?? null;
 }
