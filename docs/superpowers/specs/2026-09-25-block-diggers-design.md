@@ -93,7 +93,7 @@ All timing and cost numbers live in one tuning file (`src/tuning.js`) so they ca
 
 ### Co-op camera
 
-- One shared camera framing both players. It zooms smoothly between **1.0× and 0.5×**. At 0.5× the screen shows about 60×34 blocks, so the whole mine width always fits and players can be up to ~30 rows apart.
+- One shared camera framing both players. It zooms smoothly between **1.5× and 0.5×**. At 0.5× the screen shows about 60×34 blocks, so the whole mine width always fits and players can be up to ~30 rows apart.
 - **At maximum zoom-out**, the screen edge acts as a soft wall: a player can't move further out of view.
 - **Y button: bubble to partner.** Either player can press Y to float over to the other player in a bubble. They're invulnerable and pass through blocks while bubbled.
 - If a player ends up off-screen anyway (knockback, a fall), they are auto-bubbled to their partner.
@@ -128,6 +128,18 @@ Everything works with one player: the camera follows them, and the bubble and th
 - **HUD:** per-player ore counts (icon + number) and a backpack-fill meter in that player's corner. No text anywhere a child needs to read.
 - **Title / join:** big "press A" artwork. The first device to press A is player 1 and the next is player 2. The keyboard counts as a device. On touch devices the touch controls are player 1.
 - **Sound:** chiptune SFX synthesised with WebAudio (mining clink, ore ding, bonk boing, rope whoosh, build fanfare) plus a looping chiptune track. Mute toggle on the pause screen. Audio starts only after the first user input.
+
+### Cozy feel (added 2026-09-26)
+
+The game should feel like Stardew Valley meets Minecraft: warm, gentle, rewarding.
+
+- **Warm palette.** Sunset sky, green hills, warm near-black (not pure black) darkness, orange lantern glow, parchment-and-wood UI panels.
+- **Something to dig toward.** Ores and chests twinkle through the darkness in their own colours.
+- **Juice on every action.** Blocks crumble into chunks, ores pop out and fly into the player, chests burst with a flash, HUD icons bounce when a count goes up.
+- **Nothing is fiddly.** Loose ore near a player with room floats into them (ore magnet).
+- **Chibi characters** with outlines, big sparkly eyes and rosy cheeks.
+- **Camera** zooms between 1.5× (close, cozy) and 0.5× (both players far apart).
+- **Rich ore.** Ore is common enough that there's a reward every few seconds of digging.
 
 ## 3. Architecture
 
