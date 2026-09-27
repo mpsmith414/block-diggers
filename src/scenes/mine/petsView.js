@@ -61,6 +61,7 @@ export function createPetsView(scene, kinds) {
 
   return {
     has: (kind) => kinds.includes(kind),
+    sprites: () => pets.map((p) => p.sprite),
     // extra light from the glow-bug
     lights() {
       return pets.filter((p) => p.kind === 'glowbug' && p.placed)

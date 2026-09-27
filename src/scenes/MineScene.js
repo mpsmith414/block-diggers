@@ -374,6 +374,11 @@ export class MineScene extends Phaser.Scene {
       this.tweens.add({ targets: a.sprite, alpha: 0, scaleX: 0.2, delay: 500, duration: 700 });
       for (let i = 0; i < 6; i++) this.time.delayedCall(400 + i * 120, () => this.effects.sparkle(a.sprite.x, a.sprite.y - 8 - i * 6, 0x9ff6ff, 4));
     }
+    // the pets sparkle away too
+    for (const s of this.pets.sprites()) {
+      this.tweens.add({ targets: s, alpha: 0, y: s.y - 20, delay: 600, duration: 600 });
+      this.time.delayedCall(600, () => this.effects.sparkle(s.x, s.y, 0x9ff6ff, 4));
+    }
     this.time.delayedCall(1500, () => this.cameras.main.fadeOut(700, 5, 4, 15));
     this.cameras.main.once('camerafadeoutcomplete', () => this.arriveHome(players));
   }
