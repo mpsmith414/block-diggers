@@ -4,12 +4,13 @@
 
 import { B } from '../../world/blocks.js';
 import { explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft } from '../../game/finds.js';
+import { cushionPressed } from '../../game/silly.js';
 import { knockback, playerCell } from '../../game/player.js';
 import { createPickup } from '../../game/loot.js';
 import { overlaps } from '../../game/hazards.js';
 import { EGG_KINDS } from '../../art/finds.js';
 import { earnSticker } from '../common/stickers.js';
-import { TILE, PLAYER, FUSE, PUSH_TIME } from '../../tuning.js';
+import { TILE, PLAYER, FUSE, PUSH_TIME, SILLY } from '../../tuning.js';
 
 const boxOf = (a) => ({ x: a.p.x, y: a.p.y, w: PLAYER.w, h: PLAYER.h });
 const cellBox = (x, y, w = 1) => ({ x: x * TILE - 1, y: y * TILE - 1, w: w * TILE + 2, h: TILE + 2 });
@@ -36,6 +37,16 @@ export function createFindsView(scene) {
     s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, 'heart-big').setDepth(22),
     left: 9,
   } : null;
+  // rubber ducks bobbing on pools
+  const ducks = (world.ducks ?? []).map((d) => {
+    const s = scene.add.image(d.x * TILE + 8, d.y * TILE + 5, 'duck').setDepth(24);
+    scene.tweens.add({ targets: s, y: s.y + 1.5, angle: { from: -8, to: 8 }, duration: 800 + Math.random() * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    return { ...d, s, found: false };
+  });
+  // whoopee cushions on cave floors
+  const cushions = (world.cushions ?? []).map((c) => ({
+    ...c, flat: 0, armed: true, s: scene.add.sprite(c.x * TILE + 8, (c.y + 1) * TILE, 'cushion', 0).setOrigin(0.5, 1).setDepth(23),
+  }));
   let hearts = 0;
   let cheese = 0;
 
@@ -195,6 +206,46 @@ export function createFindsView(scene) {
     }
   }
 
+  function updateSilly(dt) {
+    for (const d of ducks) {
+      if (d.found) continue;
+      for (const a of players()) {
+        if (a.bubbling || !overlaps(boxOf(a), cellBox(d.x, d.y))) continue;
+        d.found = true;
+        scene.tweens.killTweensOf(d.s);
+        scene.tweens.add({ targets: d.s, y: d.s.y - 26, angle: 360, scale: 1.8, duration: 600, ease: 'Quad.easeOut' });
+        scene.tweens.add({ targets: d.s, alpha: 0, delay: 700, duration: 300, onComplete: () => d.s.destroy() });
+        scene.effects.sparkle(d.s.x, d.s.y, 0xffd84a, 8);
+        scene.events.emit('quack', d);
+        earnSticker(scene, 'silly-duck');
+        break;
+      }
+    }
+    for (const c of cushions) {
+      if (c.flat > 0) {
+        c.flat -= dt;
+        if (c.flat <= 0) {
+          c.s.setFrame(0);
+          scene.tweens.add({ targets: c.s, scaleY: { from: 0.6, to: 1 }, duration: 300, ease: 'Back.easeOut' });
+        }
+        continue;
+      }
+      const on = players().filter((a) => !a.bubbling && cushionPressed(c, boxOf(a)));
+      if (!on.length) { c.armed = true; continue; }
+      if (!c.armed) continue;
+      c.armed = false;
+      c.flat = SILLY.cushionFlat;
+      c.s.setFrame(1);
+      scene.events.emit('pffbt', c);
+      for (let i = 0; i < 5; i++) {
+        const p = scene.add.image(c.s.x + (i - 2) * 3, c.s.y - 3, 'smoke').setDepth(30).setScale(0.5).setTint(i % 2 ? 0xc8e8a0 : 0xffd0e0);
+        scene.tweens.add({ targets: p, x: p.x + (i - 2) * 5, y: p.y - 10 - Math.random() * 8, scale: 1.2, alpha: 0, duration: 700, onComplete: () => p.destroy() });
+      }
+      for (const a of on) a.p.vy = -140;
+      earnSticker(scene, 'silly-whoopee');
+    }
+  }
+
   function updateWater(dt) {
     for (const a of players()) {
       if (a.p.inWater && !a.wasInWater) {
@@ -286,6 +337,7 @@ export function createFindsView(scene) {
       const chestNeedsTwo = updateBigChest();
       updateEggs();
       updateWater(dt);
+      updateSilly(dt);
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);
       together.setVisible(!!spot);

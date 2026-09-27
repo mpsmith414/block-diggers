@@ -15,6 +15,7 @@ import { drawAdventures } from './adventures.js';
 import { drawDeep, toyBrick } from './deep.js';
 import { drawDeepCamp } from './deepCamp.js';
 import { drawMoonArt } from './moonArt.js';
+import { drawSillyArt } from './silly.js';
 
 const T = 16;
 
@@ -654,4 +655,5 @@ export function drawTextures(scene) {
   drawDeep(scene, canvasTexture, rect);
   drawDeepCamp(scene, canvasTexture, rect);
   drawMoonArt(scene, canvasTexture, rect);
+  drawSillyArt(scene, canvasTexture, rect);
 }

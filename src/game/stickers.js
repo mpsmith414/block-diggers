@@ -47,6 +47,10 @@ export const STICKER_PAGES = [
     ['moon-rock', 'tiles', B.MOONROCK], ['moon-crystal', 'decor-spacecrystal'], ['moon-blob', 'moonblob'],
     ['moon-cheese', 'ore-cheese'], ['moon-flag', 'moon-flag'], ['moon-earthrise', 'earth'],
   ]),
+  page('silly', 'duck', [
+    ['silly-duck', 'duck'], ['silly-sock', 'sock'], ['silly-whoopee', 'cushion'], ['silly-sneeze', 'achoo'],
+    ['silly-dizzy', 'dizzy-star'], ['silly-trick', 'heart'], ['silly-giggle', 'note'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);

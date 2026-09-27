@@ -6,6 +6,7 @@ import { getState, setState } from '../../save/store.js';
 import { EGG_KINDS } from '../../art/finds.js';
 import { earnSticker } from '../common/stickers.js';
 import { TILE, CAMP, PLAYER } from '../../tuning.js';
+import { playTrick, trickOffset } from '../common/petTricks.js';
 
 const WALKERS = ['mole', 'rex', 'trike'];
 const DINOS = ['rex', 'trike'];
@@ -94,6 +95,10 @@ export function createCampPets(camp) {
         if (r.pet) earnSticker(camp, `pet-${r.pet}`);
       }
     },
+    // Y: every pet does a trick
+    trick() {
+      for (const pet of pets) playTrick(camp, pet);
+    },
     update(dt, time) {
       const players = camp.avatars.filter(Boolean);
       const parkPlot = getState(camp.registry).plots.indexOf('dinopark');
@@ -114,7 +119,9 @@ export function createCampPets(camp) {
         else if (pet.kind === 'glowbug') target = { x: baseX, y: groundY - 30 + Math.sin(pet.t * 3) * 6 };
         else target = { x: baseX, y: groundY - 36 + Math.sin(pet.t * 4) * 5 };
         follow(pet.pos, target, dt, 90);
-        pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y))
+        const tr = trickOffset(pet, dt);
+        pet.sprite.setAngle(tr.angle);
+        pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y + tr.y))
           .setFrame(Math.floor(time / (WALKERS.includes(pet.kind) ? 200 : 120)) % 2)
           .setFlipX(target.x < pet.pos.x - 1);
       });

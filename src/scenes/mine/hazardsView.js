@@ -7,7 +7,11 @@ import {
 } from '../../game/hazards.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
-import { TILE, PLAYER, SLIME, BAT, SPAWN, GOLDEN_SLIME } from '../../tuning.js';
+import { TILE, PLAYER, SLIME, BAT, SPAWN, GOLDEN_SLIME, SILLY } from '../../tuning.js';
+import { earnSticker } from '../common/stickers.js';
+
+// each creature's own little noise
+const VOICE = { slime: 'blorp', bat: 'squeak', ptero: 'caw', robot: 'whirr', alien: 'giggle', wisp: 'crackle', moonblob: 'blorp' };
 
 export function createHazards(scene) {
   let enemies = [];
@@ -59,6 +63,8 @@ export function createHazards(scene) {
       ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir)
       : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir);
     e.species = species;
+    e.voiceT = SILLY.voiceEvery[0] + Math.random() * (SILLY.voiceEvery[1] - SILLY.voiceEvery[0]);
+    e.giggleT = 0;
     if (species === 'slime') e.golden = scene.rng.chance(GOLDEN_SLIME * (scene.luck ?? 1));
     enemies.push(e);
   }
@@ -80,6 +86,17 @@ export function createHazards(scene) {
 
     squash(e) {
       enemies = enemies.filter((o) => o !== e);
+      const s = sprites.get(e);
+      if (e.species === 'robot' && s) {
+        // a toy robot falls over, its spring pops out, and it fades away
+        sprites.delete(e);
+        scene.tweens.add({ targets: s, angle: e.dir < 0 ? -90 : 90, y: s.y - 2, duration: 250, ease: 'Bounce.easeOut' });
+        scene.tweens.add({ targets: s, alpha: 0, delay: 900, duration: 400, onComplete: () => s.destroy() });
+        const spring = scene.add.image(s.x, s.y - 8, 'dizzy-star').setDepth(40).setTint(0xc0c8d8);
+        scene.tweens.add({ targets: spring, y: spring.y - 22, angle: 540, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => spring.destroy() });
+        scene.events.emit('critter', 'whirr');
+        return;
+      }
       dropSprite(e);
     },
 
@@ -118,6 +135,26 @@ export function createHazards(scene) {
           s.setScale(e.grounded ? 1 + Math.sin(time / 180 + e.x) * 0.05 : 1, 1);
         } else {
           s.setPosition(e.x + e.w / 2, e.y + e.h / 2).setFrame(Math.floor(time / 120) % 2).setFlipX(e.dir < 0);
+        }
+        // now and then it makes its own little noise (only when you can see it)
+        const view = scene.cameras.main.worldView;
+        const seen = e.x > view.x && e.x < view.right && e.y > view.y && e.y < view.bottom;
+        e.voiceT -= dt;
+        e.giggleT -= dt;
+        if (e.voiceT <= 0) {
+          e.voiceT = SILLY.voiceEvery[0] + Math.random() * (SILLY.voiceEvery[1] - SILLY.voiceEvery[0]);
+          if (seen && VOICE[e.species]) {
+            scene.events.emit('critter', VOICE[e.species]);
+            scene.tweens.add({ targets: s, scaleY: 1.25, duration: 90, yoyo: true });
+          }
+        }
+        // aliens giggle when you get close
+        if (e.species === 'alien' && e.giggleT <= 0 && players().some((a) => Math.hypot(a.p.x - e.x, a.p.y - e.y) < 3 * TILE)) {
+          e.giggleT = 3;
+          scene.events.emit('critter', 'giggle');
+          const n = scene.add.image(e.x + e.w / 2, e.y - 4, 'note').setDepth(40);
+          scene.tweens.add({ targets: n, y: n.y - 16, x: n.x + 6, alpha: 0, duration: 900, onComplete: () => n.destroy() });
+          earnSticker(scene, 'silly-giggle');
         }
         for (const a of players()) {
           if (a.bubbling) continue;

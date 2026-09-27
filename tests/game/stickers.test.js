@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 69 unique stickers over 9 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(9);
-    expect(ALL_STICKERS).toHaveLength(69);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(69);
+  it('has 76 unique stickers over 10 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(10);
+    expect(ALL_STICKERS).toHaveLength(76);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(76);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -43,5 +43,13 @@ describe('award', () => {
   it('page progress counts what you have', () => {
     const { state } = award(defaultState(), 'cave-grass');
     expect(pageProgress(state, 2)).toEqual({ have: 1, total: 11 });
+  });
+});
+
+describe('the Silly page', () => {
+  it('has the duck, sock, whoopee cushion, sneeze, dizzy, pet trick and giggle', () => {
+    expect(STICKER_PAGES[9].stickers.map((s) => s.id)).toEqual([
+      'silly-duck', 'silly-sock', 'silly-whoopee', 'silly-sneeze', 'silly-dizzy', 'silly-trick', 'silly-giggle',
+    ]);
   });
 });
