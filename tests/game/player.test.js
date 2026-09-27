@@ -276,3 +276,19 @@ describe('boulders and boom blocks are pushed or lit, never stepped onto', () =>
     });
   }
 });
+
+describe('power-up speed', () => {
+  it('digMul makes digging faster; walkMul makes walking faster', () => {
+    const g = makeGrid(['#...#', '#...#', '#ddd#', '#####']);
+    const p = createPlayer(standAt(2, 1));
+    settle(p, g);
+    run(p, { ...idle, moveY: 1 }, g, 0.14, { digMul: 2 }); // 0.25 s of dirt at 2x = 0.125 s
+    expect(g.get(2, 2)).toBe(B.LADDER);
+    const flat = makeGrid(['##########', '#........#', '##########']);
+    const q = createPlayer(standAt(1, 1));
+    settle(q, flat);
+    const x0 = q.x;
+    run(q, { ...idle, moveX: 1 }, flat, 0.4, { walkMul: 1.5 });
+    expect(q.x - x0).toBeCloseTo(PLAYER.walkSpeed * 1.5 * 0.4, 0);
+  });
+});

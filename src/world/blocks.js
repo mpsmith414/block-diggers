@@ -31,6 +31,20 @@ export const B = {
   GOLD_CRYSTAL: 26,
   DIAMOND_CRYSTAL: 27,
   EMERALD_CRYSTAL: 28,
+  // deeper world (M14) and the Moon (M16)
+  SAND: 29,
+  BRICKS: 30,
+  METEOR: 31,
+  CORE: 32,
+  AMBER: 33,
+  BRICK_ORE: 34,
+  STAR: 35,
+  HEART: 36,
+  SPRING: 37,
+  METEORITE: 38,
+  MOONROCK: 39,
+  SPACE_CRYSTAL: 40,
+  CHEESE: 41,
 };
 
 export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald'];

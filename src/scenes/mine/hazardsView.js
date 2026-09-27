@@ -121,9 +121,9 @@ export function createHazards(scene) {
           if (e.kind === 'slime') {
             const touch = slimeTouch(box, a.p.vy, e);
             if (touch === 'squash') scene.squash(a, e);
-            else if (touch === 'bonk') scene.bonk(a, e.x + e.w / 2, { kind: 'slime' });
+            else if (touch === 'bonk') scene.bonk(a, e.x + e.w / 2, { kind: 'slime', enemy: e });
           } else if (overlaps(box, e)) {
-            scene.bonk(a, e.x + e.w / 2, { kind: 'bat' });
+            scene.bonk(a, e.x + e.w / 2, { kind: 'bat', enemy: e });
           }
         }
       }

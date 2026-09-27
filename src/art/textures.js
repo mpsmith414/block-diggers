@@ -11,6 +11,7 @@ import { drawFindsArt } from './finds.js';
 import { drawPets } from './pets.js';
 import { drawFriends } from './friends.js';
 import { drawDecorItems } from './decorItems.js';
+import { drawAdventures } from './adventures.js';
 
 const T = 16;
 
@@ -459,4 +460,5 @@ export function drawTextures(scene) {
   drawPets(scene, canvasTexture, rect);
   drawFriends(scene, canvasTexture, rect);
   drawDecorItems(scene, canvasTexture, rect);
+  drawAdventures(scene, canvasTexture, rect);
 }

@@ -32,7 +32,7 @@ export const CAVES = {
 };
 export const LAVA_POOLS = 7;
 export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
-export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9 };
+export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6 };
 
 // ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
 export const MINE_TIME = {
@@ -88,6 +88,16 @@ export const SPAWN = { every: 1.5, despawnRows: 40 };
 export const FUSE = 1.5; // seconds a boom block flashes before going poof
 export const PUSH_TIME = 0.5; // seconds of pushing to roll a boulder
 export const GOLDEN_SLIME = 0.08;
+
+// ---- the player's own requests ----
+export const POWERUPS = {
+  lavaTime: 8, // seconds as a lava monster
+  drinkAfter: 1, // seconds in water before you start drinking
+  drinkTime: 1.4, // glug glug glug… burp
+  zoomTime: 6, // zoomies after a drink
+  zoomSpeed: 1.5,
+  drinkCooldown: 3, // seconds out of the water before you can drink again
+};
 
 // ---- pets ----
 export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160 };

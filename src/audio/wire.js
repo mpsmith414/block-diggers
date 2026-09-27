@@ -25,6 +25,10 @@ const MINE = {
   splash: (s) => s.play('splash'),
   egg: (s) => s.play('egg'),
   sniff: (s) => s.play('sniff'),
+  lavaMonster: (s) => s.play('roar'),
+  cooldown: (s) => s.play('hiss'),
+  glug: (s) => s.play('glug'),
+  burp: (s) => s.play('burp'),
 };
 
 const CAMP = {

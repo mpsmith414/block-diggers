@@ -3,7 +3,7 @@ import { generateMine, carveStation } from '../world/worldgen.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
-import { lavaEscape } from '../game/hazards.js';
+import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
 } from '../game/loot.js';
@@ -151,6 +151,8 @@ export class MineScene extends Phaser.Scene {
       bubble: this.add.image(0, 0, 'bubble').setDepth(62).setVisible(false),
       bubbling: false,
       invuln: 0,
+      pu: createPowerups(),
+      emberT: 0,
       bubbleEdge: createEdge(),
       homeHold: createHoldTimer(HOME_HOLD_MS),
       ring: this.add.graphics().setDepth(63),
@@ -356,7 +358,11 @@ export class MineScene extends Phaser.Scene {
   }
 
   stepAvatar(a, intent, dt) {
-    const r = stepPlayer(a.p, intent, this.grid, { pickLevel: this.upgrades.pick, dt });
+    const mul = multipliers(a.pu);
+    // drinking: stand still and glug
+    const r = stepPlayer(a.p, mul.drinking ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
+      { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk });
+    for (const ev of stepPowerups(a.pu, dt, { inWater: a.p.inWater && !a.bubbling })) this.powerupEvent(a, ev);
     if (r.jumped) this.events.emit('jump', a);
     for (const m of r.mined) {
       this.mapView.syncMined(m.x, m.y);
@@ -380,8 +386,7 @@ export class MineScene extends Phaser.Scene {
     // treasure chest: walk into it to open
     const { cx, cy } = playerCell(a.p);
     if (this.grid.get(cx, cy) === B.CHEST) this.openChest(cx, cy);
-    const lava = this.touchedLava(a);
-    if (lava) this.lavaBonk(a, lava);
+    if (this.touchedLava(a)) this.lavaTouch(a);
 
     // collect ores lying around (nearby ones float in)
     attractPickups(this.pickups, { x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, a.pack, dt, this.pets.magnet());
@@ -418,26 +423,62 @@ export class MineScene extends Phaser.Scene {
   }
 
   // Lava: pop up out of it (if you're in it) and hop well away from it.
-  lavaBonk(a, lava) {
-    const { cx, cy } = playerCell(a.p);
-    if (this.grid.get(cx, cy) === B.LAVA) {
-      const safe = lavaEscape(this.grid, cx, cy);
-      const s = standAt(safe.cx, safe.cy);
-      a.p.x = s.x;
-      a.p.y = s.y;
-    }
-    const wasSafe = a.invuln > 0;
-    this.bonk(a, lava.x * TILE + TILE / 2);
-    if (!wasSafe) {
-      this.events.emit('lava', a);
-      a.p.vy = -PLAYER.lavaHop;
-      this.effects.sparkle(a.sprite.x, a.sprite.y, 0xff8a1f, 8);
+  powerupEvent(a, ev) {
+    const x = a.sprite.x;
+    const y = a.sprite.y;
+    if (ev === 'drinkStart') {
+      this.events.emit('glug', a);
+      // little gulps of bubbles
+      for (let i = 0; i < 6; i++) {
+        this.time.delayedCall(i * 200, () => {
+          const b = this.add.image(a.sprite.x + a.p.facing * 5, a.sprite.y - 10, 'pixel').setTint(0xe0ffff).setDisplaySize(2, 2).setDepth(41);
+          this.tweens.add({ targets: b, y: b.y - 10, alpha: 0, duration: 500, onComplete: () => b.destroy() });
+        });
+      }
+    } else if (ev === 'burp') {
+      this.events.emit('burp', a);
+      const bub = this.add.image(x + a.p.facing * 6, y - 12, 'burp').setDepth(62).setScale(0.3);
+      this.tweens.add({
+        targets: bub, scale: 1.4, y: y - 34, duration: 900, ease: 'Sine.easeOut',
+        onComplete: () => {
+          this.effects.sparkle(bub.x, bub.y, 0xc8f0ff, 8);
+          bub.destroy();
+        },
+      });
+      earnSticker(this, 'adv-drink');
+    } else if (ev === 'lavaEnd') {
+      this.events.emit('cooldown', a);
+      for (let i = 0; i < 6; i++) {
+        const puff = this.add.image(x + (Math.random() - 0.5) * 12, y - 6, 'smoke').setDepth(41).setTint(0xb0a8a0);
+        this.tweens.add({ targets: puff, y: puff.y - 18, scale: 2, alpha: 0, duration: 800, delay: i * 50, onComplete: () => puff.destroy() });
+      }
     }
   }
 
+  // Lava turns you into a LAVA MONSTER (the player's own idea!). While you
+  // are one, lava can't hurt you and you dig twice as fast.
+  lavaTouch(a) {
+    if (!touchLava(a.pu)) return; // already a monster: the timer just tops up
+    this.events.emit('lavaMonster', a);
+    this.cameras.main.flash(180, 255, 140, 60);
+    this.cameras.main.shake(200, 0.006);
+    this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xff8a1f, 12);
+    this.effects.confetti(a.sprite.x, a.sprite.y - 10);
+    earnSticker(this, 'adv-lavamonster');
+  }
+
   // A hazard touched a player: knock back, scatter up to 3 ores, brief safety.
-  bonk(a, fromX, { noKnock = false, kind = null } = {}) {
+  bonk(a, fromX, { noKnock = false, kind = null, enemy = null } = {}) {
     if (kind && !a.bubbling && a.invuln <= 0) earnSticker(this, `creature-${kind}`);
+    // a lava monster is not bothered by anything: creatures poof away
+    if (a.pu.lava > 0) {
+      if (enemy) {
+        this.hazards.squash(enemy);
+        this.effects.sparkle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 0xff8a1f, 8);
+        this.events.emit('squash', a);
+      }
+      return;
+    }
     if (a.bubbling || a.invuln > 0) return;
     a.invuln = BONK.invuln;
     const dir = Math.sign(a.p.x + PLAYER.w / 2 - fromX) || -a.p.facing || 1;
@@ -453,7 +494,8 @@ export class MineScene extends Phaser.Scene {
     this.cameras.main.shake(120, 0.004);
     this.effects.sparkle(x, y, 0xffffff, 6);
     a.sprite.setTintFill(0xffffff);
-    this.time.delayedCall(90, () => a.sprite.clearTint());
+    a.bonkFlash = true;
+    this.time.delayedCall(90, () => { a.bonkFlash = false; a.sprite.clearTint(); });
     this.events.emit('bonk', a);
   }
 
@@ -514,6 +556,30 @@ export class MineScene extends Phaser.Scene {
     const { p, sprite } = a;
     animateCharacter(sprite, p, a, dt, time);
     sprite.setAlpha(a.invuln > 0 && Math.floor(time / 90) % 2 === 0 ? 0.35 : 1);
+    // lava monster: bigger, glowing, flickering, dropping embers
+    if (a.pu.lava > 0) {
+      sprite.setScale(sprite.scaleX * 1.3, sprite.scaleY * 1.3);
+      sprite.setTint(Math.floor(time / 110) % 2 ? 0xff6a2a : 0xffa040);
+      a.emberT -= dt;
+      if (a.emberT <= 0) {
+        a.emberT = 0.08;
+        const e = this.add.image(sprite.x + (Math.random() - 0.5) * 12, sprite.y - Math.random() * 16, 'pixel')
+          .setTint(Math.random() < 0.5 ? 0xffb34a : 0xff5a1a).setDisplaySize(2, 2).setDepth(40);
+        this.tweens.add({ targets: e, y: e.y - 12, alpha: 0, duration: 600, onComplete: () => e.destroy() });
+      }
+    } else if (a.pu.zoom > 0) {
+      if (!a.bonkFlash) sprite.clearTint();
+      a.emberT -= dt;
+      if (a.emberT <= 0 && a.p.vx !== 0) {
+        a.emberT = 0.06;
+        const d = this.add.image(sprite.x - a.p.facing * 6, sprite.y - 3, 'pixel').setTint(0x6ad0ff).setDisplaySize(2, 2).setDepth(29);
+        this.tweens.add({ targets: d, y: d.y + 3, alpha: 0, duration: 400, onComplete: () => d.destroy() });
+      }
+    } else if (!a.bonkFlash) {
+      sprite.clearTint();
+    }
+    // drinking: tip the head down
+    sprite.setAngle(a.pu.drinking > 0 ? a.p.facing * 18 + Math.sin(time / 60) * 4 : 0);
     const digging = p.mining && p.mining.need !== Infinity;
     this.drawPick(a, time);
     this.dust(a, dt);
@@ -643,6 +709,7 @@ export class MineScene extends Phaser.Scene {
     const flicker = 1 + Math.sin(time / 130) * 0.03 + Math.sin(time / 57) * 0.02;
     for (const a of this.avatars) {
       if (!a) continue;
+      if (a.pu.lava > 0) lights.push({ x: a.sprite.x, y: a.sprite.y - 8, r: 3 * flicker, glow: 0.3, color: 0xff7a2a });
       lights.push({
         x: a.sprite.x, y: a.sprite.y - 8, r: LANTERN[this.upgrades.lantern] * flicker, glow: 0.16,
       });

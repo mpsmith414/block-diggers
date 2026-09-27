@@ -75,12 +75,14 @@ describe('generateMine', () => {
     }
   });
 
-  it('keeps lava in the deep layer and water in the crystal layer', () => {
+  it('keeps lava in the deep layer, and water out of it (puddles above, pools in the crystal caves)', () => {
     for (const { grid } of mines) {
       for (const c of cellsOf(grid, B.LAVA)) { expect(c.y).toBeGreaterThanOrEqual(96); expect(c.y).toBeLessThanOrEqual(148); }
-      for (const c of cellsOf(grid, B.WATER)) { expect(c.y).toBeGreaterThanOrEqual(149); expect(c.y).toBeLessThanOrEqual(188); }
+      for (const c of cellsOf(grid, B.WATER)) expect(c.y >= 96 && c.y <= 148).toBe(false);
     }
-    expect(mines.some(({ grid }) => cellsOf(grid, B.WATER).length > 0)).toBe(true);
+    // something to drink on the very first trip
+    expect(mines.every(({ grid }) => cellsOf(grid, B.WATER).some((c) => c.y <= 95))).toBe(true);
+    expect(mines.some(({ grid }) => cellsOf(grid, B.WATER).some((c) => c.y >= 149))).toBe(true);
   });
 
   it('fills the crystal layer with crystal rock (no older host rock)', () => {

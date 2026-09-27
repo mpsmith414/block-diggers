@@ -118,25 +118,31 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     }
   }
 
-  // glowing water pools on crystal cave floors, sometimes two deep
-  const crystalFloors = floors(LAYERS.crystal.top, LAYERS.crystal.bottom);
-  for (let i = 0; i < FINDS.waterPools && crystalFloors.length; i++) {
-    const s = rng.pick(crystalFloors);
-    const cells = [];
-    for (const dir of [-1, 1]) {
-      for (let x = dir < 0 ? s.x : s.x + 1; Math.abs(x - s.x) <= 3; x += dir) {
-        if (grid.get(x, s.y) !== B.AIR || !isSolid(grid.get(x, s.y + 1))) break;
-        cells.push(x);
+  // water on cave floors: glowing pools in the crystal caves (sometimes two
+  // deep) and little puddles higher up, so there's always something to drink
+  const pools = (top, bottom, count, reach, deepChance) => {
+    const spots = floors(top, bottom);
+    for (let i = 0; i < count && spots.length; i++) {
+      const s = rng.pick(spots);
+      const cells = [];
+      for (const dir of [-1, 1]) {
+        for (let x = dir < 0 ? s.x : s.x + 1; Math.abs(x - s.x) <= reach; x += dir) {
+          if (grid.get(x, s.y) !== B.AIR || !isSolid(grid.get(x, s.y + 1))) break;
+          cells.push(x);
+        }
+      }
+      const deep = cells.length >= 4 && rng.chance(deepChance);
+      const host = HOST[layerAt(s.y + 1)];
+      for (const x of cells) {
+        grid.set(x, s.y, B.WATER);
+        if (deep && grid.get(x, s.y + 1) === host && isSolid(grid.get(x, s.y + 2)) && grid.get(x, s.y + 2) !== B.BEDROCK) {
+          grid.set(x, s.y + 1, B.WATER);
+        }
       }
     }
-    const deep = cells.length >= 4 && rng.chance(0.6);
-    for (const x of cells) {
-      grid.set(x, s.y, B.WATER);
-      if (deep && grid.get(x, s.y + 1) === B.CRYSTAL && isSolid(grid.get(x, s.y + 2)) && grid.get(x, s.y + 2) !== B.BEDROCK) {
-        grid.set(x, s.y + 1, B.WATER);
-      }
-    }
-  }
+  };
+  pools(LAYERS.crystal.top, LAYERS.crystal.bottom, FINDS.waterPools, 3, 0.6);
+  pools(LAYERS.dirt.top + 3, LAYERS.stone.bottom, FINDS.puddles, 2, 0.3);
 
   // a floor spot away from lava and water
   const safe = (c) => [B.LAVA, B.WATER].every((bad) => grid.get(c.x - 1, c.y) !== bad && grid.get(c.x + 1, c.y) !== bad);
