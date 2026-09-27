@@ -332,6 +332,16 @@ export class CampScene extends Phaser.Scene {
     const plotPrompted = prompt && prompt.kind === 'plot';
     this.plotStar.setVisible(blueprint && plot >= 0 && !counting && !plotPrompted && !this.buildings[plot])
       .setPosition(CAMP.plots[Math.max(0, plot)] * TILE + (CAMP.plotW * TILE) / 2, GROUND_Y - 36 + bob).setScale(pulse);
+
+    // a star you can't see gets an arrow at the edge of the screen
+    const view = this.cameras.main.worldView;
+    let side = 0;
+    for (const s of [this.benchStar, this.plotStar]) {
+      if (!s.visible) continue;
+      if (s.x > view.right) side = side || 1;
+      else if (s.x < view.x) side = side || -1;
+    }
+    if (hud && hud.pointTo) hud.pointTo(side, time);
   }
 
   stepCritters(dt, time) {

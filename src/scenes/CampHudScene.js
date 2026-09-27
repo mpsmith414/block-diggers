@@ -34,6 +34,8 @@ export class CampHudScene extends Phaser.Scene {
     this.picker = null;
     this.pickerUi = null;
     this.buildBank();
+    this.pointer = this.add.container(0, 0).setVisible(false);
+    this.pointer.add([this.add.image(0, -12, 'star').setScale(1.5), this.add.image(0, 4, 'arrow-r').setScale(2)]);
   }
 
   // ---------- bank ----------
@@ -135,6 +137,18 @@ export class CampHudScene extends Phaser.Scene {
       this.syncBank(finalBank);
       this.counting = false;
     });
+  }
+
+  // side: 1 = something good off to the right, -1 = left, 0 = hide
+  pointTo(side, time) {
+    if (!side || this.picker) {
+      this.pointer.setVisible(false);
+      return;
+    }
+    const wobble = Math.sin(time / 150) * 3;
+    this.pointer.setVisible(true)
+      .setPosition(side > 0 ? this.scale.width - 14 + wobble : 14 - wobble, this.scale.height * 0.62)
+      .setScale(side > 0 ? 1 : -1, 1);
   }
 
   // ---------- picker ----------
