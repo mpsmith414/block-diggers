@@ -37,7 +37,7 @@ const DECOR = {
   core: { floorChance: 0.3, floor: { emberflower: 2, crystal: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
 };
 
-export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'batbuddy'] } = {}) {
+export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'batbuddy'], dinoEggKinds = [] } = {}) {
   const rng = createRng(seed);
   const grid = createGrid(MINE_W, MINE_H);
   const inner = (x, y) => x >= 1 && x <= MINE_W - 2 && y >= 1 && y <= MINE_H - 2;
@@ -208,6 +208,11 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
   // pet eggs on deep and crystal cave floors
   const eggs = takeSpots(floors(LAYERS.deep.top, LAYERS.crystal.bottom).filter(safe), lucky(FINDS.eggs), 16)
     .map((c, i) => ({ ...c, kind: eggKinds.length ? eggKinds[i % eggKinds.length] : 'golden' }));
+  // dinosaur eggs in the Dino Bone Beds, of the kinds you don't have yet
+  if (dinoEggKinds.length) {
+    const dinoEggs = takeSpots(floors(LAYERS.dino.top, LAYERS.dino.bottom).filter(safe), 2, 12);
+    dinoEggs.forEach((c, i) => eggs.push({ ...c, kind: dinoEggKinds[i % dinoEggKinds.length] }));
+  }
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
   // boulders: at the edge of a cave, in front of a one-block pit with ore

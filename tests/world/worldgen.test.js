@@ -286,3 +286,21 @@ describe('the deeper world', () => {
     expect(mines.some(({ grid }) => cellsOf(grid, B.WATER).some((c) => c.y >= 189 && c.y <= 238))).toBe(true);
   });
 });
+
+describe('dino eggs', () => {
+  it('2 eggs in the dino layer, of the dino kinds still missing', () => {
+    const m = generateMine(SEEDS[0], { dinoEggKinds: ['rex', 'trike'] });
+    const dino = m.eggs.filter((e) => e.kind === 'rex' || e.kind === 'trike');
+    expect(dino).toHaveLength(2);
+    expect(new Set(dino.map((e) => e.kind))).toEqual(new Set(['rex', 'trike']));
+    for (const e of dino) {
+      expect(e.y).toBeGreaterThanOrEqual(189);
+      expect(e.y).toBeLessThanOrEqual(238);
+      expect(m.grid.get(e.x, e.y)).toBe(B.EGG);
+    }
+  });
+  it('none once you have both', () => {
+    const m = generateMine(SEEDS[0], { dinoEggKinds: [] });
+    expect(m.eggs.some((e) => e.kind === 'rex' || e.kind === 'trike')).toBe(false);
+  });
+});

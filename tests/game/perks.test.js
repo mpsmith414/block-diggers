@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   packCap, luck, revealsChests, cartStartRow, growGarden, harvestGarden, leavePenGift, collectPenGift, PEN_GIFTS,
+  elevatorStops, dinoParkGift,
 } from '../../src/game/perks.js';
 import { defaultState } from '../../src/save/save.js';
 import { createRng } from '../../src/world/rng.js';
@@ -8,7 +9,7 @@ import { BACKPACK, PERKS } from '../../src/tuning.js';
 
 const withPlots = (...ids) => {
   const s = defaultState();
-  return { ...s, plots: [...ids, ...Array(6 - ids.length).fill(null)] };
+  return { ...s, plots: [...ids, ...Array(9 - ids.length).fill(null)] };
 };
 
 describe('perks', () => {
@@ -65,5 +66,36 @@ describe('pen', () => {
     const bundle = Object.fromEntries(Object.entries(r.state.bank).filter(([, n]) => n > 0));
     expect(PEN_GIFTS).toContainEqual(bundle);
     expect(collectPenGift({ ...s, pen: { gifts: 0 } }, rng).ores).toEqual([]);
+  });
+});
+
+describe('the elevator', () => {
+  it('no minecart, no elevator', () => {
+    expect(elevatorStops(defaultState())).toEqual([]);
+  });
+  it('the minecart goes to the top of every layer you have reached', () => {
+    const s = { ...withPlots('minecart'), records: { ...defaultState().records, layers: ['dirt', 'stone', 'deep', 'crystal', 'dino'] } };
+    const stops = elevatorStops(s);
+    expect(stops.map((t) => t.layer)).toEqual(['dirt', 'stone', 'deep', 'crystal', 'dino', 'brick', 'meteor', 'core']);
+    expect(stops[0]).toEqual({ layer: 'dirt', row: null, open: true });
+    expect(stops[1]).toEqual({ layer: 'stone', row: 42, open: true });
+    expect(stops[4]).toEqual({ layer: 'dino', row: 190, open: true });
+    expect(stops[5].open).toBe(false);
+  });
+  it('the top layer is always open, even on a brand-new save', () => {
+    expect(elevatorStops(withPlots('minecart'))[0].open).toBe(true);
+  });
+});
+
+describe('the dino park', () => {
+  it('the baby dinosaurs dig up 2 amber every trip home', () => {
+    const r = dinoParkGift(withPlots('dinopark'));
+    expect(r.ores).toEqual(['amber', 'amber']);
+    expect(r.state.bank.amber).toBe(2);
+  });
+  it('no park, no present', () => {
+    const r = dinoParkGift(defaultState());
+    expect(r.ores).toEqual([]);
+    expect(r.state).toEqual(defaultState());
   });
 });

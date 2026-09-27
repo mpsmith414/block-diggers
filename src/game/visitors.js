@@ -3,7 +3,7 @@
 import { ORES } from '../world/blocks.js';
 import { canAfford, spend } from './economy.js';
 import { BUYABLE } from './decor.js';
-import { PET_KINDS } from './pets.js';
+import { CAVE_KINDS } from './pets.js';
 
 export const VISITORS = [
   { id: 'bear', after: 2, home: 'house' },
@@ -49,7 +49,7 @@ export function fulfill(state, id, rng) {
     reward = { kind: 'decor', id: item };
     next = { ...next, decor: { ...next.decor, stock: { ...next.decor.stock, [item]: (next.decor.stock[item] ?? 0) + 1 } } };
   } else {
-    const missing = PET_KINDS.filter((k) => !(next.pets ?? []).includes(k));
+    const missing = CAVE_KINDS.filter((k) => !(next.pets ?? []).includes(k));
     reward = { kind: 'egg', egg: missing.length ? rng.pick(missing) : 'golden' };
   }
   return { state: next, reward };

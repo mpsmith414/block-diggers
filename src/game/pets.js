@@ -3,7 +3,10 @@
 import { dropOf } from '../world/blocks.js';
 import { PETS } from '../tuning.js';
 
-export const PET_KINDS = ['mole', 'glowbug', 'batbuddy'];
+// cave pets come from cave eggs (and the owl); dinosaurs from dino eggs
+export const CAVE_KINDS = ['mole', 'glowbug', 'batbuddy'];
+export const DINO_KINDS = ['rex', 'trike'];
+export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS];
 
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {
@@ -42,6 +45,11 @@ export function follow(pos, target, dt, speed) {
   pos.x += (dx / d) * step;
   pos.y += (dy / d) * step;
   return pos;
+}
+
+// The T-rex's roar: every creature whose middle is within r px of (x, y).
+export function roarTargets(enemies, x, y, r) {
+  return enemies.filter((e) => Math.hypot(e.x + e.w / 2 - x, e.y + e.h / 2 - y) <= r);
 }
 
 export function nearestPickup(pickups, x, y, r) {

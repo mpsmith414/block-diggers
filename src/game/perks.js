@@ -1,6 +1,6 @@
 // What each building does for you. Immutable: state in, new state out.
 
-import { BACKPACK, PERKS } from '../tuning.js';
+import { BACKPACK, PERKS, LAYERS, PETS } from '../tuning.js';
 
 const has = (state, id) => state.plots.includes(id);
 
@@ -8,6 +8,26 @@ export const packCap = (state) => BACKPACK[state.upgrades.pack] + (has(state, 'h
 export const luck = (state) => (has(state, 'statue') ? 2 : 1);
 export const revealsChests = (state) => has(state, 'tower');
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);
+
+// ---- minecart: an elevator to the top of any layer you've reached ----
+
+export function elevatorStops(state) {
+  if (!has(state, 'minecart')) return [];
+  const reached = state.records?.layers ?? [];
+  return Object.entries(LAYERS).map(([layer, l]) => ({
+    layer,
+    row: layer === 'dirt' ? null : l.top + 1,
+    open: layer === 'dirt' || reached.includes(layer),
+  }));
+}
+
+// ---- dino park: the baby dinosaurs dig up amber while you're away ----
+
+export function dinoParkGift(state) {
+  if (!has(state, 'dinopark')) return { state, ores: [] };
+  const ores = Array(PETS.parkAmber).fill('amber');
+  return { state: { ...state, bank: { ...state.bank, amber: (state.bank.amber ?? 0) + ores.length } }, ores };
+}
 
 // ---- garden: gem flowers grow while you're away ----
 

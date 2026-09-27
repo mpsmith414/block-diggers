@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DECOR_ITEMS, buyDecor, takeFromStock, canPlace, placeDecor, pickUpDecor, decorById } from '../../src/game/decor.js';
+import { DECOR_ITEMS, buyDecor, takeFromStock, canPlace, placeDecor, pickUpDecor, decorById, decorUnlocked } from '../../src/game/decor.js';
 import { defaultState } from '../../src/save/save.js';
 import { TILE, CAMP } from '../../src/tuning.js';
 
@@ -7,7 +7,7 @@ const rich = () => ({ ...defaultState(), bank: { coal: 50, iron: 50, gold: 50, d
 
 describe('decoration shop', () => {
   it('has the spec prices', () => {
-    const costs = Object.fromEntries(DECOR_ITEMS.filter((d) => d.cost).map((d) => [d.id, d.cost]));
+    const costs = Object.fromEntries(DECOR_ITEMS.filter((d) => d.cost && !d.needs).map((d) => [d.id, d.cost]));
     expect(costs).toEqual({
       lamp: { coal: 3, iron: 1 },
       fence: { coal: 3 },
@@ -61,5 +61,22 @@ describe('placing', () => {
     s = pickUpDecor(s, 0);
     expect(s.decor.placed).toEqual([]);
     expect(s.decor.stock.fence).toBe(1);
+  });
+});
+
+describe('brick decorations', () => {
+  it('the Toy Workshop unlocks the brick castle, car, rainbow arch and robot', () => {
+    const bricks = DECOR_ITEMS.filter((d) => d.needs === 'workshop').map((d) => d.id);
+    expect(bricks).toEqual(['brickcastle', 'brickcar', 'rainbowarch', 'brickrobot']);
+    const s = { ...defaultState(), bank: { ...defaultState().bank, brick: 50 } };
+    expect(decorUnlocked(s, 'brickcar')).toBe(false);
+    expect(buyDecor(s, 'brickcar')).toBeNull();
+    const withShop = { ...s, plots: ['workshop', ...s.plots.slice(1)] };
+    expect(decorUnlocked(withShop, 'brickcar')).toBe(true);
+    expect(buyDecor(withShop, 'brickcar').decor.stock.brickcar).toBe(1);
+    expect(decorUnlocked(s, 'lamp')).toBe(true);
+  });
+  it('a trophy for every sticker page', () => {
+    for (let i = 0; i < 9; i++) expect(decorById(`trophy-${i}`)).toBeTruthy();
   });
 });

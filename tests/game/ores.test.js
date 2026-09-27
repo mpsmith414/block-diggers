@@ -47,7 +47,7 @@ describe('save v4', () => {
     const s = migrate(v3);
     expect(s.version).toBe(4);
     expect(s.bank).toEqual({ coal: 4, iron: 0, gold: 0, diamond: 0, emerald: 2, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 });
-    expect(s.records).toEqual({ deepest: 60, mostOres: 20, layers: [], moonTrips: 0 });
+    expect(s.records).toEqual({ deepest: 60, mostOres: 20, layers: ['dirt', 'stone'], moonTrips: 0 });
     expect(s.stickers).toEqual({ 'ore-coal': true });
   });
 });

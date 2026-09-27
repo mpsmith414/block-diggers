@@ -22,12 +22,12 @@ describe('save', () => {
     expect(status).toBe('new');
     expect(state).toEqual(defaultState());
     expect(state.version).toBe(4);
-    expect(state.plots).toHaveLength(6);
+    expect(state.plots).toHaveLength(9);
   });
 
   it('round-trips', () => {
     const st = memStorage();
-    const s = { ...defaultState(), bank: { ...defaultState().bank, gold: 7 }, plots: ['garden', null, null, null, null, null] };
+    const s = { ...defaultState(), bank: { ...defaultState().bank, gold: 7 }, plots: ['garden', null, null, null, null, null, null, null, null] };
     expect(saveState(st, s)).toBe(true);
     const { state, status } = loadState(st);
     expect(status).toBe('loaded');
@@ -39,7 +39,7 @@ describe('save', () => {
     const s = migrate(v1);
     expect(s.version).toBe(4);
     expect(s.upgrades).toEqual({ pick: 1, pack: 0, lantern: 2 });
-    expect(s.plots).toEqual(['house', null, null, null, null, null]);
+    expect(s.plots).toEqual(['house', null, null, null, null, null, null, null, null]);
     expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 });
     expect(s.petName).toBe('x');
     const st = memStorage({ [SAVE_KEY]: JSON.stringify(v1) });
@@ -93,5 +93,16 @@ describe('save v3', () => {
     const s = { ...defaultState(), stickers: { 'ore-coal': true }, pets: ['mole'], decor: { stock: { lamp: 1 }, placed: [{ id: 'fence', x: 700 }] } };
     saveState(st, s);
     expect(loadState(st)).toEqual({ state: s, status: 'loaded' });
+  });
+});
+
+describe('save v4: the deeper world', () => {
+  it('a 6-plot save grows to 9 plots and keeps its buildings', () => {
+    const s = migrate({ ...defaultState(), version: 3, plots: ['garden', 'house', null, 'pen', null, 'statue'] });
+    expect(s.plots).toEqual(['garden', 'house', null, 'pen', null, 'statue', null, null, null]);
+  });
+  it('an older save knows the layers it has already reached (for the elevator)', () => {
+    const s = migrate({ ...defaultState(), version: 3, records: { deepest: 150, mostOres: 30 } });
+    expect(s.records.layers).toEqual(['dirt', 'stone', 'deep', 'crystal']);
   });
 });

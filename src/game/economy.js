@@ -2,7 +2,7 @@
 
 import { ORES } from '../world/blocks.js';
 
-export const PLOTS = 6;
+export const PLOTS = 9;
 
 export const UPGRADES = {
   pick: [
@@ -21,6 +21,9 @@ export const BLUEPRINTS = [
   { id: 'tower', cost: { iron: 20, gold: 5 } },
   { id: 'minecart', cost: { iron: 10, gold: 10 } },
   { id: 'statue', cost: { diamond: 5, emerald: 5 } },
+  { id: 'dinopark', cost: { amber: 20, gold: 10 } },
+  { id: 'workshop', cost: { brick: 30, gold: 10 } },
+  { id: 'rocket', cost: { brick: 40, star: 20, heart: 1 } },
 ];
 const blueprint = (id) => BLUEPRINTS.find((b) => b.id === id);
 

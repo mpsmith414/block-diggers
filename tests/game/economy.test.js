@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   BLUEPRINTS, UPGRADES, canAfford, spend, nextUpgrade, buyUpgrade, buildOnPlot, depositPacks, PLOTS,
 } from '../../src/game/economy.js';
+import { CAMP } from '../../src/tuning.js';
 import { defaultState } from '../../src/save/save.js';
 
 const bank = (o = {}) => ({ coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, ...o });
@@ -22,8 +23,11 @@ describe('costs match the spec', () => {
       tower: { iron: 20, gold: 5 },
       minecart: { iron: 10, gold: 10 },
       statue: { diamond: 5, emerald: 5 },
+      dinopark: { amber: 20, gold: 10 },
+      workshop: { brick: 30, gold: 10 },
+      rocket: { brick: 40, star: 20, heart: 1 },
     });
-    expect(PLOTS).toBe(6);
+    expect(PLOTS).toBe(9);
   });
 });
 
@@ -80,5 +84,27 @@ describe('depositPacks', () => {
     const s = depositPacks({ ...defaultState(), bank: { ...defaultState().bank, heart: 1 } }, [{}], { hearts: 1 });
     expect(s.bank.heart).toBe(2);
     expect(depositPacks(defaultState(), [{}]).bank.heart).toBe(0);
+  });
+});
+
+describe('the deeper world buildings', () => {
+  it('nine plots, the new three past the meadow', () => {
+    expect(PLOTS).toBe(9);
+    expect(CAMP.plots).toHaveLength(9);
+    expect(CAMP.plots.slice(6)).toEqual([86, 93, 100]);
+    expect(CAMP.w).toBe(108);
+  });
+  it('Dino Park, Toy Workshop and the Rocket Ship cost what the spec says', () => {
+    const cost = Object.fromEntries(BLUEPRINTS.map((b) => [b.id, b.cost]));
+    expect(cost.dinopark).toEqual({ amber: 20, gold: 10 });
+    expect(cost.workshop).toEqual({ brick: 30, gold: 10 });
+    expect(cost.rocket).toEqual({ brick: 40, star: 20, heart: 1 });
+  });
+  it('the rocket needs the Heart of the World', () => {
+    const s = { ...defaultState(), bank: { ...defaultState().bank, brick: 40, star: 20 } };
+    expect(buildOnPlot(s, 6, 'rocket')).toBeNull();
+    const built = buildOnPlot({ ...s, bank: { ...s.bank, heart: 1 } }, 6, 'rocket');
+    expect(built.plots[6]).toBe('rocket');
+    expect(built.bank.heart).toBe(0);
   });
 });

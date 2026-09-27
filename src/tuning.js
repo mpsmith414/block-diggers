@@ -130,14 +130,14 @@ export const POWERUPS = {
 };
 
 // ---- pets ----
-export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160 };
+export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
 
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };
 
 // ---- camp (cells) ----
 export const CAMP = {
-  w: 84,
+  w: 108,
   h: 14,
   ground: 11, // first solid row
   shaftX: 5,
@@ -145,7 +145,7 @@ export const CAMP = {
   lecternX: 12,
   stallX: 63,
   fireX: 15,
-  plots: [19, 26, 33, 40, 47, 54],
+  plots: [19, 26, 33, 40, 47, 54, 86, 93, 100],
   plotW: 6,
   buildSeconds: 5,
 };
