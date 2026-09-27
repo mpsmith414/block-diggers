@@ -4,10 +4,11 @@
 import { ORES } from '../world/blocks.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 3;
+export const VERSION = 4;
 const PLOT_COUNT = 6;
 
-const emptyBank = () => Object.fromEntries(ORES.map((o) => [o, 0]));
+// the Heart of the World and moon cheese are kept in the bank too
+const emptyBank = () => ({ ...Object.fromEntries(ORES.map((o) => [o, 0])), heart: 0, cheese: 0 });
 
 export function defaultState() {
   return {
@@ -17,7 +18,7 @@ export function defaultState() {
     plots: Array(PLOT_COUNT).fill(null),
     characters: null,
     trips: 0,
-    records: { deepest: 0, mostOres: 0 },
+    records: { deepest: 0, mostOres: 0, layers: [], moonTrips: 0 },
     stickers: {},
     trophiesAwarded: [],
     pets: [],
@@ -38,6 +39,9 @@ export function migrate(raw) {
   }
   if (s.version === 2) {
     s = { ...s, version: 3 };
+  }
+  if (s.version === 3) {
+    s = { ...s, version: 4 };
   }
   // fill anything missing, keep anything unknown
   const d = defaultState();

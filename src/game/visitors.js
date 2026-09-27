@@ -16,7 +16,7 @@ export const presentVisitors = (state) => {
   return VISITORS.filter((v) => built >= v.after).map((v) => v.id);
 };
 
-const GEMS = new Set(['diamond', 'emerald']);
+const GEMS = new Set(['diamond', 'emerald', 'amber', 'brick', 'star']);
 
 export function makeRequest(state, rng) {
   const found = ORES.filter((o) => state.stickers[`ore-${o}`]);

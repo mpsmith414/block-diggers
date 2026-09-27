@@ -35,12 +35,19 @@ export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
 export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6 };
 
 // ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
+// Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill.
+const X = Infinity;
 export const MINE_TIME = {
-  soft: [0.25, 0.2, 0.12],
-  stone: [0.6, 0.4, 0.25],
-  deep: [Infinity, 0.7, 0.4],
-  crystal: [Infinity, Infinity, 0.6],
-  bedrock: [Infinity, Infinity, Infinity],
+  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07],
+  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13],
+  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2],
+  crystal: [X, X, 0.6, 0.45, 0.35, 0.3],
+  sand: [X, X, 0.5, 0.4, 0.3, 0.25],
+  bricks: [X, X, X, 0.5, 0.4, 0.3],
+  meteor: [X, X, X, X, 0.5, 0.4],
+  core: [X, X, X, X, X, 0.5],
+  moon: [X, X, 0.6, 0.5, 0.4, 0.3],
+  bedrock: [X, X, X, X, X, X],
 };
 
 // ---- the player (pixels, seconds) ----
@@ -65,8 +72,8 @@ export const PLAYER = {
 
 // ---- upgrades: value per level ----
 // Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
-export const BACKPACK = [30, 60, 120];
-export const LANTERN = [3, 5, 7]; // light radius in blocks
+export const BACKPACK = [30, 60, 120, 180, 250];
+export const LANTERN = [3, 5, 7, 9, 11]; // light radius in blocks
 
 // ---- pickups ----
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };

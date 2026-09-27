@@ -9,9 +9,9 @@ const withBank = (o) => ({ ...defaultState(), bank: bank(o) });
 
 describe('costs match the spec', () => {
   it('upgrades', () => {
-    expect(UPGRADES.pick).toEqual([{ iron: 10, coal: 5 }, { diamond: 5, gold: 10 }]);
-    expect(UPGRADES.pack).toEqual([{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }]);
-    expect(UPGRADES.lantern).toEqual([{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }]);
+    expect(UPGRADES.pick.slice(0, 2)).toEqual([{ iron: 10, coal: 5 }, { diamond: 5, gold: 10 }]);
+    expect(UPGRADES.pack.slice(0, 2)).toEqual([{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }]);
+    expect(UPGRADES.lantern.slice(0, 2)).toEqual([{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }]);
   });
   it('blueprints', () => {
     const costs = Object.fromEntries(BLUEPRINTS.map((b) => [b.id, b.cost]));
@@ -49,8 +49,10 @@ describe('upgrades', () => {
     expect(s.bank.iron).toBe(20);
     s = buyUpgrade(s, 'pick');
     expect(s.upgrades.pick).toBe(2);
-    expect(nextUpgrade(s, 'pick')).toBeNull();
-    expect(buyUpgrade(s, 'pick')).toBeNull();
+    expect(nextUpgrade(s, 'pick')).toEqual({ level: 3, cost: { amber: 10, diamond: 5 } });
+    const maxed = { ...s, upgrades: { ...s.upgrades, pick: 5 } };
+    expect(nextUpgrade(maxed, 'pick')).toBeNull();
+    expect(buyUpgrade(maxed, 'pick')).toBeNull();
   });
   it('can not buy without the ores', () => {
     expect(buyUpgrade(withBank({}), 'lantern')).toBeNull();
@@ -72,6 +74,6 @@ describe('building', () => {
 describe('depositPacks', () => {
   it('adds every pack into the bank', () => {
     const s = depositPacks(withBank({ coal: 1 }), [{ coal: 2, gold: 1 }, { coal: 3, diamond: 1 }]);
-    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1 }));
+    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1, amber: 0, brick: 0, star: 0 }));
   });
 });

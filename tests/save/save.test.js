@@ -21,7 +21,7 @@ describe('save', () => {
     const { state, status } = loadState(memStorage());
     expect(status).toBe('new');
     expect(state).toEqual(defaultState());
-    expect(state.version).toBe(3);
+    expect(state.version).toBe(4);
     expect(state.plots).toHaveLength(6);
   });
 
@@ -37,10 +37,10 @@ describe('save', () => {
   it('migrates a v1 save and keeps unknown fields', () => {
     const v1 = { version: 1, bank: { coal: 3 }, pick: 1, pack: 0, lantern: 2, buildings: ['house'], petName: 'x' };
     const s = migrate(v1);
-    expect(s.version).toBe(3);
+    expect(s.version).toBe(4);
     expect(s.upgrades).toEqual({ pick: 1, pack: 0, lantern: 2 });
     expect(s.plots).toEqual(['house', null, null, null, null, null]);
-    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0 });
+    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 });
     expect(s.petName).toBe('x');
     const st = memStorage({ [SAVE_KEY]: JSON.stringify(v1) });
     expect(loadState(st).status).toBe('migrated');
@@ -74,12 +74,12 @@ describe('save v3', () => {
       plots: ['garden', null, null, null, null, null], characters: ['fox', 'dino'], trips: 7, muted: true,
     };
     const s = migrate(v2);
-    expect(s.version).toBe(3);
+    expect(s.version).toBe(4);
     expect(s.bank.coal).toBe(5);
     expect(s.plots[0]).toBe('garden');
     expect(s.trips).toBe(7);
     expect(s.muted).toBe(true);
-    expect(s.records).toEqual({ deepest: 0, mostOres: 0 });
+    expect(s.records).toEqual({ deepest: 0, mostOres: 0, layers: [], moonTrips: 0 });
     expect(s.stickers).toEqual({});
     expect(s.pets).toEqual([]);
     expect(s.decor).toEqual({ stock: {}, placed: [] });

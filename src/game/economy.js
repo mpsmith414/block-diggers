@@ -5,9 +5,12 @@ import { ORES } from '../world/blocks.js';
 export const PLOTS = 6;
 
 export const UPGRADES = {
-  pick: [{ iron: 10, coal: 5 }, { diamond: 5, gold: 10 }],
-  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }],
-  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }],
+  pick: [
+    { iron: 10, coal: 5 }, { diamond: 5, gold: 10 },
+    { amber: 10, diamond: 5 }, { brick: 20, amber: 10 }, { star: 10, brick: 20 },
+  ],
+  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }],
+  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
 

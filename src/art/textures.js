@@ -21,6 +21,9 @@ export const ORE_COLORS = {
   gold: ['#f5c629', '#fff2a0'],
   diamond: ['#4de3f0', '#d4fbff'],
   emerald: ['#2fcf6a', '#b8ffcf'],
+  amber: ['#f0a030', '#ffe0a0'],
+  brick: ['#e0403a', '#ff9a8a'],
+  star: ['#ffe066', '#fffbe0'],
 };
 
 // Background (back wall) tiles live after the block tiles in the tileset.
@@ -248,7 +251,33 @@ function drawOreIcons(scene) {
     const { tex, ctx } = canvasTexture(scene, `ore-${ore}`, S, S);
     const [c, hi] = ORE_COLORS[ore];
     const shade = 'rgba(0,0,0,0.35)';
-    if (ore === 'diamond' || ore === 'emerald') {
+    if (ore === 'amber') {
+      // a honey-coloured drop with a tiny bug inside
+      rect(ctx, c, 3, 1, 4, 2);
+      rect(ctx, c, 2, 3, 6, 5);
+      rect(ctx, c, 3, 8, 4, 1);
+      rect(ctx, hi, 3, 3, 1, 2);
+      rect(ctx, '#5a3010', 5, 5, 2, 1);
+      rect(ctx, '#5a3010', 4, 6, 1, 1);
+      rect(ctx, '#5a3010', 7, 6, 1, 1);
+    } else if (ore === 'brick') {
+      // a toy brick with studs on top
+      rect(ctx, '#7a1a1a', 0, 3, 10, 6);
+      rect(ctx, c, 1, 4, 8, 4);
+      rect(ctx, '#7a1a1a', 1, 1, 3, 2);
+      rect(ctx, '#7a1a1a', 6, 1, 3, 2);
+      rect(ctx, c, 2, 1, 1, 2);
+      rect(ctx, c, 7, 1, 1, 2);
+      rect(ctx, hi, 1, 4, 8, 1);
+    } else if (ore === 'star') {
+      // a glowing five-point star
+      rect(ctx, c, 4, 0, 2, 3);
+      rect(ctx, c, 0, 3, 10, 2);
+      rect(ctx, c, 2, 5, 6, 2);
+      rect(ctx, c, 1, 7, 3, 2);
+      rect(ctx, c, 6, 7, 3, 2);
+      rect(ctx, hi, 4, 3, 2, 2);
+    } else if (ore === 'diamond' || ore === 'emerald') {
       // gem
       rect(ctx, c, 3, 1, 4, 1);
       rect(ctx, c, 2, 2, 6, 2);

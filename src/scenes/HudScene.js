@@ -5,11 +5,11 @@ import { B } from '../world/blocks.js';
 import { MINE_H, LAYERS, TILE } from '../tuning.js';
 import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
 import { getState } from '../save/store.js';
+import { shownOres } from '../game/ores.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
 
-const PANEL_W = 150;
 const PANEL_H = 30;
 const PAPER = 0xf4e4c1;
 const PAPER_EDGE = 0x8a5a34;
@@ -146,7 +146,11 @@ export class HudScene extends Phaser.Scene {
   }
 
   panelFor(a) {
-    if (this.panels[a.slot]) return this.panels[a.slot];
+    const kinds = shownOres(getState(this.registry));
+    const old = this.panels[a.slot];
+    if (old && old.kinds.length === kinds.length) return old;
+    if (old) old.c.destroy();
+    const PANEL_W = Math.max(150, 30 + kinds.length * 25);
     const x = a.slot === 0 ? 4 : this.scale.width - PANEL_W - 4;
     const y = 4;
     const c = this.add.container(x, y);
@@ -156,7 +160,7 @@ export class HudScene extends Phaser.Scene {
     c.add(g);
     const face = this.add.image(4, 3, `char-${a.char}`, 0).setOrigin(0);
     c.add(face);
-    const ores = ORES.map((ore, i) => {
+    const ores = kinds.map((ore, i) => {
       const ox = 24 + i * 25;
       const icon = this.add.image(ox, 4, `ore-${ore}`).setOrigin(0);
       const num = this.add.bitmapText(ox + 11, 6, 'pixel', '0').setTint(INK);
@@ -169,7 +173,7 @@ export class HudScene extends Phaser.Scene {
     const count = this.add.bitmapText(120, 19, 'pixel', '0/20').setTint(INK);
     const full = this.add.image(4, 18, 'icon-full').setOrigin(0).setVisible(false);
     c.add([bag, barBg, bar, count, full]);
-    const panel = { c, ores, bar, count, full, bump: 0 };
+    const panel = { c, ores, bar, count, full, bump: 0, kinds };
     this.panels[a.slot] = panel;
     return panel;
   }

@@ -22,7 +22,7 @@ describe('nextGoal', () => {
     const s = {
       ...defaultState(),
       plots: ['garden', 'house', 'pen', 'tower', 'minecart', 'statue'],
-      upgrades: { pick: 2, pack: 2, lantern: 2 },
+      upgrades: { pick: 5, pack: 4, lantern: 4 },
     };
     expect(nextGoal(s)).toBeNull();
   });

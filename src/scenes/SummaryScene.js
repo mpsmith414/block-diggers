@@ -3,6 +3,8 @@ import { ORES } from '../world/blocks.js';
 import { stickerById } from '../game/stickers.js';
 import { createEdge } from '../input/intents.js';
 import { MINE_H } from '../tuning.js';
+import { shownOres } from '../game/ores.js';
+import { getState } from '../save/store.js';
 
 // The "how did we do?" card shown when you get home: ores per player, how
 // deep you went (with a gold "best!" ribbon for records), chests, new stickers.
@@ -51,8 +53,10 @@ export class SummaryScene extends Phaser.Scene {
     this.packs.forEach((pack, slot) => {
       if (!pack) return;
       c.add(this.add.image(x + 18, ry + 6, `char-${this.chars[slot]}`, 0));
-      ORES.forEach((ore, i) => {
-        const ox = x + 42 + i * 50;
+      const kinds = shownOres(getState(this.registry));
+      const gap = Math.min(50, 250 / kinds.length);
+      kinds.forEach((ore, i) => {
+        const ox = x + 42 + i * gap;
         const n = pack[ore] ?? 0;
         c.add(this.add.image(ox, ry + 6, `ore-${ore}`).setScale(1.3).setAlpha(n ? 1 : 0.3));
         const t = this.add.bitmapText(ox + 10, ry + 1, 'pixel', '0').setScale(2).setTint(INK).setAlpha(n ? 1 : 0.3);
