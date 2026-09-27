@@ -1,6 +1,7 @@
 // A tiny look-ahead sequencer for the chiptune loops in synth.js.
 
 import { SONGS, parseTrack } from './synth.js';
+import { MUSIC_LEVEL } from './audio.js';
 
 const LOOKAHEAD = 0.12; // seconds scheduled ahead
 const TICK_MS = 30;
@@ -15,32 +16,7 @@ export function createMusic(audio) {
 
   const stepDur = () => 60 / song.bpm / 4;
 
-  function voice(track, n, t) {
-    const ctx = audio.ctx;
-    const dur = n.len * stepDur() * (track.decay ?? 1);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(track.gain, t + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, dur));
-    g.connect(audio.music);
-    if (track.wave === 'noise' || n.drum) {
-      const src = ctx.createBufferSource();
-      src.buffer = audio.noise();
-      const f = ctx.createBiquadFilter();
-      f.type = 'highpass';
-      f.frequency.value = 7000;
-      src.connect(f).connect(g);
-      src.start(t, Math.random() * 0.5);
-      src.stop(t + 0.06);
-      return;
-    }
-    const o = ctx.createOscillator();
-    o.type = track.wave;
-    o.frequency.setValueAtTime(n.freq, t);
-    o.connect(g);
-    o.start(t);
-    o.stop(t + Math.max(0.06, dur) + 0.05);
-  }
+  const voice = (track, n, t) => playNote(audio.ctx, audio.music, audio.noise(), track, n, t, stepDur());
 
   function schedule() {
     if (!song || !audio.ready) return;
@@ -72,7 +48,7 @@ export function createMusic(audio) {
         const t = audio.ctx.currentTime;
         g.cancelScheduledValues(t);
         g.setValueAtTime(0.0001, t);
-        g.exponentialRampToValueAtTime(0.55, t + 1.2);
+        g.exponentialRampToValueAtTime(MUSIC_LEVEL, t + 2.5);
       }
       if (!timer) timer = setInterval(schedule, TICK_MS);
     },
@@ -82,4 +58,31 @@ export function createMusic(audio) {
     },
     get current() { return current; },
   };
+}
+
+// One note of one track, into `dest`, at time `t`.
+export function playNote(ctx, dest, noiseBuf, track, n, t, stepDur) {
+  const dur = n.len * stepDur * (track.decay ?? 1);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(track.gain, t + (track.attack ?? 0.01));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, dur));
+  g.connect(dest);
+  if (track.wave === 'noise' || n.drum) {
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = 7000;
+    src.connect(f).connect(g);
+    src.start(t, Math.random() * 0.5);
+    src.stop(t + 0.06);
+    return;
+  }
+  const o = ctx.createOscillator();
+  o.type = track.wave;
+  o.frequency.setValueAtTime(n.freq, t);
+  o.connect(g);
+  o.start(t);
+  o.stop(t + Math.max(0.06, dur) + 0.05);
 }

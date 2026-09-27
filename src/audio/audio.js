@@ -2,6 +2,30 @@
 // Browsers only let audio start after a user gesture (a key, a click, a tap;
 // controller presses don't count), so we resume on the first one we see.
 
+export const MUSIC_LEVEL = 0.32;
+
+// Music runs through a gentle low-pass and a soft echo: warm, not bright.
+export function buildMusicChain(ctx, out) {
+  const music = ctx.createGain();
+  music.gain.value = MUSIC_LEVEL;
+  const warm = ctx.createBiquadFilter();
+  warm.type = 'lowpass';
+  warm.frequency.value = 1900;
+  warm.Q.value = 0.4;
+  const echo = ctx.createDelay(1);
+  echo.delayTime.value = 0.33;
+  const feedback = ctx.createGain();
+  feedback.gain.value = 0.28;
+  const wet = ctx.createGain();
+  wet.gain.value = 0.22;
+  music.connect(warm);
+  warm.connect(out);
+  warm.connect(echo);
+  echo.connect(feedback).connect(echo);
+  echo.connect(wet).connect(out);
+  return music;
+}
+
 export function createAudio(win = globalThis.window) {
   const Ctx = win && (win.AudioContext || win.webkitAudioContext);
   let ctx = null;
@@ -22,11 +46,9 @@ export function createAudio(win = globalThis.window) {
     master.gain.value = muted ? 0 : 0.9;
     master.connect(ctx.destination);
     sfx = ctx.createGain();
-    sfx.gain.value = 0.8;
+    sfx.gain.value = 0.55;
     sfx.connect(master);
-    music = ctx.createGain();
-    music.gain.value = 0.55;
-    music.connect(master);
+    music = buildMusicChain(ctx, master);
     return ctx;
   };
 

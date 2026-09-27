@@ -14,8 +14,9 @@ const screenshots = () => ({
       req.on('end', () => {
         const dir = resolve(import.meta.dirname, '.shots');
         mkdirSync(dir, { recursive: true });
-        const file = resolve(dir, `${name.replace(/[^\w-]/g, '_')}.png`);
-        writeFileSync(file, Buffer.from(body.replace(/^data:image\/png;base64,/, ''), 'base64'));
+        const safe = name.replace(/[^\w.-]/g, '_');
+        const file = resolve(dir, /\.\w+$/.test(safe) ? safe : `${safe}.png`);
+        writeFileSync(file, Buffer.from(body.replace(/^data:[^,]*;base64,/, ''), 'base64'));
         res.end(file);
       });
     });

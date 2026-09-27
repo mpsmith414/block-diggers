@@ -64,7 +64,6 @@ const campArp = bars(
   'F3 A3 C4 A3 F3 A3 C4 A3 F3 A3 C4 A3 F3 A3 C4 A3',
   'G3 B3 D4 B3 G3 B3 D4 B3 C4 E4 G4 E4 C4 - - .',
 );
-const campHat = bars(...Array(8).fill('. . x . . . x . . . x . . . x .'));
 
 // Mine: slower, softer, a little mysterious. Am – F – C – E.
 const mineLead = bars(
@@ -99,23 +98,23 @@ const mineBell = bars(
 );
 
 export const SONGS = {
+  // Slow, soft and round: sine/triangle only, gentle attacks, long tails.
   camp: {
-    bpm: 100,
+    bpm: 72,
     steps: 128,
     tracks: [
-      { wave: 'square', gain: 0.045, notes: campLead, decay: 0.9 },
-      { wave: 'triangle', gain: 0.16, notes: campBass, decay: 0.95 },
-      { wave: 'triangle', gain: 0.035, notes: campArp, decay: 0.6 },
-      { wave: 'noise', gain: 0.012, notes: campHat, decay: 0.2 },
+      { wave: 'triangle', gain: 0.06, notes: campLead, decay: 1.1, attack: 0.03 },
+      { wave: 'sine', gain: 0.13, notes: campBass, decay: 1.1, attack: 0.02 },
+      { wave: 'sine', gain: 0.03, notes: campArp, decay: 1.4, attack: 0.02 },
     ],
   },
   mine: {
-    bpm: 78,
+    bpm: 64,
     steps: 128,
     tracks: [
-      { wave: 'triangle', gain: 0.07, notes: mineLead, decay: 0.95 },
-      { wave: 'sine', gain: 0.14, notes: mineBass, decay: 1 },
-      { wave: 'sine', gain: 0.05, notes: mineBell, decay: 2.5 },
+      { wave: 'triangle', gain: 0.055, notes: mineLead, decay: 1.1, attack: 0.04 },
+      { wave: 'sine', gain: 0.12, notes: mineBass, decay: 1.1, attack: 0.05 },
+      { wave: 'sine', gain: 0.04, notes: mineBell, decay: 3, attack: 0.01 },
     ],
   },
 };

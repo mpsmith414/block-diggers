@@ -4,6 +4,7 @@
 import { noteFreq, PENTATONIC } from './synth.js';
 
 export function createSfx(audio) {
+  // everything here is mixed under the music bus volume; keep it gentle
   const now = () => audio.ctx.currentTime;
   const ok = () => audio.ready;
 
