@@ -15,11 +15,13 @@ export function discovery(row, known) {
   return name && !known.includes(name) ? name : null;
 }
 
-export function summarizeTrip({ packs, deepest, chests, stickers }, records) {
+export function summarizeTrip({ packs, deepest, chests, stickers, moon = false }, records) {
   const totals = Object.fromEntries(ORES.map((o) => [o, 0]));
   for (const p of packs) if (p) for (const o of ORES) totals[o] += p[o] ?? 0;
   const count = ORES.reduce((n, o) => n + totals[o], 0);
-  const best = { deepest: deepest > records.deepest, mostOres: count > records.mostOres };
+  // depth on the Moon isn't depth in the mine
+  const mineDeepest = moon ? 0 : deepest;
+  const best = { deepest: mineDeepest > records.deepest, mostOres: count > records.mostOres };
   return {
     totals,
     count,
@@ -27,11 +29,13 @@ export function summarizeTrip({ packs, deepest, chests, stickers }, records) {
     chests,
     stickers,
     best,
+    moon,
     records: {
       ...records,
-      deepest: Math.max(deepest, records.deepest),
+      deepest: Math.max(mineDeepest, records.deepest),
       mostOres: Math.max(count, records.mostOres),
-      layers: layersReached(Math.max(deepest, records.deepest)),
+      layers: layersReached(Math.max(mineDeepest, records.deepest)),
+      moonTrips: (records.moonTrips ?? 0) + (moon ? 1 : 0),
     },
   };
 }

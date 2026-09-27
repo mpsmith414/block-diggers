@@ -60,3 +60,15 @@ describe('discovery', () => {
     expect(discovery(160, [])).toBeNull();
   });
 });
+
+describe('a trip to the Moon', () => {
+  it('counts a moon trip, and moon depth is not a mine depth record', () => {
+    const records = { deepest: 200, mostOres: 5, layers: ['dirt'], moonTrips: 1 };
+    const r = summarizeTrip({ packs: [], deepest: 90, chests: 0, stickers: [], moon: true }, records);
+    expect(r.records.moonTrips).toBe(2);
+    expect(r.records.deepest).toBe(200);
+    expect(r.records.layers).toEqual(['dirt', 'stone', 'deep', 'crystal', 'dino']);
+    expect(r.best.deepest).toBe(false);
+    expect(r.moon).toBe(true);
+  });
+});

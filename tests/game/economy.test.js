@@ -78,12 +78,15 @@ describe('building', () => {
 describe('depositPacks', () => {
   it('adds every pack into the bank', () => {
     const s = depositPacks(withBank({ coal: 1 }), [{ coal: 2, gold: 1 }, { coal: 3, diamond: 1 }]);
-    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1, amber: 0, brick: 0, star: 0, heart: 0 }));
+    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 }));
   });
   it('a Heart of the World carried home goes into the bank too', () => {
     const s = depositPacks({ ...defaultState(), bank: { ...defaultState().bank, heart: 1 } }, [{}], { hearts: 1 });
     expect(s.bank.heart).toBe(2);
     expect(depositPacks(defaultState(), [{}]).bank.heart).toBe(0);
+  });
+  it('moon cheese goes in the bank too (it is worth nothing, but it is very funny)', () => {
+    expect(depositPacks(defaultState(), [{}], { cheese: 3 }).bank.cheese).toBe(3);
   });
 });
 
