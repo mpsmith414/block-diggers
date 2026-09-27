@@ -77,6 +77,7 @@ export const PLAYER = {
   knockTime: 0.25,
   knockLift: 170,
   lavaHop: 260,
+  springSpeed: 330, // bounce off a spring block (about 4 blocks high)
   swimGravity: 0.25, // fraction of normal gravity in water
   swimMaxFall: 50,
   swimUp: 70,

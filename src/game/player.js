@@ -48,8 +48,10 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1 }) {
-  const out = { mined: [], bounced: false, stepped: false, jumped: false };
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1 }) {
+  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false };
+  const gravity = PLAYER.gravity * gravityMul;
+  const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
   let ix = intent.moveX || 0;
   let iy = intent.moveY || 0;
   const knocked = p.knock && p.knock.t > 0;
@@ -99,9 +101,9 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
       p.vy = -PLAYER.jumpSpeed;
       out.jumped = true;
     } else if (iy < 0 || intent.jump) {
-      p.vy = Math.max(-PLAYER.swimUp, p.vy - PLAYER.gravity * dt);
+      p.vy = Math.max(-PLAYER.swimUp, p.vy - gravity * dt);
     } else {
-      p.vy = Math.min(PLAYER.swimMaxFall, p.vy + PLAYER.gravity * PLAYER.swimGravity * dt);
+      p.vy = Math.min(PLAYER.swimMaxFall, p.vy + gravity * PLAYER.swimGravity * dt);
     }
     p.climbing = false;
   } else if (jumpPressed && (p.grounded || inLadder)) {
@@ -113,7 +115,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   } else if (inLadder && p.vy >= 0) {
     p.vy = 0; // hang on the ladder (also catches a fall)
   } else {
-    p.vy = Math.min(PLAYER.maxFall, p.vy + PLAYER.gravity * dt);
+    p.vy = Math.min(maxFall, p.vy + gravity * dt);
   }
   p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed * walkMul * (inWater ? PLAYER.swimSlow : 1);
   // Stepping sideways off a ladder: line up with the row first, so the box
@@ -164,6 +166,11 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
       if (hitsSolid || onLadderTop) {
         p.y = row * T - PLAYER.h;
         p.vy = 0;
+        // spring blocks bounce you back up (unless you're pushing down to dig one)
+        if (iy <= 0 && cols.some((c) => grid.get(c, row) === B.SPRING)) {
+          p.vy = -PLAYER.springSpeed;
+          out.sprung = true;
+        }
       } else {
         p.y = ny;
       }
