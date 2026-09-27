@@ -26,6 +26,34 @@ Design: `docs/superpowers/specs/2026-09-25-block-diggers-design.md`
 Hazards are gentle: slimes (jump on them!), bats, falling gravel and lava only
 knock you back and drop up to 3 ores. Nothing is ever lost for good.
 
+### More to find and do
+
+- **Four layers:** dirt, stone, deep (lava) and the **crystal caverns** (glowing
+  pools you can swim in). Crystal rock needs the diamond pickaxe.
+- **Treasures:**
+  - chests, and a **big chest** that needs both players together;
+  - geodes full of gems, fossils, golden slimes;
+  - **boom blocks** (touch one and step back);
+  - **boulders** to push into a pit (together in co-op) to reach the ore beyond.
+- **Pet eggs** hatch at camp into a **mole** (sniffs out ore), a **glow-bug**
+  (extra light) and a **bat buddy** (fetches loose ore). They come on every trip.
+- **Buildings help:**
+  - garden: gem flowers to harvest;
+  - pen: gift boxes;
+  - house: a bigger backpack;
+  - tower: chests show on the depth meter;
+  - minecart: stand in it and press A to start at the stone layer;
+  - statue: more rare finds.
+- **Sticker book:** 40 stickers on 6 pages, and a trophy for each full page. Open
+  it at the lectern, from the pause menu, or with 📖 on a phone.
+- **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
+  one and press A to place it (B puts it back). Stand on one and press A to move it.
+- **Visitors** move in as the camp grows (a bear, a rabbit, an owl). Bring them
+  what's in their speech bubble for a reward.
+- **Goal hint:** in the mine, a card under your panel shows what you're saving
+  for and the ore it still needs, and the depth meter points to where that ore
+  is found. After each trip, a summary card shows what you found and any records.
+
 | Button | Action |
 |---|---|
 | Left stick / D-pad | walk, dig, climb |

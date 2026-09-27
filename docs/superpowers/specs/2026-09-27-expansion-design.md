@@ -1,7 +1,7 @@
 # Block Diggers — Expansion: Reasons to Keep Digging — Design
 
 **Date:** 2026-09-27
-**Status:** Approved by the owner ("build them all"); built without further input.
+**Status:** Implemented 2026-09-27 (M7–M12). See "Changes made while building" at the end.
 **Builds on:** `2026-09-25-block-diggers-design.md` (all of it still applies, including the cozy feel and "no text a child needs to read").
 
 ## Why
@@ -182,3 +182,14 @@ Phaser scenes stay thin. New scenes and views:
   - save v2 → v3 migration.
 - **Browser (dev harness):** each feature driven and screenshotted, and the balance bot re-run over several trips.
 - **Scoring:** the same honest 0–10 pass as before, iterating until ≥ 8.5.
+
+## Changes made while building (2026-09-27)
+
+Found by playtesting (screenshots, the dev harness, and a bot that plays several trips and spends like a player):
+
+- **Boulders** sit at a cave edge in front of a one-block **pit**, with ore beyond it. You push the boulder into the pit and walk over it. (In the first version the ore was *behind* the boulder, so pushing it from the only reachable side went into solid rock.) Players never auto-step onto boulders or boom blocks; they lean on them, pushing or lighting.
+- **Goal hint** (new): the cheapest building or upgrade you can't afford yet, the ore it still needs (counting what's in your pack), and an arrow on the depth meter at the layer where that ore is found. Without it, a bot filled up on coal in the dirt layer every trip and never went deeper for iron. With it, the house is built on trip 2.
+- **Visitors** that are new to you walk in from just outside the view (not from the far edge of the camp), and remember that they've arrived (`visitors.seen`).
+- **Leaving camp** mid-hatch hatches the remaining eggs at once. The mine waits while a trip's summary and deposit are still running.
+- **The phone's book button** opens the sticker book directly.
+- **Fix:** scene event listeners outlive a scene restart. The mine's sticker listener is now removed at the end of each trip (before the fix, it doubled up every trip).
