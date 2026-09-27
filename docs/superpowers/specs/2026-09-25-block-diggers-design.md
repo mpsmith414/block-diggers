@@ -8,9 +8,11 @@
 A co-op, side-view, Minecraft-flavoured mining game for a parent and a 6-year-old
 who has never played games before. Dig down through blocky layers, collect ores,
 ride home, and spend the loot on buildings that grow your camp across sessions.
-Runs in a web browser from GitHub Pages. The main target is a **Fire TV Cube (Silk
-browser) with two Xbox controllers on one shared screen**. It also works on a PC
-with controllers or keyboard, and single-player on a phone with touch controls.
+Runs in a web browser from GitHub Pages. The main target is the **TV via the Fire TV
+Cube, streamed with Moonlight from Chrome on a PC (Sunshine), with two Xbox controllers
+on one shared screen** (see `2026-09-26-moonlight-streaming-design.md`). It also works
+on a PC with controllers or keyboard, and single-player on a phone with touch controls.
+Silk directly on the Cube is best-effort.
 
 Design pillars:
 
@@ -199,7 +201,9 @@ Input is custom (`devices.js`) rather than Phaser's gamepad plugin, so the Fire 
 - **Touch** (phone, player 1): floating joystick on the left half of the screen; jump and a hold-to-go-home button on the right.
 - Stick deadzone 0.25, then rescaled.
 
-### Fire TV Silk rules
+### Fire TV Silk rules (best-effort)
+
+*Since 2026-09-26 the TV is played through Moonlight streaming; see `2026-09-26-moonlight-streaming-design.md`. The focus and back guards stay because they're harmless and still help there.*
 
 These are lessons from Family Arcade, where each of these was found by hand:
 
@@ -208,7 +212,9 @@ These are lessons from Family Arcade, where each of these was found by hand:
 - The controller's **back** button must not leave the page. Capture it (history-state guard) and open Pause instead.
 - Storage may be blocked. `save.js` catches every storage call and falls back to in-memory storage.
 
-### Getting rid of the Silk cursor (a goal, not just a workaround)
+### Getting rid of the Silk cursor (best-effort)
+
+*No longer pursued: streaming via Moonlight sidesteps Silk. Kept for the record.*
 
 Family Arcade still has this problem: on the Cube, the left stick drives Silk's on-screen cursor, so steering feels mushy and the cursor wanders off the page and takes focus with it. Family Arcade only *works around* the cursor (press-anywhere + focus guard). It never tries to suppress it. Block Diggers will try to suppress it, in this order. Each step is verified on the Cube before moving on:
 
@@ -225,12 +231,12 @@ Family Arcade still has this problem: on the Cube, the left stick drives Silk's 
 
 Whatever fix works here is written up so it can be ported to Family Arcade's KidKit afterwards. That port is a separate task and not part of Block Diggers.
 
-### Performance budget (Fire TV Cube)
+### Performance budget (PC Chrome, streamed)
 
 - Phaser tilemap layer with built-in culling. Only visible tiles are drawn.
 - Darkness is one render texture per frame with light circles erased from it.
 - Enemy caps as above. No particle systems with more than 30 particles.
-- Target 60 fps on the Cube, and 30 fps is the floor. If it misses, drop the lantern soft edge first.
+- Target 60 fps in Chrome on the streaming PC. The culling and caps above are good practice rather than hard limits now that the Cube no longer renders the game.
 
 ## 4. Error handling
 
@@ -255,7 +261,7 @@ Whatever fix works here is written up so it can be ported to Family Arcade's Kid
 - `intents`: fake gamepad states map to the right intents; deadzone; hold-B timing.
 - `camera`: zoom-to-fit maths; soft-wall bounds; off-screen triggers the bubble.
 
-**Hands-on checklist**, run at each milestone on three setups: PC Chrome with 2 Xbox controllers; a phone in landscape; the Fire TV Cube Silk with 2 Xbox controllers.
+**Hands-on checklist**, run at each milestone on three setups: PC Chrome with 2 Xbox controllers; a phone in landscape; the Fire TV Cube via Moonlight with 2 Xbox controllers.
 
 ## 6. Build order (each milestone is playable)
 
