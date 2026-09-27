@@ -24,7 +24,7 @@ export function defaultState() {
     decor: { stock: {}, placed: [] },
     garden: { stock: 0 },
     pen: { gifts: 0 },
-    visitors: { met: [], requests: {} },
+    visitors: { met: [], requests: {}, seen: [] },
   };
 }
 

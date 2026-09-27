@@ -43,6 +43,8 @@ const CAMP = {
   wobble: (s) => s.play('wobble'),
   harvest: (s) => s.play('upgrade'),
   gift: (s) => s.play('chest'),
+  place: (s) => s.play('hammer'),
+  thanks: (s) => s.play('egg'),
 };
 
 const MENU = {

@@ -85,7 +85,7 @@ describe('save v3', () => {
     expect(s.decor).toEqual({ stock: {}, placed: [] });
     expect(s.garden).toEqual({ stock: 0 });
     expect(s.pen).toEqual({ gifts: 0 });
-    expect(s.visitors).toEqual({ met: [], requests: {} });
+    expect(s.visitors).toEqual({ met: [], requests: {}, seen: [] });
     expect(s.trophiesAwarded).toEqual([]);
   });
   it('a v3 save round-trips unchanged', () => {

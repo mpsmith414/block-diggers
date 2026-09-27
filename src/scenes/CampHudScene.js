@@ -174,6 +174,20 @@ export class CampHudScene extends Phaser.Scene {
     this.time.delayedCall(ores.length * 90 + 600, () => this.syncBank(finalBank));
   }
 
+  // Ores fly out of the bank to someone in the world (a visitor you're helping).
+  flyToWorld(ores, worldX, worldY) {
+    const cam = this.camp.cameras.main;
+    const tx = (worldX - cam.worldView.x) * cam.zoom;
+    const ty = (worldY - cam.worldView.y) * cam.zoom;
+    ores.forEach((ore, i) => {
+      this.time.delayedCall(i * 60, () => {
+        const from = this.bankIcons[ore].icon;
+        const img = this.add.image(from.x + 5, from.y + 5, `ore-${ore}`);
+        this.tweens.add({ targets: img, x: tx, y: ty, scale: 0.6, duration: 450, ease: 'Cubic.easeIn', onComplete: () => img.destroy() });
+      });
+    });
+  }
+
   // ---------- picker ----------
 
   openPicker(p) {
@@ -224,7 +238,18 @@ export class CampHudScene extends Phaser.Scene {
     c.add(panel(this, x, y, w, h));
 
     const midX = x + w / 2;
-    if (pk.kind === 'blueprint') {
+    if (pk.kind === 'decor') {
+      const key = opt.id.startsWith('trophy') ? opt.id : `deco-${opt.id}`;
+      const img = this.add.image(midX, y + 62, key).setOrigin(0.5, 1);
+      img.setScale(Math.min(3, 52 / Math.max(img.width, img.height)));
+      if (!opt.affordable) img.setAlpha(0.6);
+      c.add(img);
+      if (opt.stock) {
+        // already yours: a bag with how many
+        c.add(this.add.image(midX - 12, y + h - 24, 'icon-bag').setScale(2));
+        c.add(this.add.bitmapText(midX + 2, y + h - 30, 'pixel', `x${opt.stock}`).setScale(2).setTint(INK));
+      }
+    } else if (pk.kind === 'blueprint') {
       const img = this.add.image(midX, y + 8, `bld-${opt.id}`).setOrigin(0.5, 0).setScale(0.8);
       if (!opt.affordable) img.setTint(0xb0a090).setAlpha(0.7);
       c.add(img);
@@ -244,7 +269,9 @@ export class CampHudScene extends Phaser.Scene {
 
     // cost row (or a star when maxed)
     const rowY = y + h - 30;
-    if (!opt.cost) {
+    if (pk.kind === 'decor' && opt.stock) {
+      // (shown above)
+    } else if (!opt.cost) {
       c.add(this.add.image(midX, rowY + 6, 'star').setScale(2));
     } else {
       const bank = getState(this.registry).bank;

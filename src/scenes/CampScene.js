@@ -15,6 +15,11 @@ import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import { createPerksView } from './camp/perksView.js';
 import { createCampPets } from './camp/campPets.js';
+import { createDecorView } from './camp/decorView.js';
+import { createVisitorsView } from './camp/visitorsView.js';
+import { BUYABLE, buyDecor, decorById } from '../game/decor.js';
+import { refreshRequests, presentVisitors } from '../game/visitors.js';
+import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
 import { growGarden, leavePenGift, cartStartRow } from '../game/perks.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -58,6 +63,16 @@ export class CampScene extends Phaser.Scene {
     this.placeBuildings();
     this.perks = createPerksView(this);
     this.campPets = createCampPets(this);
+    // visitors need a request; make sure everyone present has one
+    {
+      const st = getState(this.registry);
+      if (presentVisitors(st).some((id) => !st.visitors.requests[id] && !this.arrived)) {
+        const fresh = refreshRequests(st, createRng(Date.now() >>> 0)).visitors.requests;
+        setState(this.registry, { ...st, visitors: { ...st.visitors, requests: { ...fresh, ...st.visitors.requests } } });
+      }
+    }
+    this.decor = createDecorView(this);
+    this.visitors = createVisitorsView(this);
     this.perks.refresh();
     // older saves: back-fill stickers for buildings already standing
     for (const id of getState(this.registry).plots) if (id) earnSticker(this, `bld-${id}`, { quiet: true });
@@ -139,17 +154,19 @@ export class CampScene extends Phaser.Scene {
 
   drawProps() {
     // trees behind everything
-    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5]) {
+    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5, 69, 76, 82]) {
       this.add.image(x * TILE, GROUND_Y + 2, 'tree').setOrigin(0.5, 1).setDepth(-5);
     }
     // meadow flowers along the ground
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 90; i++) {
       const x = 4 + ((i * 97) % (W - 8));
       const f = this.add.image(x, GROUND_Y + 1, 'flower', i % 3).setOrigin(0.5, 1).setDepth(11);
       this.tweens.add({ targets: f, angle: { from: -6, to: 6 }, duration: 1400 + (i % 5) * 200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
     // mine entrance
     this.add.image(CAMP.shaftX * TILE + TILE / 2, GROUND_Y + 16, 'shaft').setOrigin(0.5, 1).setDepth(12);
+    // the market stall
+    this.add.image(CAMP.stallX * TILE + TILE / 2, GROUND_Y, 'stall').setOrigin(0.5, 1).setDepth(3);
     // the sticker book on its lectern
     this.add.image(CAMP.lecternX * TILE + TILE / 2, GROUND_Y, 'lectern').setOrigin(0.5, 1).setDepth(5);
     // upgrade bench
@@ -302,6 +319,7 @@ export class CampScene extends Phaser.Scene {
     if (Math.abs(cx - CAMP.shaftX) <= 1) return { kind: 'shaft' };
     if (Math.abs(cx - CAMP.benchX) <= 1) return { kind: 'bench' };
     if (cx === CAMP.lecternX) return { kind: 'lectern' };
+    if (Math.abs(cx - CAMP.stallX) <= 1) return { kind: 'stall' };
     const plot = CAMP.plots.findIndex((px) => cx >= px && cx < px + CAMP.plotW);
     const here = plot >= 0 ? getState(this.registry).plots[plot] : undefined;
     if (plot >= 0 && !here) return { kind: 'plot', plot };
@@ -334,22 +352,46 @@ export class CampScene extends Phaser.Scene {
         if (e.b) hud.closePicker();
         stepPlayer(a.p, IDLE, this.grid, { dt, canMine: false });
       } else if (!this.leaving) {
+        // what A does here, in priority order: place what you carry, help a
+        // friend, use the thing you're standing at, pick up a decoration
         let move = i;
-        if (zone && zone.kind === 'lectern') {
-          move = { ...i, jump: false };
+        let action = null;
+        const friend = !a.carrying && this.visitors.near(a);
+        const decorIndex = !a.carrying && !friend && !zone ? this.decor.under(a) : -1;
+        if (a.carrying) {
+          action = { x: a.p.x + PLAYER.w / 2, key: this.decor.canDrop(a) ? 'btn-a' : null };
+          if (e.a) {
+            if (this.decor.place(a)) this.events.emit('place');
+            else { this.events.emit('nope'); this.cameras.main.shake(80, 0.003); }
+          }
+          if (e.b) this.decor.stow(a);
+        } else if (friend) {
+          action = { x: friend.x, key: 'btn-a', y: GROUND_Y - 44 };
+          if (e.a) this.visitors.give(friend);
+        } else if (zone && zone.kind === 'lectern') {
+          action = { x: CAMP.lecternX * TILE + TILE / 2, key: 'btn-a' };
           if (e.a && !hud.picker) {
             this.scene.pause();
             this.scene.launch('Book', { target: 'Camp' });
           }
-        }
-        if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart')) {
-          move = { ...i, jump: false }; // A opens the picker (or rides the cart) instead of jumping
+        } else if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart' || zone.kind === 'stall')) {
+          const x = zone.kind === 'bench' ? CAMP.benchX * TILE + TILE / 2
+            : zone.kind === 'stall' ? CAMP.stallX * TILE + TILE / 2
+              : CAMP.plots[zone.plot] * TILE + (CAMP.plotW * TILE) / 2;
+          action = { x, key: 'btn-a', zone };
           if (e.a && !hud.picker && zone.kind === 'cart') this.startTrip({ cart: true });
           else if (e.a && !hud.picker) this.openPicker(hud, a, zone);
+        } else if (decorIndex >= 0) {
+          action = { x: getState(this.registry).decor.placed[decorIndex].x, key: 'icon-hand' };
+          if (e.a) {
+            this.decor.pickUp(a, decorIndex);
+            this.events.emit('pickerOpen');
+          }
         }
+        if (action) move = { ...i, jump: false }; // A acts here instead of jumping
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
         if (stepPlayer(a.p, move, this.grid, { dt, canMine: false }).jumped) this.events.emit('jump', a);
-        if (zone && zone.kind !== 'shaft' && !hud.picker) prompt = zone;
+        if (action && action.key && !hud.picker) prompt = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, W - PLAYER.w - 2);
@@ -359,10 +401,7 @@ export class CampScene extends Phaser.Scene {
     // floating prompts over the thing you can use
     const bob = Math.sin(time / 200) * 2;
     if (prompt) {
-      const x = prompt.kind === 'bench' ? CAMP.benchX * TILE + TILE / 2
-        : prompt.kind === 'lectern' ? CAMP.lecternX * TILE + TILE / 2
-          : CAMP.plots[prompt.plot] * TILE + (CAMP.plotW * TILE) / 2;
-      this.prompt.setVisible(true).setPosition(x, GROUND_Y - 34 + bob);
+      this.prompt.setTexture(prompt.key).setVisible(true).setPosition(prompt.x, (prompt.y ?? GROUND_Y - 34) + bob);
     } else {
       this.prompt.setVisible(false);
     }
@@ -371,6 +410,8 @@ export class CampScene extends Phaser.Scene {
     this.updateStars(time, prompt);
     this.perks.update(time);
     this.campPets.update(dt, time);
+    this.decor.update(time);
+    this.visitors.update(dt, time);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
   }
@@ -385,13 +426,13 @@ export class CampScene extends Phaser.Scene {
       const n = nextUpgrade(state, k);
       return n && canAfford(state.bank, n.cost);
     });
-    const benchPrompted = prompt && prompt.kind === 'bench';
+    const benchPrompted = prompt && prompt.zone && prompt.zone.kind === 'bench';
     this.benchStar.setVisible(upgrade && !counting && !benchPrompted)
       .setPosition(CAMP.benchX * TILE + TILE / 2, GROUND_Y - 36 + bob).setScale(pulse);
     const built = new Set(state.plots.filter(Boolean));
     const blueprint = BLUEPRINTS.some((b) => !built.has(b.id) && canAfford(state.bank, b.cost));
     const plot = state.plots.findIndex((p) => !p);
-    const plotPrompted = prompt && prompt.kind === 'plot';
+    const plotPrompted = prompt && prompt.zone && prompt.zone.kind === 'plot';
     this.plotStar.setVisible(blueprint && plot >= 0 && !counting && !plotPrompted && !this.buildings[plot])
       .setPosition(CAMP.plots[Math.max(0, plot)] * TILE + (CAMP.plotW * TILE) / 2, GROUND_Y - 36 + bob).setScale(pulse);
 
@@ -443,6 +484,20 @@ export class CampScene extends Phaser.Scene {
 
   openPicker(hud, a, zone) {
     const state = getState(this.registry);
+    if (zone.kind === 'stall') {
+      const stockIds = Object.keys(state.decor.stock).filter((id) => state.decor.stock[id] > 0);
+      const ids = [...new Set([...stockIds, ...BUYABLE.map((d) => d.id)])];
+      hud.openPicker({
+        slot: a.slot,
+        kind: 'decor',
+        options: ids.map((id) => {
+          const stock = state.decor.stock[id] ?? 0;
+          const cost = decorById(id).cost;
+          return { id, cost: stock ? null : cost, stock, affordable: stock > 0 || (!!cost && canAfford(state.bank, cost)) };
+        }),
+      });
+      return;
+    }
     if (zone.kind === 'bench') {
       hud.openPicker({
         slot: a.slot,
@@ -466,6 +521,23 @@ export class CampScene extends Phaser.Scene {
     const opt = pick.options[pick.index];
     const state = getState(this.registry);
     let next = null;
+    if (pick.kind === 'decor') {
+      const a = this.avatars[pick.slot];
+      if (!opt.stock) {
+        const bought = buyDecor(state, opt.id);
+        if (!bought) {
+          hud.pickerNope();
+          this.events.emit('nope');
+          return;
+        }
+        setState(this.registry, bought);
+      }
+      hud.closePicker();
+      hud.syncBank(getState(this.registry).bank);
+      this.decor.carry(a, opt.id);
+      this.events.emit('upgraded');
+      return;
+    }
     if (pick.kind === 'upgrade') next = buyUpgrade(state, opt.id);
     else next = buildOnPlot(state, pick.plot, opt.id);
     if (!next) {
@@ -490,8 +562,9 @@ export class CampScene extends Phaser.Scene {
     const { packs, deepest = 0, chests = 0, stickers = [] } = this.arrived;
     let state = leavePenGift(growGarden(getState(this.registry)));
     const summary = summarizeTrip({ packs, deepest, chests, stickers }, state.records);
-    state = setState(this.registry, { ...state, records: summary.records });
+    state = setState(this.registry, { ...refreshRequests({ ...state, records: summary.records }, createRng(Date.now() >>> 0)) });
     this.perks.refresh();
+    this.visitors.refreshBubbles();
     const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
     this.scene.launch('Summary', { summary, packs, chars, onDone: () => this.depositArrivals() });
   }
