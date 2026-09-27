@@ -96,6 +96,7 @@ export class CampHudScene extends Phaser.Scene {
   // Ores fly from each player into the bank, one by one, counting up.
   flyOres(packs, avatars, finalBank) {
     const cam = this.camp.cameras.main;
+    this.counting = true;
     const start = {};
     for (const ore of ORES) start[ore] = finalBank[ore] - packs.reduce((n, p) => n + (p[ore] ?? 0), 0);
     for (const ore of ORES) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); }
@@ -130,7 +131,10 @@ export class CampHudScene extends Phaser.Scene {
         }
       }
     });
-    this.time.delayedCall(delay + 500, () => this.syncBank(finalBank));
+    this.time.delayedCall(delay + 500, () => {
+      this.syncBank(finalBank);
+      this.counting = false;
+    });
   }
 
   // ---------- picker ----------

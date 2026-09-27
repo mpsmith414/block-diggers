@@ -16,9 +16,9 @@ export const LAYERS = {
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
 export const ORE_VEINS = {
-  dirt: { per1000: 42, weights: { coal: 1 } },
-  stone: { per1000: 44, weights: { coal: 3, iron: 4, gold: 1.6 } },
-  deep: { per1000: 40, weights: { gold: 3, diamond: 1.5, emerald: 1.2 } },
+  dirt: { per1000: 20, weights: { coal: 1 } },
+  stone: { per1000: 36, weights: { coal: 2, iron: 4, gold: 1.6 } },
+  deep: { per1000: 34, weights: { gold: 3, diamond: 1.5, emerald: 1.2 } },
 };
 export const VEIN_SIZE = { min: 2, max: 5 };
 export const GRAVEL_POCKETS = { stone: 10, deep: 8, size: { min: 3, max: 6 } };
@@ -55,7 +55,8 @@ export const PLAYER = {
 };
 
 // ---- upgrades: value per level ----
-export const BACKPACK = [20, 40, 80];
+// Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
+export const BACKPACK = [30, 60, 120];
 export const LANTERN = [3, 5, 7]; // light radius in blocks
 
 // ---- pickups ----

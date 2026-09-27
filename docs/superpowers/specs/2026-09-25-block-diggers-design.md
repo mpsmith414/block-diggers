@@ -75,7 +75,7 @@ Upgrades are **shared** (they apply to both players) and bought at camp:
 | Upgrade | Level 0 (start) | Level 1 | Level 2 |
 |---|---|---|---|
 | Pickaxe | Wood | Iron: 10 iron + 5 coal | Diamond: 5 diamond + 10 gold |
-| Backpack (ores per player) | 20 | 40: 15 coal + 5 iron | 80: 10 iron + 5 gold |
+| Backpack (ores per player) | 30 | 60: 15 coal + 5 iron | 120: 10 iron + 5 gold |
 | Lantern (light radius, blocks) | 3 | 5: 10 coal + 5 iron | 7: 5 gold + 2 diamond |
 
 A full backpack shows a "full" icon on that player. Ores they touch stay in the world.

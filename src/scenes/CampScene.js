@@ -144,6 +144,9 @@ export class CampScene extends Phaser.Scene {
     this.stakes = CAMP.plots.map((px) => this.add.image(px * TILE + (CAMP.plotW * TILE) / 2, GROUND_Y, 'stake').setOrigin(0.5, 1).setDepth(5));
     // floating prompts
     this.prompt = this.add.image(0, 0, 'btn-a').setDepth(70).setVisible(false);
+    // gold stars point at things you can afford right now
+    this.benchStar = this.add.image(0, 0, 'star').setDepth(69).setVisible(false);
+    this.plotStar = this.add.image(0, 0, 'star').setDepth(69).setVisible(false);
     this.downPrompt = this.add.image(0, 0, 'arrow-r').setAngle(90).setDepth(70).setVisible(false);
   }
 
@@ -305,8 +308,30 @@ export class CampScene extends Phaser.Scene {
     }
     this.downPrompt.setVisible(!!downPrompt).setPosition(CAMP.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
 
+    this.updateStars(time, prompt);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
+  }
+
+  updateStars(time, prompt) {
+    const state = getState(this.registry);
+    const hud = this.scene.get('CampHud');
+    const counting = hud && hud.counting;
+    const bob = Math.sin(time / 250) * 2;
+    const pulse = 1 + Math.sin(time / 180) * 0.15;
+    const upgrade = UPGRADE_KINDS.some((k) => {
+      const n = nextUpgrade(state, k);
+      return n && canAfford(state.bank, n.cost);
+    });
+    const benchPrompted = prompt && prompt.kind === 'bench';
+    this.benchStar.setVisible(upgrade && !counting && !benchPrompted)
+      .setPosition(CAMP.benchX * TILE + TILE / 2, GROUND_Y - 36 + bob).setScale(pulse);
+    const built = new Set(state.plots.filter(Boolean));
+    const blueprint = BLUEPRINTS.some((b) => !built.has(b.id) && canAfford(state.bank, b.cost));
+    const plot = state.plots.findIndex((p) => !p);
+    const plotPrompted = prompt && prompt.kind === 'plot';
+    this.plotStar.setVisible(blueprint && plot >= 0 && !counting && !plotPrompted && !this.buildings[plot])
+      .setPosition(CAMP.plots[Math.max(0, plot)] * TILE + (CAMP.plotW * TILE) / 2, GROUND_Y - 36 + bob).setScale(pulse);
   }
 
   stepCritters(dt, time) {

@@ -225,3 +225,14 @@ describe('canMine: false (camp)', () => {
     expect(p.mining).toBeNull();
   });
 });
+
+describe('pressing down over a 1-wide hole', () => {
+  it('lines up with the hole and drops in, instead of standing across it', () => {
+    const g = makeGrid(['#....#', '#....#', '##.###', '######']);
+    const p = createPlayer({ x: 2 * TILE + 9, y: 2 * TILE - PLAYER.h }); // straddling cols 2 and 3
+    settle(p, g);
+    expect(p.grounded).toBe(true);
+    run(p, { ...idle, moveY: 1 }, g, 0.6);
+    expect(playerCell(p)).toEqual({ cx: 2, cy: 2 });
+  });
+});

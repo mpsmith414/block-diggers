@@ -80,6 +80,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true 
     const below = grid.get(cx, footRow);
     if (inLadder || below === B.LADDER) p.climbing = true;
     if (isSolid(below) && (p.grounded || inLadder)) target = { x: cx, y: footRow, ladder: true };
+    // standing across a 1-wide hole (held up by its edge): line up and drop in
+    if (!isSolid(below) && below !== B.LADDER && p.grounded) snapToColumn();
   }
   if (p.climbing || target) snapToColumn();
 
