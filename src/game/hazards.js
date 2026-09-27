@@ -143,16 +143,36 @@ export function lavaEscape(grid, cx, cy) {
 
 // ---- spawning ----
 
-export function spawnSpot(grid, rng, { kind, near, avoid }) {
-  const [top, bottom] = kind === 'bat' ? [LAYERS.deep.top, LAYERS.crystal.bottom] : [LAYERS.dirt.top + 2, LAYERS.stone.bottom];
+// Which creature lives in each layer, and whether it walks or flies.
+const CREATURES = {
+  dirt: 'slime', stone: 'slime', deep: 'bat', crystal: 'bat',
+  dino: 'ptero', brick: 'robot', meteor: 'alien', core: 'wisp',
+};
+const WALKERS = new Set(['slime', 'robot']);
+
+export function layerOfRow(y) {
+  for (const [name, { top, bottom }] of Object.entries(LAYERS)) if (y >= top && y <= bottom) return name;
+  return y < 1 ? 'dirt' : 'core';
+}
+
+export function creatureFor(row) {
+  const species = CREATURES[layerOfRow(row)];
+  return { species, walker: WALKERS.has(species) };
+}
+
+// A spawn cell near `near`, in the same layer, for a walker (on a floor) or a flyer.
+export function spawnSpot(grid, rng, { walker, near, avoid }) {
+  const layer = LAYERS[layerOfRow(near.cy)];
+  const top = Math.max(layer.top, LAYERS.dirt.top + 2);
+  const bottom = layer.bottom;
   for (let i = 0; i < 30; i++) {
     const cx = near.cx + rng.int(-20, 20);
     const cy = near.cy + rng.int(-12, 12);
     if (cy < top || cy > bottom || !grid.inside(cx, cy)) continue;
     if (avoid && cx >= avoid.x0 && cx <= avoid.x1 && cy >= avoid.y0 && cy <= avoid.y1) continue;
     if (grid.get(cx, cy) !== B.AIR) continue;
-    if (kind === 'slime' && !isSolid(grid.get(cx, cy + 1))) continue;
-    if (kind === 'bat' && (grid.get(cx, cy + 1) === B.LAVA || grid.get(cx, cy + 1) === B.WATER)) continue;
+    if (walker && !isSolid(grid.get(cx, cy + 1))) continue;
+    if (!walker && (grid.get(cx, cy + 1) === B.LAVA || grid.get(cx, cy + 1) === B.WATER)) continue;
     return { cx, cy };
   }
   return null;

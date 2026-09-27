@@ -500,7 +500,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   squash(a, e) {
-    earnSticker(this, e.golden ? 'creature-goldslime' : 'creature-slime');
+    earnSticker(this, e.golden ? 'creature-goldslime' : `creature-${e.species ?? 'slime'}`);
     if (e.golden) {
       for (let i = 0; i < 5; i++) {
         this.pickups.push(createPickup({ x: e.x + 6, y: e.y, ore: 'gold', delay: 0.3, vx: (this.rng.next() - 0.5) * 140, vy: -140 - this.rng.next() * 60 }));
