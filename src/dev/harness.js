@@ -3,6 +3,14 @@
 
 export function installHarness(game) {
   let t = performance.now();
+  // Virtual gamepads, merged into navigator.getGamepads().
+  const fakePads = [];
+  const realGet = navigator.getGamepads ? navigator.getGamepads.bind(navigator) : () => [];
+  navigator.getGamepads = () => {
+    const real = Array.from(realGet() || []);
+    return [...real, ...fakePads.filter(Boolean)];
+  };
+  const NAMES = { a: 0, b: 1, x: 2, y: 3, lb: 4, rb: 5, back: 8, start: 9, up: 12, down: 13, left: 14, right: 15 };
   const h = {
     game,
     advance(ms) {
@@ -20,6 +28,22 @@ export function installHarness(game) {
       h.advance(50);
     },
     tap(key) { h.hold(key, 50); },
+    // pad(i, { a: true, lx: 1 }) sets virtual pad i's state (index 10 + i).
+    pad(i, state = {}) {
+      const buttons = Array.from({ length: 17 }, () => ({ pressed: false, value: 0 }));
+      for (const [k, v] of Object.entries(state)) if (k in NAMES && v) buttons[NAMES[k]] = { pressed: true, value: 1 };
+      fakePads[i] = {
+        index: 10 + i, id: `Virtual pad ${i}`, mapping: 'standard', connected: true,
+        axes: [state.lx ?? 0, state.ly ?? 0, 0, 0], buttons,
+      };
+    },
+    unpad(i) { fakePads[i] = null; },
+    padHold(i, state, ms) {
+      h.pad(i, state);
+      h.advance(ms);
+      h.pad(i, {});
+      h.advance(50);
+    },
     scene(key) { return game.scene.getScene(key); },
     // Saves a crisp 3× upscale of the current frame to .shots/<name>.png.
     shot(name, scale = 3) {

@@ -230,6 +230,22 @@ function drawLight(scene) {
   tex.refresh();
 }
 
+// Soap bubble for "bubble to partner".
+function drawBubble(scene) {
+  const S = 28;
+  const { tex, ctx } = canvasTexture(scene, 'bubble', S, S);
+  ctx.fillStyle = 'rgba(160, 220, 255, 0.22)';
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, S / 2 - 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(200, 240, 255, 0.9)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  rect(ctx, 'rgba(255,255,255,0.95)', 7, 6, 4, 2);
+  rect(ctx, 'rgba(255,255,255,0.95)', 6, 8, 2, 3);
+  tex.refresh();
+}
+
 // Vertical fade (transparent at the top) for the darkness under the grass.
 function drawFade(scene) {
   const { tex, ctx } = canvasTexture(scene, 'fade', 4, 32);
@@ -295,6 +311,7 @@ export function drawTextures(scene) {
   drawIcons(scene);
   drawLight(scene);
   drawFade(scene);
+  drawBubble(scene);
   drawGlint(scene);
   drawFont(scene);
   drawCharacters(scene, canvasTexture, rect);

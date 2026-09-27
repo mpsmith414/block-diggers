@@ -6,15 +6,19 @@ import { createPlayer, stepPlayer, standAt, playerCell } from '../game/player.js
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups,
 } from '../game/loot.js';
+import { frameCamera, wallLimits, applySoftWall, isOffscreen } from '../game/camera.js';
+import { stepBubble } from '../game/bubble.js';
+import { createEdge } from '../input/intents.js';
 import { CHARACTERS } from '../art/characters.js';
 import { createMapView } from './mine/mapView.js';
 import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
 import {
-  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA,
+  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE,
 } from '../tuning.js';
 
 const GLINT_COLORS = { coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0 };
+const HUD_STRIP = 36; // screen pixels at the top used by the HUD
 const DEFAULT_UPGRADES = { pick: 0, pack: 0, lantern: 0 };
 
 export class MineScene extends Phaser.Scene {
@@ -49,8 +53,10 @@ export class MineScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, MINE_W * TILE, (MINE_H + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
-    cam.setZoom(CAMERA.maxZoom);
-    cam.centerOn(SHAFT_X * TILE, 0);
+    this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: -TILE };
+    cam.setZoom(this.cam.zoom);
+    cam.centerOn(this.cam.x, this.cam.y);
+    this.wall = wallLimits({ w: this.scale.width, h: this.scale.height });
 
     this.scene.launch('Hud', { source: this });
     this.events.once('shutdown', () => this.scene.stop('Hud'));
@@ -104,23 +110,113 @@ export class MineScene extends Phaser.Scene {
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
       crack: this.add.image(0, 0, 'cracks', 0).setOrigin(0).setDepth(20).setVisible(false),
       full: this.add.image(0, 0, 'icon-full').setDepth(61).setVisible(false),
+      bubble: this.add.image(0, 0, 'bubble').setDepth(62).setVisible(false),
+      bubbling: false,
+      bubbleEdge: createEdge(),
       walkT: 0,
     };
     this.avatars[slot] = a;
-    if (slot === 0) this.cameras.main.startFollow(a.sprite, true, 0.12, 0.12, 0, 20);
+    // a little poof as they appear
+    this.drawAvatar(a, 0, this.time.now);
+    a.sprite.setScale(0.2);
+    this.tweens.add({ targets: a.sprite, scale: 1, duration: 300, ease: 'Back.easeOut' });
+    this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
+    this.offscreenGraceUntil = this.time.now + 1500;
     return a;
+  }
+
+  partnerOf(a) {
+    return this.avatars.find((o) => o && o !== a) ?? null;
+  }
+
+  startBubble(a) {
+    if (a.bubbling) return;
+    a.bubbling = true;
+    a.p.mining = null;
+    a.bubble.setVisible(true).setScale(0.3);
+    this.tweens.add({ targets: a.bubble, scale: 1, duration: 200, ease: 'Back.easeOut' });
+    this.events.emit('bubble', a);
+  }
+
+  stepBubbling(a, dt) {
+    const partner = this.partnerOf(a);
+    if (!partner) {
+      a.bubbling = false;
+      a.bubble.setVisible(false);
+      return;
+    }
+    if (partner.bubbling) return; // wait for them to land first
+    if (stepBubble(a.p, { x: partner.p.x, y: partner.p.y }, dt)) {
+      a.bubbling = false;
+      a.p.grounded = partner.p.grounded;
+      a.bubble.setVisible(false);
+      this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xc8f0ff, 8);
+      this.events.emit('bubblePop', a);
+    }
   }
 
   update(time, deltaMs) {
     const dt = Math.min(deltaMs / 1000, 1 / 30);
-    for (const { slot, intent } of this.session.slots) {
-      const a = this.avatarFor(slot);
-      if (intent) this.stepAvatar(a, intent, dt);
+    const slots = this.session.slots;
+    for (const { slot } of slots) this.avatarFor(slot);
+    const coop = this.avatars.filter(Boolean).length > 1;
+
+    for (const { slot, intent } of slots) {
+      const a = this.avatars[slot];
+      const partner = coop ? this.partnerOf(a) : null;
+      if (a.bubbling) {
+        this.stepBubbling(a, dt);
+      } else if (intent) {
+        const prev = { x: a.p.x, y: a.p.y };
+        this.stepAvatar(a, intent, dt);
+        if (partner && !partner.bubbling) this.softWall(a, prev, partner);
+        const wantsBubble = a.bubbleEdge(intent.bubble);
+        if (partner && wantsBubble && Math.hypot(partner.p.x - a.p.x, partner.p.y - a.p.y) > BUBBLE.minDistance) {
+          this.startBubble(a);
+        }
+      }
       this.drawAvatar(a, dt, time);
     }
+    if (coop) this.catchOffscreen();
+    this.updateCamera(dt);
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
     this.drawLights(time);
+  }
+
+  // Your own walking and climbing can't take you out of the shared view.
+  softWall(a, prev, partner) {
+    const next = applySoftWall(prev, a.p, partner.p, this.wall);
+    if (next.x !== a.p.x) { a.p.x = next.x; a.p.vx = 0; }
+    if (a.p.climbing && next.y !== a.p.y) { a.p.y = next.y; a.p.vy = 0; }
+  }
+
+  // Fell or got knocked out of view anyway: bubble them back to their partner.
+  catchOffscreen() {
+    if (this.time.now < (this.offscreenGraceUntil ?? 0)) return;
+    const view = this.cameras.main.worldView;
+    const out = this.avatars.filter((a) => a && !a.bubbling &&
+      isOffscreen({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, view));
+    if (!out.length) return;
+    // if both are "out" (camera can't fit them), bubble the one who is falling, else the lower one
+    const pick = out.find((a) => !a.p.grounded) ?? out.sort((m, n) => n.p.y - m.p.y)[0];
+    this.startBubble(pick);
+  }
+
+  updateCamera(dt) {
+    const pts = this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 - 6 }));
+    if (!pts.length) return;
+    // keep the top strip clear for the HUD panels
+    const hud = HUD_STRIP;
+    const f = frameCamera(pts, { w: this.scale.width, h: this.scale.height - hud });
+    f.y -= hud / 2 / f.zoom;
+    const k = 1 - Math.exp(-dt * 5);
+    this.cam.zoom += (f.zoom - this.cam.zoom) * k;
+    this.cam.x += (f.x - this.cam.x) * k;
+    this.cam.y += (f.y - this.cam.y) * k;
+    const cam = this.cameras.main;
+    cam.setZoom(this.cam.zoom);
+    cam.centerOn(this.cam.x, this.cam.y);
   }
 
   stepAvatar(a, intent, dt) {
@@ -223,7 +319,12 @@ export class MineScene extends Phaser.Scene {
     } else {
       a.crack.setVisible(false);
     }
-    a.full.setVisible(packFull(a.pack)).setPosition(sprite.x, sprite.y - 22 + Math.sin(time / 200) * 1.5);
+    a.full.setVisible(packFull(a.pack) && !a.bubbling).setPosition(sprite.x, sprite.y - 22 + Math.sin(time / 200) * 1.5);
+    if (a.bubbling) {
+      const wob = 1 + Math.sin(time / 90) * 0.06;
+      a.bubble.setPosition(sprite.x, sprite.y - 7).setScale(wob, 2 - wob);
+      sprite.setFrame(0);
+    }
   }
 
   // Ores and chests glint in the dark, so there's always something to dig toward.
