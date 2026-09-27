@@ -17,6 +17,7 @@ import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { animateCharacter } from './common/avatarView.js';
 import { attachAudio } from '../audio/wire.js';
+import { createPauseWatch } from './common/pauseWatch.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
 } from '../tuning.js';
@@ -68,6 +69,7 @@ export class MineScene extends Phaser.Scene {
     this.wall = wallLimits({ w: this.scale.width, h: this.scale.height });
 
     attachAudio(this);
+    this.pauseWatch = createPauseWatch(this);
     this.scene.launch('Hud', { source: this });
     this.events.once('shutdown', () => this.scene.stop('Hud'));
   }
@@ -175,6 +177,7 @@ export class MineScene extends Phaser.Scene {
     for (const { slot } of slots) this.avatarFor(slot);
     const coop = this.avatars.filter(Boolean).length > 1;
 
+    if (!this.goingHome && this.pauseWatch.update()) return;
     if (this.goingHome) {
       for (const a of this.avatars) if (a) this.drawAvatar(a, dt, time);
       this.updateCamera(dt);

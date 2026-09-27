@@ -420,6 +420,45 @@ function drawIcons(scene, canvasTexture, rect) {
     rect(ctx, '#4cc24a', 11, 4, 2, 2);
     rect(ctx, '#e03a3a', 13, 6, 2, 2);
   });
+  one('icon-pause', 12, 12, (ctx) => {
+    rect(ctx, OUT, 1, 0, 4, 12); rect(ctx, '#fff6e0', 2, 1, 2, 10);
+    rect(ctx, OUT, 7, 0, 4, 12); rect(ctx, '#fff6e0', 8, 1, 2, 10);
+  });
+  one('icon-play', 12, 12, (ctx) => drawMap(ctx, 1, 0, [
+    'oo........',
+    'ogoo......',
+    'oggoo.....',
+    'ogggoo....',
+    'oggggoo...',
+    'ogggggoo..',
+    'ogggggoo..',
+    'oggggoo...',
+    'ogggoo....',
+    'oggoo.....',
+    'ogoo......',
+    'oo........',
+  ], { o: OUT, g: '#4cc24a' }));
+  const speaker = (ctx, on) => {
+    rect(ctx, OUT, 1, 4, 4, 5); rect(ctx, '#fff6e0', 2, 5, 2, 3);
+    rect(ctx, OUT, 4, 2, 3, 9); rect(ctx, '#fff6e0', 5, 3, 1, 7);
+    if (on) {
+      rect(ctx, '#4a92b8', 8, 4, 1, 5); rect(ctx, '#4a92b8', 10, 2, 1, 9);
+    } else {
+      for (let i = 0; i < 4; i++) { rect(ctx, '#d0463a', 8 + i, 4 + i, 1, 1); rect(ctx, '#d0463a', 11 - i, 4 + i, 1, 1); }
+    }
+  };
+  one('icon-sound', 12, 12, (ctx) => speaker(ctx, true));
+  one('icon-mute', 12, 12, (ctx) => speaker(ctx, false));
+  one('icon-home', 12, 12, (ctx) => {
+    // a little house with a rope
+    for (let i = 0; i < 5; i++) rect(ctx, '#c94c45', 5 - i, 1 + i, 2 + i * 2, 1);
+    rect(ctx, OUT, 2, 6, 8, 6); rect(ctx, '#e8c89a', 3, 6, 6, 5); rect(ctx, '#8a5a34', 5, 8, 2, 3);
+    rect(ctx, '#c8904e', 11, 0, 1, 12);
+  });
+  one('icon-door', 12, 12, (ctx) => {
+    rect(ctx, OUT, 2, 0, 8, 12); rect(ctx, '#9a5f2c', 3, 1, 6, 11); rect(ctx, '#f5c629', 7, 6, 1, 2);
+    rect(ctx, '#ffffff', 4, 3, 2, 2);
+  });
   one('rope', 3, 8, (ctx) => {
     rect(ctx, '#c8904e', 0, 0, 3, 8);
     rect(ctx, '#9a6a34', 0, 1, 3, 1);

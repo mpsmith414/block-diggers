@@ -11,6 +11,7 @@ import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
 import { getState, setState } from '../save/store.js';
 import { attachAudio } from '../audio/wire.js';
+import { createPauseWatch } from './common/pauseWatch.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
 const W = CAMP.w * TILE;
@@ -54,6 +55,7 @@ export class CampScene extends Phaser.Scene {
     cam.fadeIn(400, 20, 12, 30);
 
     attachAudio(this);
+    this.pauseWatch = createPauseWatch(this);
     this.scene.launch('CampHud', { camp: this });
     this.events.once('shutdown', () => this.scene.stop('CampHud'));
 
@@ -256,6 +258,7 @@ export class CampScene extends Phaser.Scene {
 
   update(time, deltaMs) {
     const dt = Math.min(deltaMs / 1000, 1 / 30);
+    if (!this.leaving && this.pauseWatch.update()) return;
     const hud = this.scene.get('CampHud');
     let prompt = null;
     let downPrompt = null;
