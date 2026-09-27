@@ -4,7 +4,7 @@ export const TILE = 16;
 
 // ---- the mine ----
 export const MINE_W = 48;
-export const MINE_H = 190;
+export const MINE_H = 390;
 export const SKY_ROWS = 6; // open rows above row 0 before an invisible ceiling
 export const SHAFT_X = 24;
 export const SHAFT_DEPTH = 4; // shaft ladders in rows 0..SHAFT_DEPTH-1
@@ -13,6 +13,10 @@ export const LAYERS = {
   stone: { top: 41, bottom: 95 },
   deep: { top: 96, bottom: 148 },
   crystal: { top: 149, bottom: 188 },
+  dino: { top: 189, bottom: 238 },
+  brick: { top: 239, bottom: 288 },
+  meteor: { top: 289, bottom: 338 },
+  core: { top: 339, bottom: 388 },
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -21,6 +25,11 @@ export const ORE_VEINS = {
   stone: { per1000: 36, weights: { coal: 2, iron: 4, gold: 1.6 } },
   deep: { per1000: 34, weights: { gold: 3, diamond: 1.5, emerald: 1.2 } },
   crystal: { per1000: 44, weights: { gold: 2, diamond: 2, emerald: 1.6 } },
+  // deeper layers: one signature ore each (gems come from geodes and meteorites)
+  dino: { per1000: 34, weights: { amber: 1 } },
+  brick: { per1000: 36, weights: { brick: 1 } },
+  meteor: { per1000: 30, weights: { star: 1 } },
+  core: { per1000: 30, weights: { star: 1 } },
 };
 export const VEIN_SIZE = { min: 2, max: 5 };
 export const GRAVEL_POCKETS = { stone: 10, deep: 8, size: { min: 3, max: 6 } };
@@ -29,10 +38,14 @@ export const CAVES = {
   stone: { count: 7, length: { min: 18, max: 32 }, radius: 1.5 },
   deep: { count: 8, length: { min: 22, max: 40 }, radius: 2 },
   crystal: { count: 9, length: { min: 26, max: 44 }, radius: 2.4 },
+  dino: { count: 9, length: { min: 26, max: 44 }, radius: 2.2 },
+  brick: { count: 8, length: { min: 24, max: 40 }, radius: 2 },
+  meteor: { count: 10, length: { min: 28, max: 46 }, radius: 2.6 },
+  core: { count: 8, length: { min: 24, max: 40 }, radius: 2.2 },
 };
 export const LAVA_POOLS = 7;
 export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
-export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6 };
+export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6, oases: 5, springs: 7, meteorites: 6, coreLava: 8, skeletons: 3 };
 
 // ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
 // Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill.
