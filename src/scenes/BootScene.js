@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { drawTextures } from '../art/textures.js';
 import { createInputSession } from '../input/session.js';
+import { loadIntoRegistry } from '../save/store.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -15,6 +16,7 @@ export class BootScene extends Phaser.Scene {
       // Poll once per frame, before any scene updates.
       this.game.events.on(Phaser.Core.Events.PRE_STEP, () => session.update());
     }
-    this.scene.start('Mine');
+    loadIntoRegistry(this.registry);
+    this.scene.start('Camp');
   }
 }

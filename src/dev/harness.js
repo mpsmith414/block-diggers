@@ -3,6 +3,12 @@
 
 export function installHarness(game) {
   let t = performance.now();
+  // Phaser's tweens read Date.now(), so stepping frames faster than real time
+  // would make tweens crawl. Drive Date.now from the same virtual clock.
+  const realNow = Date.now.bind(Date);
+  let clockOffset = realNow() - t;
+  let virtual = false;
+  Date.now = () => (virtual ? Math.floor(t + clockOffset) : realNow());
   // Virtual gamepads, merged into navigator.getGamepads().
   const fakePads = [];
   const realGet = navigator.getGamepads ? navigator.getGamepads.bind(navigator) : () => [];
@@ -14,6 +20,10 @@ export function installHarness(game) {
   const h = {
     game,
     advance(ms) {
+      if (!virtual) {
+        virtual = true;
+        t = Math.max(t, realNow() - clockOffset);
+      }
       for (let i = 0; i < ms; i += 1000 / 60) {
         t += 1000 / 60;
         game.step(t, 1000 / 60);

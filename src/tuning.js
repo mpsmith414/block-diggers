@@ -74,5 +74,18 @@ export const SPAWN = { every: 1.5, despawnRows: 40 };
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };
 
+// ---- camp (cells) ----
+export const CAMP = {
+  w: 64,
+  h: 14,
+  ground: 11, // first solid row
+  shaftX: 5,
+  benchX: 10,
+  fireX: 15,
+  plots: [19, 26, 33, 40, 47, 54],
+  plotW: 6,
+  buildSeconds: 5,
+};
+
 // ---- going home ----
 export const HOME_HOLD_MS = 2000;

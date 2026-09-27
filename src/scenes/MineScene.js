@@ -9,14 +9,15 @@ import {
 } from '../game/loot.js';
 import { frameCamera, wallLimits, applySoftWall, isOffscreen } from '../game/camera.js';
 import { stepBubble } from '../game/bubble.js';
-import { createEdge } from '../input/intents.js';
+import { createEdge, createHoldTimer } from '../input/intents.js';
 import { CHARACTERS } from '../art/characters.js';
 import { createMapView } from './mine/mapView.js';
 import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
+import { animateCharacter } from './common/avatarView.js';
 import {
-  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK,
+  TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
 } from '../tuning.js';
 
 const GLINT_COLORS = { coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0 };
@@ -38,9 +39,13 @@ export class MineScene extends Phaser.Scene {
     this.world = generateMine(this.seed);
     this.grid = this.world.grid;
     this.rng = createRng(this.seed ^ 0x9e3779b9);
+    // Phaser reuses this object across trips: reset all per-trip state here.
     this.avatars = [];
     this.pickups = [];
     this.pickupSprites = new Map();
+    this.goingHome = false;
+    this.offscreenGraceUntil = 0;
+    this.glintT = 0;
 
     this.drawSky();
     this.mapView = createMapView(this, this.grid);
@@ -117,6 +122,8 @@ export class MineScene extends Phaser.Scene {
       bubbling: false,
       invuln: 0,
       bubbleEdge: createEdge(),
+      homeHold: createHoldTimer(HOME_HOLD_MS),
+      ring: this.add.graphics().setDepth(63),
       walkT: 0,
     };
     this.avatars[slot] = a;
@@ -165,9 +172,21 @@ export class MineScene extends Phaser.Scene {
     for (const { slot } of slots) this.avatarFor(slot);
     const coop = this.avatars.filter(Boolean).length > 1;
 
+    if (this.goingHome) {
+      for (const a of this.avatars) if (a) this.drawAvatar(a, dt, time);
+      this.updateCamera(dt);
+      this.drawLights(time);
+      return;
+    }
     for (const { slot, intent } of slots) {
       const a = this.avatars[slot];
       const partner = coop ? this.partnerOf(a) : null;
+      // hold B to go home (both players)
+      if (a.homeHold.update(!!(intent && intent.home), deltaMs)) {
+        this.goHome();
+        return;
+      }
+      this.drawHoldRing(a);
       if (a.bubbling) {
         this.stepBubbling(a, dt);
       } else if (intent) {
@@ -188,6 +207,58 @@ export class MineScene extends Phaser.Scene {
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
     this.drawLights(time);
+  }
+
+  drawHoldRing(a) {
+    const prog = a.homeHold.progress();
+    a.ring.clear();
+    if (prog <= 0.05) return;
+    const x = a.sprite.x;
+    const y = a.sprite.y - 26;
+    a.ring.fillStyle(0x1b1428, 0.6).fillCircle(x, y, 7);
+    a.ring.lineStyle(3, 0xffe066, 1).beginPath();
+    a.ring.arc(x, y, 5.5, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2, false).strokePath();
+    a.ring.fillStyle(0xc8904e, 1).fillRect(x - 1, y - 3, 2, 6); // a little rope
+  }
+
+  // A rope drops to each player and pulls everyone up to camp.
+  goHome() {
+    if (this.goingHome) return;
+    this.goingHome = true;
+    this.events.emit('goHome');
+    const top = -2 * TILE;
+    const players = this.avatars.filter(Boolean);
+    for (const a of players) {
+      a.ring.clear();
+      a.bubbling = false;
+      a.bubble.setVisible(false);
+      a.p.mining = null;
+      a.crack.setVisible(false);
+      const rope = this.add.tileSprite(a.sprite.x, top, 3, 1, 'rope').setOrigin(0.5, 0).setDepth(52);
+      const length = a.sprite.y - 14 - top;
+      this.tweens.addCounter({
+        from: 0,
+        to: length,
+        duration: 350,
+        ease: 'Quad.easeOut',
+        onUpdate: (tw) => rope.setSize(3, Math.max(1, tw.getValue())),
+        onComplete: () => {
+          this.tweens.add({
+            targets: a.p,
+            y: top,
+            duration: 700 + Math.min(1300, length * 0.5),
+            ease: 'Quad.easeIn',
+            onUpdate: () => rope.setSize(3, Math.max(1, a.p.y - top)),
+          });
+        },
+      });
+    }
+    this.time.delayedCall(1300, () => this.cameras.main.fadeOut(700, 20, 12, 30));
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      const packs = [];
+      for (const a of players) packs[a.slot] = { ...a.pack.ores };
+      this.scene.start('Camp', { arrived: { packs: packs.map((p) => p ?? {}) } });
+    });
   }
 
   // Your own walking and climbing can't take you out of the shared view.
@@ -364,20 +435,9 @@ export class MineScene extends Phaser.Scene {
 
   drawAvatar(a, dt, time) {
     const { p, sprite } = a;
-    sprite.setPosition(Math.round(p.x + PLAYER.w / 2), Math.round(p.y + PLAYER.h));
-    sprite.setFlipX(p.facing < 0);
-    let frame = 0;
-    if (p.climbing && p.vy !== 0) frame = Math.floor(time / 150) % 2 ? 3 : 0;
-    else if (p.climbing) frame = 3;
-    else if (p.grounded && p.vx !== 0) {
-      a.walkT += dt;
-      frame = 1 + (Math.floor(a.walkT * 8) % 2);
-    } else if (!p.grounded) frame = 1;
-    sprite.setFrame(frame);
+    animateCharacter(sprite, p, a, dt, time);
     sprite.setAlpha(a.invuln > 0 && Math.floor(time / 90) % 2 === 0 ? 0.35 : 1);
-    // a tiny squash while mining, so digging feels like effort
     const digging = p.mining && p.mining.need !== Infinity;
-    sprite.setScale(1, digging ? 1 - 0.06 * Math.abs(Math.sin(time / 60)) : 1);
 
     if (digging) {
       const f = Math.min(3, Math.floor((p.mining.t / p.mining.need) * 4));

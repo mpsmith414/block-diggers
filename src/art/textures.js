@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import { B, BLOCK_COUNT, ORES } from '../world/blocks.js';
 import { createRng } from '../world/rng.js';
 import { drawCharacters } from './characters.js';
+import { drawCampArt } from './camp.js';
 
 const T = 16;
 
@@ -373,4 +374,5 @@ export function drawTextures(scene) {
   drawGlint(scene);
   drawFont(scene);
   drawCharacters(scene, canvasTexture, rect);
+  drawCampArt(scene, canvasTexture, rect);
 }
