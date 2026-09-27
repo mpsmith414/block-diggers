@@ -56,6 +56,15 @@ describe('installFocusGuard', () => {
     expect(guard.visible()).toBe(false);
     guard.destroy();
   });
+  it('tells the grown-up how to click back in when streaming', () => {
+    const guard = installFocusGuard({ doc: document, win: window, intervalMs: 100000 });
+    const overlay = document.getElementById('focus-guard');
+    expect(overlay.textContent).toContain('🎮');
+    expect(overlay.querySelector('.hint').textContent).toBe(
+      "Controllers paused. Click the screen: hold Start for Moonlight's mouse mode.",
+    );
+    guard.destroy();
+  });
   it('a press on the overlay hides it, refocuses and calls onRecover', () => {
     const onRecover = vi.fn();
     const focus = vi.spyOn(window, 'focus').mockImplementation(() => {});

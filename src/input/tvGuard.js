@@ -35,12 +35,20 @@ export function installFocusGuard({ doc, win, intervalMs = 500, onRecover = () =
   overlay.id = 'focus-guard';
   overlay.setAttribute('role', 'button');
   overlay.setAttribute('aria-label', 'Press any button to keep playing');
-  overlay.textContent = '🎮';
   overlay.style.cssText = [
     'position:fixed', 'inset:0', 'z-index:9999', 'display:none',
-    'align-items:center', 'justify-content:center', 'font-size:30vmin',
-    'background:rgba(10,6,20,.85)', 'cursor:pointer',
+    'flex-direction:column', 'align-items:center', 'justify-content:center',
+    'background:rgba(10,6,20,.85)', 'cursor:pointer', 'color:#fff',
   ].join(';');
+  const icon = doc.createElement('div');
+  icon.textContent = '🎮';
+  icon.style.fontSize = '30vmin';
+  // For the grown-up: over Moonlight there's no Silk cursor to click with.
+  const hint = doc.createElement('div');
+  hint.className = 'hint';
+  hint.textContent = "Controllers paused. Click the screen: hold Start for Moonlight's mouse mode.";
+  hint.style.cssText = 'font:2.2vmin system-ui,sans-serif;opacity:.75;margin-top:2vmin';
+  overlay.append(icon, hint);
   doc.body.appendChild(overlay);
 
   const show = () => { overlay.style.display = 'flex'; };
