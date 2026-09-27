@@ -6,7 +6,7 @@ import { BACK, TILE_MARGIN, TILE_SPACING } from '../../art/textures.js';
 import { layerAt } from '../../world/worldgen.js';
 import { TILE } from '../../tuning.js';
 
-export function createMapView(scene, grid) {
+export function createMapView(scene, grid, { moon = false } = {}) {
   const map = scene.make.tilemap({ width: grid.w, height: grid.h, tileWidth: TILE, tileHeight: TILE });
   const tileset = map.addTilesetImage('tiles', 'tiles', TILE, TILE, TILE_MARGIN, TILE_SPACING);
   const back = map.createBlankLayer('back', tileset).setDepth(0);
@@ -18,7 +18,7 @@ export function createMapView(scene, grid) {
     const b = [];
     const f = [];
     for (let x = 0; x < grid.w; x++) {
-      b.push(y === 0 ? BACK.dirt : BACK[layerAt(y)]);
+      b.push(moon ? BACK.moon : y === 0 ? BACK.dirt : BACK[layerAt(y)]);
       const id = grid.get(x, y);
       f.push(id === B.AIR || id === B.EGG ? -1 : id);
     }

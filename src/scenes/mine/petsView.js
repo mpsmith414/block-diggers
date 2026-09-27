@@ -1,10 +1,12 @@
 // Pets on a trip. The mole trots after player 1 and sniffs out ore, the
 // glow-bug circles player 1's head and lights the way, the bat buddy flutters
-// by player 2 (or 1), fetching loose ore.
+// by player 2 (or 1), fetching loose ore. The baby T-rex roars creatures away;
+// the baby Triceratops helps push boulders and headbutts boom blocks.
 
-import { sniff, follow, nearestPickup } from '../../game/pets.js';
+import { sniff, follow, nearestPickup, roarTargets } from '../../game/pets.js';
 import { addOre } from '../../game/loot.js';
 import { playerCell } from '../../game/player.js';
+import { B } from '../../world/blocks.js';
 import { TILE, PLAYER, PETS } from '../../tuning.js';
 
 export function createPetsView(scene, kinds) {
@@ -15,13 +17,15 @@ export function createPetsView(scene, kinds) {
     sprite: scene.add.sprite(0, 0, `pet-${kind}`, 0).setDepth(31),
     t: Math.random() * 10,
     sniffT: 2,
+    roarT: 0,
     carrying: null,
   }));
+  const WALKERS = ['mole', 'rex', 'trike'];
 
   const ownerOf = (kind) => {
     const ps = scene.avatars.filter(Boolean);
     if (!ps.length) return null;
-    return kind === 'batbuddy' ? ps[ps.length - 1] : ps[0];
+    return kind === 'batbuddy' || kind === 'trike' ? ps[ps.length - 1] : ps[0];
   };
   const center = (a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 });
 
@@ -41,8 +45,23 @@ export function createPetsView(scene, kinds) {
     scene.events.emit('sniff');
   }
 
+  function roar(pet, near) {
+    scene.events.emit('rawr', pet);
+    pet.sprite.setScale(1.4);
+    scene.tweens.add({ targets: pet.sprite, scale: 1, duration: 300, ease: 'Back.easeOut' });
+    for (let i = 0; i < 2; i++) {
+      const ring = scene.add.image(pet.pos.x, pet.pos.y, 'ring').setDepth(40).setScale(0.5).setTint(0x9ae67a);
+      scene.tweens.add({ targets: ring, scale: 5, alpha: 0, delay: i * 150, duration: 600, onComplete: () => ring.destroy() });
+    }
+    for (const e of near) {
+      scene.effects.sparkle(e.x + e.w / 2, e.y + e.h / 2, 0x9ae67a, 8);
+      scene.hazards.squash(e);
+    }
+  }
+
   return {
     has: (kind) => kinds.includes(kind),
+    sprites: () => pets.map((p) => p.sprite),
     // extra light from the glow-bug
     lights() {
       return pets.filter((p) => p.kind === 'glowbug' && p.placed)
@@ -58,6 +77,8 @@ export function createPetsView(scene, kinds) {
         pet.t += dt;
         let target;
         if (pet.kind === 'mole') target = { x: c.x - a.p.facing * 14, y: c.y + 2 + Math.abs(Math.sin(pet.t * 8)) * -3 };
+        else if (pet.kind === 'rex') target = { x: c.x - a.p.facing * 24, y: c.y + 1 + Math.abs(Math.sin(pet.t * 9)) * -2 };
+        else if (pet.kind === 'trike') target = { x: c.x - a.p.facing * 20, y: c.y + 1 + Math.abs(Math.sin(pet.t * 7)) * -2 };
         else if (pet.kind === 'glowbug') target = { x: c.x + Math.cos(pet.t * 2.2) * 12, y: c.y - 16 + Math.sin(pet.t * 3.1) * 4 };
         else target = { x: c.x + a.p.facing * 16, y: c.y - 12 + Math.sin(pet.t * 4) * 3 };
 
@@ -96,9 +117,32 @@ export function createPetsView(scene, kinds) {
         }
         follow(pet.pos, target, dt, pet.carrying ? PETS.speed * 1.4 : PETS.speed);
         pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y))
-          .setFrame(Math.floor(time / (pet.kind === 'mole' ? 180 : 110)) % 2)
+          .setFrame(Math.floor(time / (WALKERS.includes(pet.kind) ? 180 : 110)) % 2)
           .setFlipX(target.x < pet.pos.x - 1);
         pet.sprite.setVisible(!a.bubbling && !scene.goingHome);
+
+        // T-rex: a tiny ROAR when creatures come close, and they poof away
+        if (pet.kind === 'rex') {
+          pet.roarT -= dt;
+          const near = roarTargets(scene.hazards.enemies, pet.pos.x, pet.pos.y, PETS.roarRange * TILE);
+          if (pet.roarT <= 0 && near.length) {
+            pet.roarT = PETS.roarEvery;
+            roar(pet, near);
+          }
+        }
+
+        // Triceratops: headbutts a boom block it bumps into
+        if (pet.kind === 'trike') {
+          const cx = Math.floor(pet.pos.x / TILE);
+          const cy = Math.floor(pet.pos.y / TILE);
+          for (const dx of [-1, 0, 1]) {
+            if (scene.grid.get(cx + dx, cy) === B.BOOM) {
+              scene.finds.light(cx + dx, cy);
+              pet.sprite.setAngle(dx * 15);
+              scene.time.delayedCall(200, () => pet.sprite.setAngle(0));
+            }
+          }
+        }
 
         // mole: sniff out the nearest ore every few seconds
         if (pet.kind === 'mole') {

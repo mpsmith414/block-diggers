@@ -2,12 +2,15 @@
 
 import { ORES } from '../world/blocks.js';
 
-export const PLOTS = 6;
+export const PLOTS = 9;
 
 export const UPGRADES = {
-  pick: [{ iron: 10, coal: 5 }, { diamond: 5, gold: 10 }],
-  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }],
-  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }],
+  pick: [
+    { iron: 10, coal: 5 }, { diamond: 5, gold: 10 },
+    { amber: 10, diamond: 5 }, { brick: 20, amber: 10 }, { star: 10, brick: 20 },
+  ],
+  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }],
+  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
 
@@ -18,6 +21,9 @@ export const BLUEPRINTS = [
   { id: 'tower', cost: { iron: 20, gold: 5 } },
   { id: 'minecart', cost: { iron: 10, gold: 10 } },
   { id: 'statue', cost: { diamond: 5, emerald: 5 } },
+  { id: 'dinopark', cost: { amber: 20, gold: 10 } },
+  { id: 'workshop', cost: { brick: 30, gold: 10 } },
+  { id: 'rocket', cost: { brick: 40, star: 20, heart: 1 } },
 ];
 const blueprint = (id) => BLUEPRINTS.find((b) => b.id === id);
 
@@ -50,8 +56,10 @@ export function buildOnPlot(state, plot, id) {
   return { ...state, bank: spend(state.bank, bp.cost), plots };
 }
 
-export function depositPacks(state, packs) {
+export function depositPacks(state, packs, { hearts = 0, cheese = 0 } = {}) {
   const bank = { ...state.bank };
   for (const pack of packs) for (const ore of ORES) bank[ore] = (bank[ore] ?? 0) + (pack[ore] ?? 0);
+  bank.heart = (bank.heart ?? 0) + hearts;
+  bank.cheese = (bank.cheese ?? 0) + cheese;
   return { ...state, bank };
 }

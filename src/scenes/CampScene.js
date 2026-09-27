@@ -17,11 +17,11 @@ import { createPerksView } from './camp/perksView.js';
 import { createCampPets } from './camp/campPets.js';
 import { createDecorView } from './camp/decorView.js';
 import { createVisitorsView } from './camp/visitorsView.js';
-import { BUYABLE, buyDecor, decorById } from '../game/decor.js';
+import { BUYABLE, buyDecor, decorById, decorUnlocked } from '../game/decor.js';
 import { refreshRequests, presentVisitors } from '../game/visitors.js';
 import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
-import { growGarden, leavePenGift, cartStartRow } from '../game/perks.js';
+import { growGarden, leavePenGift, elevatorStops, dinoParkGift } from '../game/perks.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
@@ -154,11 +154,11 @@ export class CampScene extends Phaser.Scene {
 
   drawProps() {
     // trees behind everything
-    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5, 69, 76, 82]) {
+    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5, 69, 76, 82, 106.5]) {
       this.add.image(x * TILE, GROUND_Y + 2, 'tree').setOrigin(0.5, 1).setDepth(-5);
     }
     // meadow flowers along the ground
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 116; i++) {
       const x = 4 + ((i * 97) % (W - 8));
       const f = this.add.image(x, GROUND_Y + 1, 'flower', i % 3).setOrigin(0.5, 1).setDepth(11);
       this.tweens.add({ targets: f, angle: { from: -6, to: 6 }, duration: 1400 + (i % 5) * 200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -282,6 +282,25 @@ export class CampScene extends Phaser.Scene {
     if (id === 'statue') {
       this.time.addEvent({ delay: 900, loop: true, callback: () => this.effects.sparkle(x + 48 + Phaser.Math.Between(-12, 12), GROUND_Y - 50 + Phaser.Math.Between(-10, 10), 0xd4fbff, 4) });
     }
+    if (id === 'workshop') {
+      // a little wind-up robot toddles about outside
+      const s = this.add.sprite(x + 20, GROUND_Y, 'toyrobot', 0).setOrigin(0.5, 1).setDepth(4);
+      this.critters.push({ s, minX: x - 30, maxX: x + BUILDING_SIZE.w + 30, vx: 0, t: 0.5 });
+      this.time.addEvent({ delay: 1600, loop: true, callback: () => this.effects.sparkle(x + 48, GROUND_Y - 62, 0xc0c8d8, 2) });
+    }
+    if (id === 'rocket') {
+      // steam puffs at the launch pad; the rocket is ready to go
+      this.time.addEvent({
+        delay: 900,
+        loop: true,
+        callback: () => {
+          for (const dx of [-8, 8]) {
+            const s = this.add.image(x + 48 + dx, GROUND_Y - 4, 'smoke').setDepth(4).setAlpha(0.7);
+            this.tweens.add({ targets: s, x: s.x + dx * 2, y: s.y - 6, scale: 2, alpha: 0, duration: 1400, onComplete: () => s.destroy() });
+          }
+        },
+      });
+    }
     if (id === 'garden') {
       for (let i = 0; i < 2; i++) {
         const bf = this.add.image(x + 30 + i * 30, GROUND_Y - 36, 'pixel').setTint(i ? 0xffd1e6 : 0xffffff).setDisplaySize(2, 2).setDepth(4);
@@ -324,6 +343,7 @@ export class CampScene extends Phaser.Scene {
     const here = plot >= 0 ? getState(this.registry).plots[plot] : undefined;
     if (plot >= 0 && !here) return { kind: 'plot', plot };
     if (here === 'minecart' && this.buildings[plot] && !this.buildings[plot].building) return { kind: 'cart', plot };
+    if (here === 'rocket' && this.buildings[plot] && !this.buildings[plot].building) return { kind: 'rocket', plot };
     return null;
   }
 
@@ -374,13 +394,15 @@ export class CampScene extends Phaser.Scene {
             this.scene.pause();
             this.scene.launch('Book', { target: 'Camp' });
           }
+        } else if (zone && zone.kind === 'rocket') {
+          action = { x: CAMP.plots[zone.plot] * TILE + (CAMP.plotW * TILE) / 2, key: 'btn-a', y: GROUND_Y - 90 };
+          if (e.a && !hud.picker) this.launchRocket(zone.plot);
         } else if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart' || zone.kind === 'stall')) {
           const x = zone.kind === 'bench' ? CAMP.benchX * TILE + TILE / 2
             : zone.kind === 'stall' ? CAMP.stallX * TILE + TILE / 2
               : CAMP.plots[zone.plot] * TILE + (CAMP.plotW * TILE) / 2;
           action = { x, key: 'btn-a', zone };
-          if (e.a && !hud.picker && zone.kind === 'cart') this.startTrip({ cart: true });
-          else if (e.a && !hud.picker) this.openPicker(hud, a, zone);
+          if (e.a && !hud.picker) this.openPicker(hud, a, zone);
         } else if (decorIndex >= 0) {
           action = { x: getState(this.registry).decor.placed[decorIndex].x, key: 'icon-hand' };
           if (e.a) {
@@ -396,6 +418,7 @@ export class CampScene extends Phaser.Scene {
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, W - PLAYER.w - 2);
       animateCharacter(a.sprite, a.p, a, dt, time);
+      this.pondDrink(a, dt, time);
     }
 
     // floating prompts over the thing you can use
@@ -414,6 +437,29 @@ export class CampScene extends Phaser.Scene {
     this.visitors.update(dt, time);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
+  }
+
+  // Stand still at the pond for a moment and you have a big drink (and a burp).
+  pondDrink(a, dt, time) {
+    const cx = a.p.x + PLAYER.w / 2;
+    const atPond = !a.carrying && a.p.grounded && a.p.vx === 0
+      && getState(this.registry).decor.placed.some((d) => d.id === 'pond' && Math.abs(d.x - cx) < 14);
+    a.pondT = atPond ? (a.pondT ?? 0) + dt : 0;
+    if (a.drinking > 0) {
+      a.drinking -= dt;
+      a.sprite.setAngle(a.p.facing * 18 + Math.sin(time / 60) * 4);
+      if (a.drinking <= 0) {
+        a.sprite.setAngle(0);
+        this.events.emit('burp', a);
+        const bub = this.add.image(a.sprite.x + a.p.facing * 6, a.sprite.y - 12, 'burp').setDepth(62).setScale(0.3);
+        this.tweens.add({ targets: bub, scale: 1.4, y: bub.y - 30, duration: 900, ease: 'Sine.easeOut', onComplete: () => { this.effects.sparkle(bub.x, bub.y, 0xc8f0ff, 8); bub.destroy(); } });
+        earnSticker(this, 'adv-drink');
+        a.pondT = -3; // a little rest before the next drink
+      }
+    } else if (a.pondT > 1) {
+      a.drinking = 1.4;
+      this.events.emit('glug', a);
+    }
   }
 
   updateStars(time, prompt) {
@@ -484,9 +530,21 @@ export class CampScene extends Phaser.Scene {
 
   openPicker(hud, a, zone) {
     const state = getState(this.registry);
+    if (zone.kind === 'cart') {
+      // the elevator: any layer you've reached (the deepest one first)
+      const stops = elevatorStops(state);
+      const deepest = stops.map((s) => s.open).lastIndexOf(true);
+      hud.openPicker({
+        slot: a.slot,
+        kind: 'elevator',
+        index: deepest,
+        options: stops.map((s) => ({ id: s.layer, row: s.row, cost: null, affordable: s.open })),
+      });
+      return;
+    }
     if (zone.kind === 'stall') {
       const stockIds = Object.keys(state.decor.stock).filter((id) => state.decor.stock[id] > 0);
-      const ids = [...new Set([...stockIds, ...BUYABLE.map((d) => d.id)])];
+      const ids = [...new Set([...stockIds, ...BUYABLE.filter((d) => decorUnlocked(state, d.id)).map((d) => d.id)])];
       hud.openPicker({
         slot: a.slot,
         kind: 'decor',
@@ -521,6 +579,15 @@ export class CampScene extends Phaser.Scene {
     const opt = pick.options[pick.index];
     const state = getState(this.registry);
     let next = null;
+    if (pick.kind === 'elevator') {
+      if (!opt.affordable) {
+        hud.pickerNope();
+        this.events.emit('nope');
+        return;
+      }
+      this.startTrip({ startRow: opt.row });
+      return;
+    }
     if (pick.kind === 'decor') {
       const a = this.avatars[pick.slot];
       if (!opt.stock) {
@@ -559,9 +626,9 @@ export class CampScene extends Phaser.Scene {
 
   // The trip card first (records, stickers), then the ores fly into the bank.
   showSummary() {
-    const { packs, deepest = 0, chests = 0, stickers = [] } = this.arrived;
+    const { packs, deepest = 0, chests = 0, stickers = [], moon = false } = this.arrived;
     let state = leavePenGift(growGarden(getState(this.registry)));
-    const summary = summarizeTrip({ packs, deepest, chests, stickers }, state.records);
+    const summary = summarizeTrip({ packs, deepest, chests, stickers, moon }, state.records);
     state = setState(this.registry, { ...refreshRequests({ ...state, records: summary.records }, createRng(Date.now() >>> 0)) });
     this.perks.refresh();
     this.visitors.refreshBubbles();
@@ -572,8 +639,18 @@ export class CampScene extends Phaser.Scene {
   depositArrivals() {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
-    const state = setState(this.registry, { ...depositPacks(getState(this.registry), packs), trips: (getState(this.registry).trips ?? 0) + 1 });
+    const hearts = this.arrived.hearts ?? 0;
+    const cheese = this.arrived.cheese ?? 0;
+    const park = dinoParkGift(depositPacks(getState(this.registry), packs, { hearts, cheese }));
+    const state = setState(this.registry, { ...park.state, trips: (getState(this.registry).trips ?? 0) + 1 });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
+    // the Heart of the World and the dino park's amber arrive after the packs
+    const a0 = this.avatars.find(Boolean);
+    if (hearts) this.time.delayedCall(flyTime, () => hud.flyList(a0 ? a0.sprite.x : CAMP.shaftX * TILE, GROUND_Y - 20, Array(hearts).fill('heart'), state.bank));
+    if (park.ores.length) {
+      const px = CAMP.plots[state.plots.indexOf('dinopark')] * TILE + 48;
+      this.time.delayedCall(flyTime + 300, () => hud.flyList(px, GROUND_Y - 30, park.ores, state.bank));
+    }
     const eggs = this.arrived.eggs ?? [];
     this.time.delayedCall(flyTime + 400, () => {
       this.arriving = false;
@@ -582,7 +659,27 @@ export class CampScene extends Phaser.Scene {
     this.arrived = null;
   }
 
-  startTrip({ cart = false } = {}) {
+  // The rocket to the Moon (the launch itself is its own scene).
+  launchRocket(plot) {
+    if (this.leaving || this.arriving) return;
+    this.campPets.flush();
+    this.leaving = true;
+    this.scene.get('CampHud').closePicker();
+    this.events.emit('tripStart');
+    // everyone climbs aboard
+    const door = CAMP.plots[plot] * TILE + 48;
+    for (const a of this.avatars.filter(Boolean)) {
+      this.tweens.add({ targets: a.p, x: door - PLAYER.w / 2, duration: 500 });
+      this.tweens.add({ targets: a.sprite, alpha: 0, delay: 450, duration: 250 });
+    }
+    this.time.delayedCall(800, () => this.cameras.main.fadeOut(400, 20, 12, 30));
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      const state = getState(this.registry);
+      this.scene.start('Launch', { seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0, upgrades: state.upgrades });
+    });
+  }
+
+  startTrip({ startRow = null } = {}) {
     if (this.leaving || this.arriving) return;
     this.campPets.flush();
     this.leaving = true;
@@ -598,7 +695,7 @@ export class CampScene extends Phaser.Scene {
       this.scene.start('Mine', {
         seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0,
         upgrades: state.upgrades,
-        startRow: cart ? cartStartRow(state) : null,
+        startRow,
       });
     });
   }

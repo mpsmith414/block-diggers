@@ -2,14 +2,15 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { packFull } from '../game/loot.js';
 import { B } from '../world/blocks.js';
-import { MINE_H, LAYERS, TILE } from '../tuning.js';
+import { MINE_H, LAYERS, LAYER_COLORS, TILE } from '../tuning.js';
 import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
 import { getState } from '../save/store.js';
+import { shownOres } from '../game/ores.js';
+import { EGG_KINDS } from '../art/finds.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
 
-const PANEL_W = 150;
 const PANEL_H = 30;
 const PAPER = 0xf4e4c1;
 const PAPER_EDGE = 0x8a5a34;
@@ -35,15 +36,31 @@ export class HudScene extends Phaser.Scene {
     const x = this.scale.width - 10;
     const top = 44;
     const h = this.scale.height - top - 10;
-    this.meter = { x, top, h, scale: h / MINE_H };
+    const moon = !!this.source.moon;
+    const rows = this.source.grid.h;
+    this.meter = { x, top, h, scale: h / rows };
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.35).fillRoundedRect(x - 4, top - 4, 9, h + 8, 3);
     const band = (from, to, color) => g.fillStyle(color, 1).fillRect(x - 2, top + from * this.meter.scale, 5, (to - from + 1) * this.meter.scale);
     band(0, 0, 0x5aa63c);
-    band(LAYERS.dirt.top, LAYERS.dirt.bottom, 0x8a5a34);
-    band(LAYERS.stone.top, LAYERS.stone.bottom, 0x7d7d86);
-    band(LAYERS.deep.top, LAYERS.deep.bottom, 0x3f3d4f);
-    band(LAYERS.crystal.top, LAYERS.crystal.bottom, 0x6a4fa8);
+    if (moon) {
+      band(0, 60, 0xb8b8c8);
+      band(61, rows - 2, 0x3a6a9a);
+    } else {
+      for (const [name, l] of Object.entries(LAYERS)) band(l.top, l.bottom, LAYER_COLORS[name]);
+    }
+    // layers you've never reached are in shadow
+    const known = moon ? Object.keys(LAYERS) : getState(this.registry).records?.layers ?? [];
+    for (const [name, l] of Object.entries(LAYERS)) {
+      if (!known.includes(name)) g.fillStyle(0x000000, 0.55).fillRect(x - 2, top + l.top * this.meter.scale, 5, (l.bottom - l.top + 1) * this.meter.scale);
+    }
+    // a little flag at the deepest you've ever been
+    const best = moon ? 0 : getState(this.registry).records?.deepest ?? 0;
+    if (best > 0) {
+      const fy = top + best * this.meter.scale;
+      g.fillStyle(0xffffff, 1).fillRect(x - 7, fy - 5, 1, 6);
+      g.fillStyle(0xe0403a, 1).fillTriangle(x - 6, fy - 5, x - 6, fy - 2, x - 3, fy - 3.5);
+    }
     this.chestDots = this.source.world.chests.map((c) => this.add.rectangle(x - 4, top + c.y * this.meter.scale, 3, 3, 0xffd84a).setOrigin(0.5));
     this.eggDots = this.source.world.eggs.map((e) => this.add.rectangle(x + 5, top + e.y * this.meter.scale, 3, 4, 0xfff6d0).setOrigin(0.5));
     const bc = this.source.world.bigChest;
@@ -102,13 +119,47 @@ export class HudScene extends Phaser.Scene {
       }
     }
     const ore = deepestMissing(this.goal);
-    if (ore && ore !== 'coal') {
+    if (ore && ore !== 'coal' && !this.source.moon) {
       const { x, top, scale } = this.meter;
       this.goalArrow.list[1].setTexture(`ore-${ore}`);
       this.goalArrow.setVisible(true).setPosition(x - 12 + Math.sin(time / 200) * 2, top + oreTopRow(ore) * scale);
     } else {
       this.goalArrow.setVisible(false);
     }
+  }
+
+  // A big banner when you reach a deep layer for the first time: its badge,
+  // a row of its rock and the creature that lives there.
+  banner(layer) {
+    const LOOK = {
+      dino: { rock: B.SAND, ore: B.AMBER, creature: 'ptero', color: 0xd0a868 },
+      brick: { rock: B.BRICKS, ore: B.BRICK_ORE, creature: 'toyrobot', color: 0xe0403a },
+      meteor: { rock: B.METEOR, ore: B.STAR, creature: 'alien', color: 0x2a2860 },
+      core: { rock: B.CORE, ore: B.HEART, creature: 'wisp', color: 0xff7a2a },
+    }[layer];
+    if (!LOOK) return;
+    const w = 190;
+    const cx = this.scale.width / 2;
+    const c = this.add.container(cx, 78).setDepth(100);
+    const g = this.add.graphics();
+    g.fillStyle(0x4a3222, 1).fillRoundedRect(-w / 2 - 2, -30, w + 4, 60, 8);
+    g.fillStyle(LOOK.color, 1).fillRoundedRect(-w / 2, -28, w, 56, 7);
+    g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-w / 2 + 4, -24, w - 8, 48, 5);
+    c.add(g);
+    const badge = this.add.image(-w / 2 + 28, 0, 'badge', ['dino', 'brick', 'meteor', 'core'].indexOf(layer)).setScale(2.4);
+    c.add(badge);
+    for (let i = 0; i < 4; i++) c.add(this.add.image(-22 + i * 20, 8, 'tiles', i === 1 ? LOOK.ore : LOOK.rock).setScale(1.25));
+    const critter = this.add.sprite(46, -12, LOOK.creature, 0).setScale(1.5);
+    c.add(critter);
+    for (let i = 0; i < 3; i++) c.add(this.add.image(-22 + i * 20, -12, 'glint').setTint(0xffe066));
+    c.setScale(0);
+    this.tweens.add({ targets: c, scale: 1, duration: 450, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: badge, angle: { from: -12, to: 12 }, duration: 300, yoyo: true, repeat: 5, ease: 'Sine.easeInOut' });
+    const flap = this.time.addEvent({ delay: 150, loop: true, callback: () => critter.setFrame(critter.frame.name === 0 ? 1 : 0) });
+    this.tweens.add({
+      targets: c, y: -60, alpha: 0, delay: 3200, duration: 500, ease: 'Quad.easeIn',
+      onComplete: () => { flap.remove(); c.destroy(); },
+    });
   }
 
   updateDepthMeter(time) {
@@ -130,7 +181,7 @@ export class HudScene extends Phaser.Scene {
       this.carriedShown = carried.length;
       this.carriedEggs.removeAll(true);
       carried.forEach((kind, i) => {
-        const img = this.add.image(i * 13 + 6, 7, 'egg', ['mole', 'glowbug', 'batbuddy', 'golden'].indexOf(kind));
+        const img = this.add.image(i * 13 + 6, 7, 'egg', EGG_KINDS.indexOf(kind));
         this.carriedEggs.add(img);
         if (i === carried.length - 1) this.tweens.add({ targets: img, scale: { from: 2, to: 1 }, duration: 300, ease: 'Back.easeOut' });
       });
@@ -146,7 +197,11 @@ export class HudScene extends Phaser.Scene {
   }
 
   panelFor(a) {
-    if (this.panels[a.slot]) return this.panels[a.slot];
+    const kinds = shownOres(getState(this.registry));
+    const old = this.panels[a.slot];
+    if (old && old.kinds.length === kinds.length) return old;
+    if (old) old.c.destroy();
+    const PANEL_W = Math.max(150, 30 + kinds.length * 25);
     const x = a.slot === 0 ? 4 : this.scale.width - PANEL_W - 4;
     const y = 4;
     const c = this.add.container(x, y);
@@ -156,7 +211,7 @@ export class HudScene extends Phaser.Scene {
     c.add(g);
     const face = this.add.image(4, 3, `char-${a.char}`, 0).setOrigin(0);
     c.add(face);
-    const ores = ORES.map((ore, i) => {
+    const ores = kinds.map((ore, i) => {
       const ox = 24 + i * 25;
       const icon = this.add.image(ox, 4, `ore-${ore}`).setOrigin(0);
       const num = this.add.bitmapText(ox + 11, 6, 'pixel', '0').setTint(INK);
@@ -169,7 +224,7 @@ export class HudScene extends Phaser.Scene {
     const count = this.add.bitmapText(120, 19, 'pixel', '0/20').setTint(INK);
     const full = this.add.image(4, 18, 'icon-full').setOrigin(0).setVisible(false);
     c.add([bag, barBg, bar, count, full]);
-    const panel = { c, ores, bar, count, full, bump: 0 };
+    const panel = { c, ores, bar, count, full, bump: 0, kinds };
     this.panels[a.slot] = panel;
     return panel;
   }

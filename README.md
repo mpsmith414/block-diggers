@@ -28,23 +28,39 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
 
 ### More to find and do
 
-- **Four layers:** dirt, stone, deep (lava) and the **crystal caverns** (glowing
-  pools you can swim in). Crystal rock needs the diamond pickaxe.
+- **Eight layers, 390 rows deep:** dirt, stone, deep (lava), the **crystal
+  caverns**, then the **Dino Bone Beds** (amber, pterodactyls, dinosaur
+  skeletons), the **Brick Caverns** (toy bricks, wind-up robots, springy blocks),
+  the **Meteor Field** (star shards, floaty aliens, low gravity, meteorites) and
+  **the Core** (ember wisps, lava, and the giant **Heart of the World** at the
+  very bottom). Each new layer needs a better tool: amber pick, brick drill,
+  star drill. Reaching a deep layer for the first time shows its banner and badge.
+- **Lava Monster:** touch lava and you become a lava monster for 8 seconds:
+  lava-proof, digging twice as fast, and creatures poof away.
+- **Drinking:** stand in water (or at the camp pond) to drink it: glug glug,
+  BURP, then zoomies.
 - **Treasures:**
   - chests, and a **big chest** that needs both players together;
   - geodes full of gems, fossils, golden slimes;
   - **boom blocks** (touch one and step back);
   - **boulders** to push into a pit (together in co-op) to reach the ore beyond.
 - **Pet eggs** hatch at camp into a **mole** (sniffs out ore), a **glow-bug**
-  (extra light) and a **bat buddy** (fetches loose ore). They come on every trip.
+  (extra light) and a **bat buddy** (fetches loose ore). **Dino eggs** from the
+  Dino Bone Beds hatch a **baby T-rex** (roars creatures away) and a **baby
+  Triceratops** (helps push boulders, headbutts boom blocks). They come on every trip.
 - **Buildings help:**
   - garden: gem flowers to harvest;
   - pen: gift boxes;
   - house: a bigger backpack;
   - tower: chests show on the depth meter;
-  - minecart: stand in it and press A to start at the stone layer;
-  - statue: more rare finds.
-- **Sticker book:** 40 stickers on 6 pages, and a trophy for each full page. Open
+  - minecart: an **elevator** to the top of any layer you've reached;
+  - statue: more rare finds;
+  - Dino Park: the baby dinosaurs play there and dig up amber;
+  - Toy Workshop: toy-brick decorations (castle, car, rainbow arch, robot);
+  - **Rocket Ship** (needs the Heart of the World): press A for a countdown and
+    lift-off to **the Moon**: low gravity, moon blobs, space crystals and moon
+    cheese. Hold B to be beamed home.
+- **Sticker book:** 69 stickers on 9 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

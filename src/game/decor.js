@@ -14,7 +14,12 @@ export const DECOR_ITEMS = [
   { id: 'pond', cost: { iron: 5 }, w: 32 },
   { id: 'windmill', cost: { iron: 6, gold: 3 }, w: 24 },
   { id: 'crystallamp', cost: { diamond: 2 }, w: 10 },
-  ...[0, 1, 2, 3, 4, 5].map((i) => ({ id: `trophy-${i}`, cost: null, w: 12 })),
+  // toy bricks, once the Toy Workshop is built
+  { id: 'brickcastle', cost: { brick: 8 }, w: 28, needs: 'workshop' },
+  { id: 'brickcar', cost: { brick: 5 }, w: 20, needs: 'workshop' },
+  { id: 'rainbowarch', cost: { brick: 6 }, w: 26, needs: 'workshop' },
+  { id: 'brickrobot', cost: { brick: 5 }, w: 12, needs: 'workshop' },
+  ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ id: `trophy-${i}`, cost: null, w: 12 })),
 ];
 const BY_ID = new Map(DECOR_ITEMS.map((d) => [d.id, d]));
 export const decorById = (id) => BY_ID.get(id) ?? null;
@@ -27,9 +32,14 @@ const addStock = (state, id, n) => ({
   decor: { ...state.decor, stock: { ...state.decor.stock, [id]: (state.decor.stock[id] ?? 0) + n } },
 });
 
+export const decorUnlocked = (state, id) => {
+  const item = decorById(id);
+  return !!item && (!item.needs || state.plots.includes(item.needs));
+};
+
 export function buyDecor(state, id) {
   const item = decorById(id);
-  if (!item || !item.cost || !canAfford(state.bank, item.cost)) return null;
+  if (!item || !item.cost || !decorUnlocked(state, id) || !canAfford(state.bank, item.cost)) return null;
   return addStock({ ...state, bank: spend(state.bank, item.cost) }, id, 1);
 }
 

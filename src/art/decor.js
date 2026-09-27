@@ -139,11 +139,19 @@ const PAL = {
   amethyst: { o: '#3a1f5a', x: '#d08cff', X: '#ffe8ff' },
 };
 
+// deeper layers: the same shapes in new colours
+DECOR.spacecrystal = DECOR.crystal;
+PAL.spacecrystal = { o: '#0f1a3a', x: '#6ff0ff', X: '#ffffff' };
+DECOR.emberflower = DECOR.flower;
+PAL.emberflower = { g: '#8a3a2a', G: '#5a2a1a', p: '#ff6a2a', b: '#ffb34a', w: '#ffe066', y: '#fff2a0', o: '#ff4a1a' };
+
 export const GLOWING = {
   mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff, giantshroom: 0x6ff0ff, moss: 0x7aff9a, amethyst: 0xd08cff,
+  spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a,
 };
 
-const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff'];
+// wood, iron, diamond, amber picks; then the brick drill and the star drill
+const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066'];
 
 export function drawDecor(scene, canvasTexture, rect) {
   for (const [kind, variants] of Object.entries(DECOR)) {
@@ -155,20 +163,35 @@ export function drawDecor(scene, canvasTexture, rect) {
     tex.refresh();
   }
 
-  // pickaxe: handle from bottom-left to top-right, head across the top; 3 levels
+  // pickaxe: handle from bottom-left to top-right, head across the top;
+  // the last two are drills, a cone pointing up-right
   {
-    const { tex, ctx } = canvasTexture(scene, 'pick', 42, 14);
+    const { tex, ctx } = canvasTexture(scene, 'pick', 14 * PICK_HEADS.length, 14);
     PICK_HEADS.forEach((head, i) => {
       const ox = i * 14;
-      for (let k = 0; k < 9; k++) {
-        rect(ctx, OUT, ox + 1 + k, 12 - k, 3, 2);
+      const drill = i >= 4;
+      const len = drill ? 6 : 9;
+      for (let k = 0; k < len; k++) rect(ctx, OUT, ox + 1 + k, 12 - k, 3, 2);
+      for (let k = 0; k < len; k++) rect(ctx, drill ? '#8a94a8' : '#8a5a34', ox + 2 + k, 12 - k, 1, 1);
+      if (drill) {
+        // a stepped cone from the grip out to the tip, with a spiral stripe
+        for (let k = 0; k < 6; k++) {
+          const w = 6 - k;
+          rect(ctx, OUT, ox + 6 + k, 7 - k - w / 2, w + 1, w + 1);
+        }
+        for (let k = 0; k < 6; k++) {
+          const w = 5 - k;
+          if (w > 0) rect(ctx, head, ox + 7 + k, 7 - k - w / 2 + 0.5, w, w);
+        }
+        rect(ctx, '#ffffff', ox + 8, 5, 1, 1);
+        rect(ctx, '#ffffff', ox + 11, 3, 1, 1);
+      } else {
+        rect(ctx, OUT, ox + 5, 0, 9, 4);
+        rect(ctx, OUT, ox + 11, 2, 3, 8);
+        rect(ctx, head, ox + 6, 1, 7, 2);
+        rect(ctx, head, ox + 12, 3, 1, 6);
+        rect(ctx, '#ffffff', ox + 7, 1, 2, 1);
       }
-      for (let k = 0; k < 9; k++) rect(ctx, '#8a5a34', ox + 2 + k, 12 - k, 1, 1);
-      rect(ctx, OUT, ox + 5, 0, 9, 4);
-      rect(ctx, OUT, ox + 11, 2, 3, 8);
-      rect(ctx, head, ox + 6, 1, 7, 2);
-      rect(ctx, head, ox + 12, 3, 1, 6);
-      rect(ctx, '#ffffff', ox + 7, 1, 2, 1);
       tex.add(i, 0, ox, 0, 14, 14);
     });
     tex.refresh();

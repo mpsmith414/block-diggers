@@ -4,7 +4,7 @@ import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
 import { TILE, PLAYER } from '../../src/tuning.js';
 
-const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS, w: B.WATER, O: B.BOULDER, T: B.BOOM };
+const CHARS = { '#': B.STONE, d: B.DIRT, '.': B.AIR, L: B.LADDER, D: B.DEEP, X: B.BEDROCK, i: B.IRON, g: B.GRASS, w: B.WATER, O: B.BOULDER, T: B.BOOM, S: B.SPRING };
 
 // Rows of characters -> grid. Everything outside reads as bedrock.
 function makeGrid(rows) {
@@ -275,4 +275,52 @@ describe('boulders and boom blocks are pushed or lit, never stepped onto', () =>
       expect(g.get(3, 2)).toBe(id);
     });
   }
+});
+
+describe('power-up speed', () => {
+  it('digMul makes digging faster; walkMul makes walking faster', () => {
+    const g = makeGrid(['#...#', '#...#', '#ddd#', '#####']);
+    const p = createPlayer(standAt(2, 1));
+    settle(p, g);
+    run(p, { ...idle, moveY: 1 }, g, 0.14, { digMul: 2 }); // 0.25 s of dirt at 2x = 0.125 s
+    expect(g.get(2, 2)).toBe(B.LADDER);
+    const flat = makeGrid(['##########', '#........#', '##########']);
+    const q = createPlayer(standAt(1, 1));
+    settle(q, flat);
+    const x0 = q.x;
+    run(q, { ...idle, moveX: 1 }, flat, 0.4, { walkMul: 1.5 });
+    expect(q.x - x0).toBeCloseTo(PLAYER.walkSpeed * 1.5 * 0.4, 0);
+  });
+});
+
+describe('low gravity and springs', () => {
+  it('in low gravity you jump much higher', () => {
+    const tall = ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '#####'];
+    const peak = (gravityMul) => {
+      const g = makeGrid(tall);
+      const p = createPlayer(standAt(2, 5));
+      settle(p, g);
+      const y0 = p.y;
+      let top = y0;
+      for (let i = 0; i < 90; i++) {
+        stepPlayer(p, { ...idle, jump: i === 0 }, g, { dt: DT, gravityMul });
+        top = Math.min(top, p.y);
+      }
+      return y0 - top;
+    };
+    expect(peak(0.45)).toBeGreaterThan(peak(1) * 1.8);
+  });
+  it('landing on a spring block bounces you up high', () => {
+    const g = makeGrid(['#...#', '#...#', '#...#', '#...#', '#...#', '#.S.#', '#####']);
+    const p = createPlayer(standAt(2, 0));
+    let bounced = false;
+    let top = Infinity;
+    for (let i = 0; i < 120; i++) {
+      const r = stepPlayer(p, idle, g, { dt: DT });
+      if (r.sprung) bounced = true;
+      if (bounced) top = Math.min(top, p.y);
+    }
+    expect(bounced).toBe(true);
+    expect(top).toBeLessThan(3 * TILE); // flew back up well above the spring
+  });
 });

@@ -31,9 +31,23 @@ export const B = {
   GOLD_CRYSTAL: 26,
   DIAMOND_CRYSTAL: 27,
   EMERALD_CRYSTAL: 28,
+  // deeper world (M14) and the Moon (M16)
+  SAND: 29,
+  BRICKS: 30,
+  METEOR: 31,
+  CORE: 32,
+  AMBER: 33,
+  BRICK_ORE: 34,
+  STAR: 35,
+  HEART: 36,
+  SPRING: 37,
+  METEORITE: 38,
+  MOONROCK: 39,
+  SPACE_CRYSTAL: 40,
+  CHEESE: 41,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -66,6 +80,19 @@ def(B.EGG, 'egg', false, null);
 def(B.GOLD_CRYSTAL, 'gold in crystal', true, 'crystal', 'gold');
 def(B.DIAMOND_CRYSTAL, 'diamond in crystal', true, 'crystal', 'diamond');
 def(B.EMERALD_CRYSTAL, 'emerald in crystal', true, 'crystal', 'emerald');
+def(B.SAND, 'sandstone', true, 'sand');
+def(B.BRICKS, 'toy bricks', true, 'bricks');
+def(B.METEOR, 'space rock', true, 'meteor');
+def(B.CORE, 'core rock', true, 'core');
+def(B.AMBER, 'amber', true, 'sand', 'amber');
+def(B.BRICK_ORE, 'loose brick', true, 'bricks', 'brick');
+def(B.STAR, 'star shard', true, 'meteor', 'star');
+def(B.HEART, 'heart of the world', true, 'core');
+def(B.SPRING, 'spring block', true, 'bricks');
+def(B.METEORITE, 'meteorite', true, 'meteor');
+def(B.MOONROCK, 'moon rock', true, 'moon');
+def(B.SPACE_CRYSTAL, 'space crystal', true, 'moon', 'diamond');
+def(B.CHEESE, 'moon cheese', true, 'soft');
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

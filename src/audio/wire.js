@@ -25,6 +25,16 @@ const MINE = {
   splash: (s) => s.play('splash'),
   egg: (s) => s.play('egg'),
   sniff: (s) => s.play('sniff'),
+  lavaMonster: (s) => s.play('roar'),
+  cooldown: (s) => s.play('hiss'),
+  glug: (s) => s.play('glug'),
+  burp: (s) => s.play('burp'),
+  spring: (s) => s.play('boing'),
+  rawr: (s) => s.play('rawr'),
+  discover: (s) => s.play('fanfare'),
+  heart: (s) => s.play('heart'),
+  heartChip: (s) => s.play('crack'),
+  meteorite: (s) => s.play('crack'),
 };
 
 const CAMP = {
@@ -45,6 +55,8 @@ const CAMP = {
   gift: (s) => s.play('chest'),
   place: (s) => s.play('hammer'),
   thanks: (s) => s.play('egg'),
+  glug: (s) => s.play('glug'),
+  burp: (s) => s.play('burp'),
 };
 
 const MENU = {

@@ -10,23 +10,34 @@ import {
   GRAVEL_POCKETS, CAVES, LAVA_POOLS, CHESTS, FINDS,
 } from '../tuning.js';
 
-export const HOST = { dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL };
+export const HOST = {
+  dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL,
+  dino: B.SAND, brick: B.BRICKS, meteor: B.METEOR, core: B.CORE,
+};
 export const ORE_BLOCK = {
   dirt: { coal: B.COAL_DIRT },
   stone: { coal: B.COAL_STONE, iron: B.IRON, gold: B.GOLD_STONE },
   deep: { gold: B.GOLD_DEEP, diamond: B.DIAMOND, emerald: B.EMERALD },
   crystal: { gold: B.GOLD_CRYSTAL, diamond: B.DIAMOND_CRYSTAL, emerald: B.EMERALD_CRYSTAL },
+  dino: { amber: B.AMBER },
+  brick: { brick: B.BRICK_ORE },
+  meteor: { star: B.STAR },
+  core: { star: B.STAR },
 };
-const BEST_ORE = { dirt: 'coal', stone: 'gold', deep: 'diamond', crystal: 'diamond' };
+const BEST_ORE = { dirt: 'coal', stone: 'gold', deep: 'diamond', crystal: 'diamond', dino: 'amber', brick: 'brick', meteor: 'star', core: 'star' };
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const DECOR = {
   dirt: { floorChance: 0.45, floor: { grass: 3, flower: 1 }, ceilChance: 0.3, ceil: { roots: 1 } },
   stone: { floorChance: 0.3, floor: { mushroom: 2, pebbles: 1 }, ceilChance: 0, ceil: {} },
   deep: { floorChance: 0.3, floor: { glowshroom: 2, crystal: 1 }, ceilChance: 0.2, ceil: { stalactite: 1 } },
   crystal: { floorChance: 0.4, floor: { moss: 3, giantshroom: 2, crystal: 2, amethyst: 0.35 }, ceilChance: 0.18, ceil: { stalactite: 1, amethyst: 0.3 } },
+  dino: { floorChance: 0.4, floor: { fern: 3, bones: 1 }, ceilChance: 0, ceil: {} },
+  brick: { floorChance: 0.3, floor: { toyblocks: 2, moss: 1 }, ceilChance: 0, ceil: {} },
+  meteor: { floorChance: 0.35, floor: { spacecrystal: 2, moss: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
+  core: { floorChance: 0.3, floor: { emberflower: 2, crystal: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
 };
 
-export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'batbuddy'] } = {}) {
+export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'batbuddy'], dinoEggKinds = [] } = {}) {
   const rng = createRng(seed);
   const grid = createGrid(MINE_W, MINE_H);
   const inner = (x, y) => x >= 1 && x <= MINE_W - 2 && y >= 1 && y <= MINE_H - 2;
@@ -107,36 +118,47 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     return out;
   };
 
-  // lava pools on deep cave floors (static, never spreads)
-  const deepFloors = floors(LAYERS.deep.top, LAYERS.deep.bottom);
-  for (let i = 0; i < LAVA_POOLS && deepFloors.length; i++) {
-    const start = rng.pick(deepFloors);
-    const width = rng.int(1, 3);
-    for (let dx = 0; dx < width; dx++) {
-      const x = start.x + dx;
-      if (grid.get(x, start.y) === B.AIR && isSolid(grid.get(x, start.y + 1))) grid.set(x, start.y, B.LAVA);
+  // lava pools on deep and core cave floors (static, never spreads)
+  const lavaPools = (top, bottom, count) => {
+    const spots = floors(top, bottom);
+    for (let i = 0; i < count && spots.length; i++) {
+      const start = rng.pick(spots);
+      const width = rng.int(1, 3);
+      for (let dx = 0; dx < width; dx++) {
+        const x = start.x + dx;
+        if (grid.get(x, start.y) === B.AIR && isSolid(grid.get(x, start.y + 1))) grid.set(x, start.y, B.LAVA);
+      }
     }
-  }
+  };
+  lavaPools(LAYERS.deep.top, LAYERS.deep.bottom, LAVA_POOLS);
+  lavaPools(LAYERS.core.top, LAYERS.core.bottom - 8, FINDS.coreLava);
 
-  // glowing water pools on crystal cave floors, sometimes two deep
-  const crystalFloors = floors(LAYERS.crystal.top, LAYERS.crystal.bottom);
-  for (let i = 0; i < FINDS.waterPools && crystalFloors.length; i++) {
-    const s = rng.pick(crystalFloors);
-    const cells = [];
-    for (const dir of [-1, 1]) {
-      for (let x = dir < 0 ? s.x : s.x + 1; Math.abs(x - s.x) <= 3; x += dir) {
-        if (grid.get(x, s.y) !== B.AIR || !isSolid(grid.get(x, s.y + 1))) break;
-        cells.push(x);
+  // water on cave floors: glowing pools in the crystal caves (sometimes two
+  // deep) and little puddles higher up, so there's always something to drink
+  const pools = (top, bottom, count, reach, deepChance) => {
+    const spots = floors(top, bottom);
+    for (let i = 0; i < count && spots.length; i++) {
+      const s = rng.pick(spots);
+      const cells = [];
+      for (const dir of [-1, 1]) {
+        for (let x = dir < 0 ? s.x : s.x + 1; Math.abs(x - s.x) <= reach; x += dir) {
+          if (grid.get(x, s.y) !== B.AIR || !isSolid(grid.get(x, s.y + 1))) break;
+          cells.push(x);
+        }
+      }
+      const deep = cells.length >= 4 && rng.chance(deepChance);
+      const host = HOST[layerAt(s.y + 1)];
+      for (const x of cells) {
+        grid.set(x, s.y, B.WATER);
+        if (deep && grid.get(x, s.y + 1) === host && isSolid(grid.get(x, s.y + 2)) && grid.get(x, s.y + 2) !== B.BEDROCK) {
+          grid.set(x, s.y + 1, B.WATER);
+        }
       }
     }
-    const deep = cells.length >= 4 && rng.chance(0.6);
-    for (const x of cells) {
-      grid.set(x, s.y, B.WATER);
-      if (deep && grid.get(x, s.y + 1) === B.CRYSTAL && isSolid(grid.get(x, s.y + 2)) && grid.get(x, s.y + 2) !== B.BEDROCK) {
-        grid.set(x, s.y + 1, B.WATER);
-      }
-    }
-  }
+  };
+  pools(LAYERS.crystal.top, LAYERS.crystal.bottom, FINDS.waterPools, 3, 0.6);
+  pools(LAYERS.dirt.top + 3, LAYERS.stone.bottom, FINDS.puddles, 2, 0.3);
+  pools(LAYERS.dino.top, LAYERS.brick.bottom, FINDS.oases, 3, 0.5);
 
   // a floor spot away from lava and water
   const safe = (c) => [B.LAVA, B.WATER].every((bad) => grid.get(c.x - 1, c.y) !== bad && grid.get(c.x + 1, c.y) !== bad);
@@ -171,7 +193,7 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     }
   };
   placeChests(LAYERS.stone.top, LAYERS.deep.bottom, CHESTS);
-  placeChests(LAYERS.crystal.top, LAYERS.crystal.bottom, 1);
+  for (const layer of ['crystal', 'dino', 'brick', 'meteor', 'core']) placeChests(LAYERS[layer].top, LAYERS[layer].bottom - (layer === 'core' ? 10 : 0), 1);
 
   // the big chest: two floor cells side by side
   let bigChest = null;
@@ -186,12 +208,17 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
   // pet eggs on deep and crystal cave floors
   const eggs = takeSpots(floors(LAYERS.deep.top, LAYERS.crystal.bottom).filter(safe), lucky(FINDS.eggs), 16)
     .map((c, i) => ({ ...c, kind: eggKinds.length ? eggKinds[i % eggKinds.length] : 'golden' }));
+  // dinosaur eggs in the Dino Bone Beds, of the kinds you don't have yet
+  if (dinoEggKinds.length) {
+    const dinoEggs = takeSpots(floors(LAYERS.dino.top, LAYERS.dino.bottom).filter(safe), 2, 12);
+    dinoEggs.forEach((c, i) => eggs.push({ ...c, kind: dinoEggKinds[i % dinoEggKinds.length] }));
+  }
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
   // boulders: at the edge of a cave, in front of a one-block pit with ore
   // beyond it. Push the boulder in to fill the pit and walk over to the ore.
   const boulders = [];
-  const boulderSpots = floors(LAYERS.stone.top, LAYERS.crystal.bottom).filter((c) => safe(c));
+  const boulderSpots = floors(LAYERS.stone.top, LAYERS.core.bottom - 10).filter((c) => safe(c));
   for (let attempt = 0; boulders.length < FINDS.boulders && attempt < 400 && boulderSpots.length; attempt++) {
     const c = rng.pick(boulderSpots);
     const dir = rng.chance(0.5) ? 1 : -1;
@@ -227,9 +254,28 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     }
     return out;
   };
-  inRock(LAYERS.stone.top, LAYERS.crystal.bottom, lucky(FINDS.geodes), B.GEODE);
-  const fossils = inRock(LAYERS.dirt.top + 3, LAYERS.stone.bottom, lucky(FINDS.fossils), B.FOSSIL).map((f) => ({ ...f, v: rng.int(0, 2) }));
-  inRock(LAYERS.stone.top, LAYERS.crystal.bottom, FINDS.booms, B.BOOM);
+  inRock(LAYERS.stone.top, LAYERS.core.bottom - 10, lucky(FINDS.geodes), B.GEODE);
+  const fossils = [
+    ...inRock(LAYERS.dirt.top + 3, LAYERS.stone.bottom, lucky(FINDS.fossils), B.FOSSIL),
+    ...inRock(LAYERS.dino.top, LAYERS.dino.bottom, lucky(FINDS.fossils), B.FOSSIL), // the dino layer is full of them
+  ].map((f) => ({ ...f, v: rng.int(0, 2) }));
+  inRock(LAYERS.stone.top, LAYERS.core.bottom - 10, FINDS.booms, B.BOOM);
+  inRock(LAYERS.meteor.top, LAYERS.meteor.bottom, FINDS.meteorites, B.METEORITE);
+
+  // springy blocks in the brick caverns: a cave floor cell becomes a bouncer
+  const springSpots = floors(LAYERS.brick.top, LAYERS.brick.bottom).filter((c) => safe(c) && grid.get(c.x, c.y) === B.AIR);
+  for (let i = 0; i < FINDS.springs && springSpots.length; i++) {
+    const c = rng.pick(springSpots);
+    if (grid.get(c.x, c.y + 1) === B.BRICKS || grid.get(c.x, c.y + 1) === B.BRICK_ORE) grid.set(c.x, c.y + 1, B.SPRING);
+  }
+
+  // the Heart of the World: a 3x3 gem in a chamber at the very bottom
+  const hx = Math.floor(MINE_W / 2) - 1;
+  const hy = MINE_H - 5; // resting on the chamber floor
+  for (let y = hy - 3; y <= MINE_H - 2; y++) for (let x = hx - 4; x <= hx + 6; x++) grid.set(x, y, B.AIR);
+  for (let x = hx - 4; x <= hx + 6; x++) grid.set(x, MINE_H - 2, B.CORE);
+  for (let y = hy; y <= hy + 2; y++) for (let x = hx; x <= hx + 2; x++) grid.set(x, y, B.HEART);
+  const heart = { x: hx, y: hy };
 
   // the shaft: a short ladder down through the grass
   for (let y = 0; y < SHAFT_DEPTH; y++) grid.set(SHAFT_X, y, B.LADDER);
@@ -250,7 +296,16 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     }
   }
 
-  return { grid, chests, decor, eggs, bigChest, boulders, fossils, spawn: { x: SHAFT_X, y: -1 }, seed };
+  // dinosaur skeletons on the back walls of dino caves (big, 3x2 cells)
+  const skeletonSpots = floors(LAYERS.dino.top, LAYERS.dino.bottom).filter((c) =>
+    [0, 1, 2].every((dx) => [0, 1].every((dy) => grid.get(c.x + dx, c.y - dy) === B.AIR)));
+  for (let i = 0; i < FINDS.skeletons && skeletonSpots.length; i++) {
+    const c = rng.pick(skeletonSpots);
+    if (decor.some((d) => d.kind === 'skeleton' && Math.abs(d.x - c.x) < 6 && Math.abs(d.y - c.y) < 4)) continue;
+    decor.push({ x: c.x, y: c.y, on: 'wall', kind: 'skeleton', v: rng.int(0, 1) });
+  }
+
+  return { grid, chests, decor, eggs, bigChest, boulders, fossils, heart, spawn: { x: SHAFT_X, y: -1 }, seed };
 }
 
 // The minecart station: a little room at `row` to start a trip in. Returns the
@@ -265,7 +320,7 @@ export function carveStation(mine, x0, row) {
     if (!isSolid(grid.get(x, row + 1))) grid.set(x, row + 1, HOST[layerAt(row + 1)]);
   }
   mine.decor = mine.decor.filter((d) => grid.get(d.x, d.y) === B.AIR &&
-    isSolid(d.on === 'floor' ? grid.get(d.x, d.y + 1) : grid.get(d.x, d.y - 1)));
+    isSolid(d.on === 'ceil' ? grid.get(d.x, d.y - 1) : grid.get(d.x, d.y + 1)));
   mine.boulders = (mine.boulders ?? []).filter((b) => grid.get(b.x, b.y) === B.BOULDER);
   return mine.decor;
 }
@@ -274,5 +329,9 @@ export function layerAt(y) {
   if (y <= LAYERS.dirt.bottom) return 'dirt';
   if (y <= LAYERS.stone.bottom) return 'stone';
   if (y <= LAYERS.deep.bottom) return 'deep';
-  return 'crystal';
+  if (y <= LAYERS.crystal.bottom) return 'crystal';
+  if (y <= LAYERS.dino.bottom) return 'dino';
+  if (y <= LAYERS.brick.bottom) return 'brick';
+  if (y <= LAYERS.meteor.bottom) return 'meteor';
+  return 'core';
 }

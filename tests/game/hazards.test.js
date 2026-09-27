@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   overlaps, createSlime, stepSlime, slimeTouch, createBat, stepBat,
-  triggerGravel, stepGravel, lavaEscape, spawnSpot,
+  triggerGravel, stepGravel, lavaEscape, spawnSpot, creatureFor,
 } from '../../src/game/hazards.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
@@ -113,13 +113,26 @@ describe('lavaEscape', () => {
   });
 });
 
+describe('creatureFor', () => {
+  it('each layer has its own creature: walkers on floors, flyers in the air', () => {
+    expect(creatureFor(20)).toEqual({ species: 'slime', walker: true });
+    expect(creatureFor(60)).toEqual({ species: 'slime', walker: true });
+    expect(creatureFor(120)).toEqual({ species: 'bat', walker: false });
+    expect(creatureFor(170)).toEqual({ species: 'bat', walker: false });
+    expect(creatureFor(200)).toEqual({ species: 'ptero', walker: false });
+    expect(creatureFor(260)).toEqual({ species: 'robot', walker: true });
+    expect(creatureFor(310)).toEqual({ species: 'alien', walker: false });
+    expect(creatureFor(360)).toEqual({ species: 'wisp', walker: false });
+  });
+});
+
 describe('spawnSpot', () => {
   const rng = createRng(3);
-  const g = createGrid(40, 150);
-  for (let y = 0; y < 150; y++) for (let x = 0; x < 40; x++) g.set(x, y, y % 3 === 2 ? B.STONE : B.AIR);
-  it('slimes spawn on a floor in rows 1-95, outside the avoid rect', () => {
+  const g = createGrid(40, 300);
+  for (let y = 0; y < 300; y++) for (let x = 0; x < 40; x++) g.set(x, y, y % 3 === 2 ? B.STONE : B.AIR);
+  it('walkers spawn on a floor in the same layer, outside the avoid rect', () => {
     for (let i = 0; i < 50; i++) {
-      const s = spawnSpot(g, rng, { kind: 'slime', near: { cx: 20, cy: 60 }, avoid: { x0: 15, y0: 55, x1: 25, y1: 65 } });
+      const s = spawnSpot(g, rng, { walker: true, near: { cx: 20, cy: 60 }, avoid: { x0: 15, y0: 55, x1: 25, y1: 65 } });
       if (!s) continue;
       expect(s.cy).toBeGreaterThanOrEqual(1);
       expect(s.cy).toBeLessThanOrEqual(95);
@@ -128,10 +141,13 @@ describe('spawnSpot', () => {
       expect(s.cx >= 15 && s.cx <= 25 && s.cy >= 55 && s.cy <= 65).toBe(false);
     }
   });
-  it('bats spawn in open cells in rows 96-148 only', () => {
-    expect(spawnSpot(g, rng, { kind: 'bat', near: { cx: 20, cy: 30 }, avoid: null })).toBeNull();
-    const b = spawnSpot(g, rng, { kind: 'bat', near: { cx: 20, cy: 110 }, avoid: null });
-    expect(b.cy).toBeGreaterThanOrEqual(96);
-    expect(g.get(b.cx, b.cy)).toBe(B.AIR);
+  it('flyers spawn in open cells of the same layer (they stay in their layer)', () => {
+    for (let i = 0; i < 30; i++) {
+      const b = spawnSpot(g, rng, { walker: false, near: { cx: 20, cy: 110 }, avoid: null });
+      if (!b) continue;
+      expect(b.cy).toBeGreaterThanOrEqual(96);
+      expect(b.cy).toBeLessThanOrEqual(148);
+      expect(g.get(b.cx, b.cy)).toBe(B.AIR);
+    }
   });
 });

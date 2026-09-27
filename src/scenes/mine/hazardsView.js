@@ -3,7 +3,7 @@
 // scene (which decides on bonks and squashes).
 
 import {
-  createSlime, stepSlime, slimeTouch, createBat, stepBat, triggerGravel, stepGravel, overlaps, spawnSpot,
+  createSlime, stepSlime, slimeTouch, createBat, stepBat, triggerGravel, stepGravel, overlaps, spawnSpot, creatureFor,
 } from '../../game/hazards.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
@@ -18,8 +18,9 @@ export function createHazards(scene) {
   const spriteFor = (e) => {
     let s = sprites.get(e);
     if (!s) {
-      if (e.kind === 'slime') s = scene.add.sprite(0, 0, e.golden ? 'slime-gold' : 'slime', 0).setOrigin(0.5, 1).setDepth(28);
-      else if (e.kind === 'bat') s = scene.add.sprite(0, 0, 'bat', 0).setOrigin(0.5, 0.5).setDepth(28);
+      const key = e.golden ? 'slime-gold' : e.species === 'robot' ? 'toyrobot' : (e.species ?? e.kind);
+      if (e.kind === 'slime') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 1).setDepth(28);
+      else if (e.kind === 'bat') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 0.5).setDepth(28);
       else s = scene.add.image(0, 0, 'tiles', B.GRAVEL).setOrigin(0, 0).setDepth(12);
       sprites.set(e, s);
     }
@@ -46,16 +47,19 @@ export function createHazards(scene) {
       x1: Math.ceil(v.right / TILE) + 1, y1: Math.ceil(v.bottom / TILE) + 1,
     };
     const count = (kind) => enemies.filter((e) => e.kind === kind).length;
-    const kind = near.cy > 95 ? 'bat' : 'slime';
+    // each layer has its own creature: walkers move like slimes, flyers like bats
+    const { species, walker } = scene.moon ? { species: 'moonblob', walker: true } : creatureFor(near.cy);
+    const kind = walker ? 'slime' : 'bat';
     if (kind === 'slime' && count('slime') >= SLIME.max) return;
     if (kind === 'bat' && count('bat') >= BAT.max) return;
-    const spot = spawnSpot(scene.grid, scene.rng, { kind, near, avoid });
+    const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid });
     if (!spot) return;
     const dir = scene.rng.chance(0.5) ? 1 : -1;
-    const e = kind === 'slime'
+    const e = walker
       ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir)
       : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir);
-    if (kind === 'slime') e.golden = scene.rng.chance(GOLDEN_SLIME * (scene.luck ?? 1));
+    e.species = species;
+    if (species === 'slime') e.golden = scene.rng.chance(GOLDEN_SLIME * (scene.luck ?? 1));
     enemies.push(e);
   }
 
@@ -121,9 +125,9 @@ export function createHazards(scene) {
           if (e.kind === 'slime') {
             const touch = slimeTouch(box, a.p.vy, e);
             if (touch === 'squash') scene.squash(a, e);
-            else if (touch === 'bonk') scene.bonk(a, e.x + e.w / 2, { kind: 'slime' });
+            else if (touch === 'bonk') scene.bonk(a, e.x + e.w / 2, { kind: e.species ?? 'slime', enemy: e });
           } else if (overlaps(box, e)) {
-            scene.bonk(a, e.x + e.w / 2, { kind: 'bat' });
+            scene.bonk(a, e.x + e.w / 2, { kind: e.species ?? 'bat', enemy: e });
           }
         }
       }

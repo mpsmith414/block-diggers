@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PET_KINDS, hatch, sniff, follow, nearestPickup } from '../../src/game/pets.js';
+import { PET_KINDS, DINO_KINDS, hatch, sniff, follow, nearestPickup, roarTargets } from '../../src/game/pets.js';
 import { attractPickups, createPickup, createBackpack } from '../../src/game/loot.js';
 import { defaultState } from '../../src/save/save.js';
 import { createGrid } from '../../src/world/grid.js';
@@ -21,8 +21,8 @@ describe('hatch', () => {
     expect(dup.state.bank.gold).toBe(PETS.goldenEggGold);
     expect(hatch(s, 'golden').gold).toBe(PETS.goldenEggGold);
   });
-  it('knows the three pets', () => {
-    expect(PET_KINDS).toEqual(['mole', 'glowbug', 'batbuddy']);
+  it('knows the five pets (three cave pets and two dinosaurs)', () => {
+    expect(PET_KINDS).toEqual(['mole', 'glowbug', 'batbuddy', 'rex', 'trike']);
   });
 });
 
@@ -66,5 +66,18 @@ describe('nearestPickup and the bat buddy magnet', () => {
     expect(p1.x).toBe(far);
     attractPickups([p1], { x: 0, y: 0 }, createBackpack(5), 1 / 60, 2);
     expect(p1.x).toBeLessThan(far);
+  });
+});
+
+describe('baby dinosaurs', () => {
+  it('a T-rex and a Triceratops hatch like the other pets', () => {
+    expect(DINO_KINDS).toEqual(['rex', 'trike']);
+    for (const k of DINO_KINDS) expect(PET_KINDS).toContain(k);
+    expect(hatch(defaultState(), 'rex').pet).toBe('rex');
+  });
+  it('the T-rex roar poofs the creatures close by', () => {
+    const near = { x: 40, y: 0, w: 10, h: 8 };
+    const far = { x: 200, y: 0, w: 10, h: 8 };
+    expect(roarTargets([near, far], 0, 0, 80)).toEqual([near]);
   });
 });

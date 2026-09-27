@@ -126,6 +126,42 @@ export function createSfx(audio) {
       ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: 0.12 + i * 0.07 }));
     },
     wobble() { tone({ type: 'sine', freq: 300, to: 360, dur: 0.1, gain: 0.06 }); },
+    rawr() {
+      tone({ type: 'sawtooth', freq: 320, to: 180, dur: 0.35, gain: 0.07 });
+      tone({ type: 'square', freq: 480, to: 260, dur: 0.3, gain: 0.04 });
+      noise({ dur: 0.3, gain: 0.08, freq: 900, to: 400, q: 2, type: 'bandpass' });
+    },
+    boing() {
+      tone({ type: 'sine', freq: 180, to: 520, dur: 0.25, gain: 0.14 });
+      tone({ type: 'triangle', freq: 360, to: 900, dur: 0.2, gain: 0.05, at: 0.03 });
+    },
+    // a new layer: a little trumpet fanfare
+    fanfare() {
+      [['G4', 0, 0.12], ['C5', 0.12, 0.12], ['E5', 0.24, 0.12], ['G5', 0.36, 0.3], ['E5', 0.66, 0.1], ['G5', 0.76, 0.5]]
+        .forEach(([n, at, dur]) => {
+          tone({ type: 'square', freq: noteFreq(n), dur, gain: 0.06, at });
+          tone({ type: 'triangle', freq: noteFreq(n) / 2, dur, gain: 0.08, at });
+        });
+    },
+    // the Heart of the World: a big shimmering chord
+    heart() {
+      ['C4', 'G4', 'C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 1.2, gain: 0.06, at: i * 0.08 }));
+      noise({ dur: 1.5, gain: 0.06, freq: 7000, q: 0.7, type: 'highpass', at: 0.3 });
+    },
+    roar() {
+      noise({ dur: 0.6, gain: 0.3, freq: 300, to: 120, q: 1.5, type: 'lowpass' });
+      tone({ type: 'sawtooth', freq: 140, to: 70, dur: 0.6, gain: 0.08 });
+      tone({ type: 'square', freq: 220, to: 110, dur: 0.5, gain: 0.05 });
+    },
+    hiss() { noise({ dur: 0.7, gain: 0.15, freq: 5000, to: 1500, q: 0.8, type: 'highpass' }); },
+    glug() {
+      [0, 0.22, 0.44, 0.66, 0.88].forEach((at, i) => tone({ type: 'sine', freq: 260 - i * 15, to: 140, dur: 0.12, gain: 0.14, at }));
+    },
+    burp() {
+      noise({ dur: 0.45, gain: 0.3, freq: 350, to: 150, q: 4, type: 'bandpass' });
+      tone({ type: 'sawtooth', freq: 120, to: 70, dur: 0.45, gain: 0.1 });
+      tone({ type: 'sine', freq: 900, to: 1400, dur: 0.08, gain: 0.08, at: 0.5 });
+    },
     join() { ['E5', 'A5'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.07, at: i * 0.08 })); },
     lava() { noise({ dur: 0.3, gain: 0.15, freq: 400, to: 1500, q: 1, type: 'lowpass' }); },
     gravel() { noise({ dur: 0.2, gain: 0.25, freq: 600, to: 150, q: 0.8, type: 'lowpass' }); },

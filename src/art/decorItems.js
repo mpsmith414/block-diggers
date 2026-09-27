@@ -151,5 +151,9 @@ export const DECOR_LOOK = {
   mailbox: { key: 'deco-mailbox' },
   pond: { key: 'deco-pond', sink: 2 },
   windmill: { key: 'deco-windmill' },
+  brickcastle: { key: 'deco-brickcastle' },
+  brickcar: { key: 'deco-brickcar' },
+  rainbowarch: { key: 'deco-rainbowarch' },
+  brickrobot: { key: 'deco-brickrobot' },
 };
 export const decorLook = (id) => DECOR_LOOK[id] ?? { key: id, scale: 1.5 };

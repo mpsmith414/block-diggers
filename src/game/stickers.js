@@ -27,9 +27,25 @@ export const STICKER_PAGES = [
   page('camp', 'icon-hammer', [
     ['bld-garden', 'bld-garden'], ['bld-house', 'bld-house'], ['bld-pen', 'bld-pen'],
     ['bld-tower', 'bld-tower'], ['bld-minecart', 'bld-minecart'], ['bld-statue', 'bld-statue'],
+    ['bld-dinopark', 'bld-dinopark'], ['bld-workshop', 'bld-workshop'], ['bld-rocket', 'bld-rocket'],
   ]),
   page('friends', 'friend-bear', [
     ['friend-bear', 'friend-bear'], ['friend-rabbit', 'friend-rabbit'], ['friend-owl', 'friend-owl'],
+  ]),
+  page('deep', 'ore-star', [
+    ['ore-amber', 'ore-amber'], ['ore-brick', 'ore-brick'], ['ore-star', 'ore-star'],
+    ['creature-ptero', 'ptero'], ['creature-robot', 'toyrobot'], ['creature-alien', 'alien'],
+    ['creature-wisp', 'wisp'], ['find-skeleton', 'skeleton-icon'], ['find-meteorite', 'find-meteorite'],
+    ['find-heart', 'heart-gem'], ['find-spring', 'tiles', B.SPRING],
+  ]),
+  page('adventures', 'adv-lavamonster', [
+    ['pet-rex', 'pet-rex'], ['pet-trike', 'pet-trike'], ['find-dinoegg', 'egg-dino'],
+    ['adv-lavamonster', 'adv-lavamonster'], ['adv-drink', 'adv-drink'],
+    ['badge-dino', 'badge', 0], ['badge-brick', 'badge', 1], ['badge-meteor', 'badge', 2], ['badge-core', 'badge', 3],
+  ]),
+  page('space', 'icon-rocket', [
+    ['moon-rock', 'tiles', B.MOONROCK], ['moon-crystal', 'decor-spacecrystal'], ['moon-blob', 'moonblob'],
+    ['moon-cheese', 'ore-cheese'], ['moon-flag', 'moon-flag'], ['moon-earthrise', 'earth'],
   ]),
 ];
 

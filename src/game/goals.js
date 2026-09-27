@@ -6,7 +6,7 @@ import { ORES } from '../world/blocks.js';
 import { LAYERS } from '../tuning.js';
 
 // value of an ore, for ranking what's "cheapest"
-const WORTH = { coal: 1, iron: 2, gold: 4, diamond: 8, emerald: 8 };
+const WORTH = { coal: 1, iron: 2, gold: 4, diamond: 8, emerald: 8, amber: 10, brick: 12, star: 16, heart: 40 };
 const worth = (cost) => Object.entries(cost).reduce((n, [o, k]) => n + WORTH[o] * k, 0);
 
 export function nextGoal(state) {
@@ -34,12 +34,16 @@ export function nextGoal(state) {
 export function oreTopRow(ore) {
   if (ore === 'coal') return LAYERS.dirt.top;
   if (ore === 'iron' || ore === 'gold') return LAYERS.stone.top;
+  if (ore === 'amber') return 189;
+  if (ore === 'brick') return 239;
+  if (ore === 'star') return 289;
+  if (ore === 'heart') return LAYERS.core.bottom - 5;
   return LAYERS.deep.top;
 }
 
 // the missing ore that's deepest (the one worth heading down for)
 export function deepestMissing(goal) {
   if (!goal) return null;
-  const ores = ORES.filter((o) => goal.missing[o]);
+  const ores = [...ORES, 'heart'].filter((o) => goal.missing[o]);
   return ores.sort((a, b) => oreTopRow(b) - oreTopRow(a))[0] ?? null;
 }

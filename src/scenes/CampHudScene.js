@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { UPGRADE_KINDS, UPGRADES } from '../game/economy.js';
 import { getState } from '../save/store.js';
+import { shownOres } from '../game/ores.js';
+import { B } from '../world/blocks.js';
+import { LAYERS, LAYER_COLORS } from '../tuning.js';
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
 // and the blueprint / upgrade picker.
@@ -41,13 +44,18 @@ export class CampHudScene extends Phaser.Scene {
   // ---------- bank ----------
 
   buildBank() {
-    const w = 190;
+    const kinds = shownOres(getState(this.registry));
+    // the Heart of the World sits at the end of the bank once you have one
+    if ((getState(this.registry).bank.heart ?? 0) > 0) kinds.push('heart');
+    this.bankKinds = kinds.length;
+    const w = 16 + kinds.length * 28 + 50;
     const x = Math.round((this.scale.width - w) / 2);
     const y = 4;
+    if (this.bank) this.bank.destroy();
     this.bank = this.add.container(0, 0);
     this.bank.add(panel(this, x, y, w, 32));
     this.bankIcons = {};
-    ORES.forEach((ore, i) => {
+    kinds.forEach((ore, i) => {
       const ox = x + 8 + i * 28;
       const icon = this.add.image(ox, y + 5, `ore-${ore}`).setOrigin(0);
       const num = this.add.bitmapText(ox + 12, y + 7, 'pixel', '0').setTint(INK);
@@ -57,12 +65,12 @@ export class CampHudScene extends Phaser.Scene {
     // upgrade levels: icon + pips
     this.levelPips = {};
     UPGRADE_KINDS.forEach((kind, i) => {
-      const ox = x + 146;
+      const ox = x + 12 + kinds.length * 28;
       const oy = y + 3 + i * 9;
       const icon = this.add.image(ox, oy, UPGRADE_ICON[kind]).setOrigin(0).setScale(0.66);
       this.bank.add(icon);
-      const pips = [0, 1, 2].map((p) => {
-        const pip = this.add.rectangle(ox + 11 + p * 6, oy + 3, 4, 4, 0xd8c49a).setOrigin(0);
+      const pips = Array.from({ length: UPGRADES[kind].length + 1 }, (_, p) => p).map((p) => {
+        const pip = this.add.rectangle(ox + 10 + p * 5, oy + 3, 3, 4, 0xd8c49a).setOrigin(0);
         this.bank.add(pip);
         return pip;
       });
@@ -72,9 +80,13 @@ export class CampHudScene extends Phaser.Scene {
   }
 
   syncBank(bank, only = null) {
-    for (const ore of ORES) {
+    // a newly found ore makes the bank panel grow
+    const heart = (getState(this.registry).bank.heart ?? 0) > 0 ? 1 : 0;
+    if (shownOres(getState(this.registry)).length + heart !== this.bankKinds) this.buildBank();
+    for (const ore of [...ORES, 'heart']) {
       if (only && ore !== only) continue;
       const b = this.bankIcons[ore];
+      if (!b) continue;
       b.shown = bank[ore];
       b.num.setText(String(bank[ore]));
       b.icon.setAlpha(bank[ore] > 0 ? 1 : 0.4);
@@ -88,6 +100,7 @@ export class CampHudScene extends Phaser.Scene {
 
   bump(ore) {
     const b = this.bankIcons[ore];
+    if (!b) return;
     b.shown++;
     b.num.setText(String(b.shown));
     b.icon.setAlpha(1);
@@ -101,7 +114,7 @@ export class CampHudScene extends Phaser.Scene {
     this.counting = true;
     const start = {};
     for (const ore of ORES) start[ore] = finalBank[ore] - packs.reduce((n, p) => n + (p[ore] ?? 0), 0);
-    for (const ore of ORES) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); }
+    for (const ore of ORES) { if (this.bankIcons[ore]) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); } }
     let delay = 0;
     let count = 0;
     const step = Math.max(35, Math.min(120, 2400 / Math.max(1, packs.reduce((n, p) => n + ORES.reduce((m, o) => m + (p[o] ?? 0), 0), 0))));
@@ -113,7 +126,7 @@ export class CampHudScene extends Phaser.Scene {
           this.time.delayedCall(delay, () => {
             const sx = a ? (a.sprite.x - cam.worldView.x) * cam.zoom : this.scale.width / 2;
             const sy = a ? (a.sprite.y - 10 - cam.worldView.y) * cam.zoom : this.scale.height / 2;
-            const target = this.bankIcons[ore].icon;
+            const target = (this.bankIcons[ore] ?? this.bankIcons.coal).icon;
             const img = this.add.image(sx, sy, `ore-${ore}`).setScale(1.3);
             this.tweens.add({
               targets: img,
@@ -159,7 +172,7 @@ export class CampHudScene extends Phaser.Scene {
     const sy = (worldY - cam.worldView.y) * cam.zoom;
     ores.forEach((ore, i) => {
       this.time.delayedCall(i * 90, () => {
-        const target = this.bankIcons[ore].icon;
+        const target = (this.bankIcons[ore] ?? this.bankIcons.coal).icon;
         const img = this.add.image(sx + (Math.random() - 0.5) * 16, sy, `ore-${ore}`).setScale(1.3);
         this.tweens.add({
           targets: img, x: target.x + 5, y: target.y + 5, scale: 1, duration: 500, ease: 'Cubic.easeIn',
@@ -181,7 +194,7 @@ export class CampHudScene extends Phaser.Scene {
     const ty = (worldY - cam.worldView.y) * cam.zoom;
     ores.forEach((ore, i) => {
       this.time.delayedCall(i * 60, () => {
-        const from = this.bankIcons[ore].icon;
+        const from = (this.bankIcons[ore] ?? this.bankIcons.coal).icon;
         const img = this.add.image(from.x + 5, from.y + 5, `ore-${ore}`);
         this.tweens.add({ targets: img, x: tx, y: ty, scale: 0.6, duration: 450, ease: 'Cubic.easeIn', onComplete: () => img.destroy() });
       });
@@ -192,7 +205,7 @@ export class CampHudScene extends Phaser.Scene {
 
   openPicker(p) {
     this.closePicker();
-    this.picker = { ...p, index: Math.max(0, p.options.findIndex((o) => o.affordable)) };
+    this.picker = { ...p, index: p.index ?? Math.max(0, p.options.findIndex((o) => o.affordable)) };
     this.renderPicker(true);
     this.camp.events.emit('pickerOpen');
   }
@@ -249,6 +262,24 @@ export class CampHudScene extends Phaser.Scene {
         c.add(this.add.image(midX - 12, y + h - 24, 'icon-bag').setScale(2));
         c.add(this.add.bitmapText(midX + 2, y + h - 30, 'pixel', `x${opt.stock}`).setScale(2).setTint(INK));
       }
+    } else if (pk.kind === 'elevator') {
+      // the layer's badge (or its rock), and a padlock if you haven't been there yet
+      const deep = ['dino', 'brick', 'meteor', 'core'].indexOf(opt.id);
+      const rock = { dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL }[opt.id];
+      const img = deep >= 0 ? this.add.image(midX, y + 40, 'badge', deep).setScale(3.5) : this.add.image(midX, y + 40, 'tiles', rock).setScale(3.5);
+      c.add(this.add.image(midX - 40, y + 50, 'cart', 0).setScale(2));
+      c.add(img);
+      if (!opt.affordable) {
+        img.setTint(0x6a5a4a).setAlpha(0.5);
+        c.add(this.add.image(midX, y + 40, 'icon-lock').setScale(3));
+      }
+      // where it is: the layers top to bottom, this one marked
+      const names = Object.keys(LAYERS);
+      names.forEach((name, i) => {
+        const bx = midX - names.length * 7 + i * 14;
+        c.add(this.add.rectangle(bx, y + h - 34, 12, 8, LAYER_COLORS[name]).setOrigin(0).setAlpha(name === opt.id ? 1 : 0.45));
+        if (name === opt.id) c.add(this.add.image(bx + 6, y + h - 40, 'arrow-r').setAngle(90));
+      });
     } else if (pk.kind === 'blueprint') {
       const img = this.add.image(midX, y + 8, `bld-${opt.id}`).setOrigin(0.5, 0).setScale(0.8);
       if (!opt.affordable) img.setTint(0xb0a090).setAlpha(0.7);
@@ -269,7 +300,7 @@ export class CampHudScene extends Phaser.Scene {
 
     // cost row (or a star when maxed)
     const rowY = y + h - 30;
-    if (pk.kind === 'decor' && opt.stock) {
+    if ((pk.kind === 'decor' && opt.stock) || pk.kind === 'elevator') {
       // (shown above)
     } else if (!opt.cost) {
       c.add(this.add.image(midX, rowY + 6, 'star').setScale(2));

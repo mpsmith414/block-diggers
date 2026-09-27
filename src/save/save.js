@@ -2,12 +2,14 @@
 // browsers, private windows): then the game just keeps playing in memory.
 
 import { ORES } from '../world/blocks.js';
+import { layersReached } from '../game/trip.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 3;
-const PLOT_COUNT = 6;
+export const VERSION = 4;
+const PLOT_COUNT = 9;
 
-const emptyBank = () => Object.fromEntries(ORES.map((o) => [o, 0]));
+// the Heart of the World and moon cheese are kept in the bank too
+const emptyBank = () => ({ ...Object.fromEntries(ORES.map((o) => [o, 0])), heart: 0, cheese: 0 });
 
 export function defaultState() {
   return {
@@ -17,7 +19,7 @@ export function defaultState() {
     plots: Array(PLOT_COUNT).fill(null),
     characters: null,
     trips: 0,
-    records: { deepest: 0, mostOres: 0 },
+    records: { deepest: 0, mostOres: 0, layers: [], moonTrips: 0 },
     stickers: {},
     trophiesAwarded: [],
     pets: [],
@@ -39,15 +41,21 @@ export function migrate(raw) {
   if (s.version === 2) {
     s = { ...s, version: 3 };
   }
+  if (s.version === 3) {
+    s = { ...s, version: 4 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
+  const records = { ...d.records, ...(s.records || {}) };
+  // saves from before the deeper world: the layers you've reached come from your deepest row
+  records.layers = [...new Set([...layersReached(records.deepest), ...records.layers])];
   return {
     ...d,
     ...s,
     bank: { ...d.bank, ...(s.bank || {}) },
     upgrades: { ...d.upgrades, ...(s.upgrades || {}) },
     plots: Array.from({ length: PLOT_COUNT }, (_, i) => (s.plots && s.plots[i]) || null),
-    records: { ...d.records, ...(s.records || {}) },
+    records,
     decor: { ...d.decor, ...(s.decor || {}) },
     visitors: { ...d.visitors, ...(s.visitors || {}) },
   };
