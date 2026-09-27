@@ -420,6 +420,18 @@ function drawIcons(scene, canvasTexture, rect) {
     rect(ctx, '#4cc24a', 11, 4, 2, 2);
     rect(ctx, '#e03a3a', 13, 6, 2, 2);
   });
+  one('btn-b', 10, 10, (ctx) => drawMap(ctx, 0, 0, [
+    '..oooooo..',
+    '.orrrrrro.',
+    'orrwwwRrro',
+    'orrwRRwrro',
+    'orrwwwRrro',
+    'orrwRRwrro',
+    'orrwwwRrro',
+    'orrrrrrrRo',
+    '.oRRRRRRo.',
+    '..oooooo..',
+  ], { o: '#5a1a1a', r: '#e0503a', R: '#a8322a', w: '#ffffff' }));
   one('icon-pause', 12, 12, (ctx) => {
     rect(ctx, OUT, 1, 0, 4, 12); rect(ctx, '#fff6e0', 2, 1, 2, 10);
     rect(ctx, OUT, 7, 0, 4, 12); rect(ctx, '#fff6e0', 8, 1, 2, 10);

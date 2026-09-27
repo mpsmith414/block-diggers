@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { drawTextures } from '../art/textures.js';
 import { createInputSession } from '../input/session.js';
+import { createDevices } from '../input/devices.js';
+import { createTouch } from '../input/touch.js';
 import { loadIntoRegistry } from '../save/store.js';
 import { createAudio } from '../audio/audio.js';
 import { createSfx } from '../audio/sfx.js';
@@ -14,7 +16,11 @@ export class BootScene extends Phaser.Scene {
   create() {
     drawTextures(this);
     if (!this.registry.get('input')) {
-      const session = createInputSession({ win: window, doc: document });
+      // phones and tablets get on-screen controls (as player 1 when they tap A)
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      const extras = navigator.maxTouchPoints > 0 && coarse ? [createTouch({ doc: document, win: window })] : [];
+      const devices = createDevices({ nav: navigator, target: window, extras });
+      const session = createInputSession({ win: window, doc: document, devices });
       this.registry.set('input', session);
       // Poll once per frame, before any scene updates.
       this.game.events.on(Phaser.Core.Events.PRE_STEP, () => session.update());

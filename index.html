@@ -7,10 +7,19 @@
   <style>
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     #game { position: fixed; inset: 0; }
+    #rotate {
+      display: none; position: fixed; inset: 0; z-index: 50; background: #1b1428;
+      align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+      font-size: 64px; color: #f4e4c1;
+    }
+    #rotate span { display: inline-block; animation: turn 2s ease-in-out infinite; }
+    @keyframes turn { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(90deg); } }
+    @media (orientation: portrait) and (max-width: 900px) { #rotate { display: flex; } }
   </style>
 </head>
 <body>
   <div id="game"></div>
+  <div id="rotate" aria-label="Turn your phone sideways"><span>📱</span>↻</div>
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>

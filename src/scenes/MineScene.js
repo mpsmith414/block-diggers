@@ -122,6 +122,7 @@ export class MineScene extends Phaser.Scene {
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
       crack: this.add.image(0, 0, 'cracks', 0).setOrigin(0).setDepth(20).setVisible(false),
       full: this.add.image(0, 0, 'icon-full').setDepth(61).setVisible(false),
+      fullHint: this.add.image(0, 0, 'btn-b').setDepth(61).setVisible(false),
       bubble: this.add.image(0, 0, 'bubble').setDepth(62).setVisible(false),
       bubbling: false,
       invuln: 0,
@@ -453,7 +454,11 @@ export class MineScene extends Phaser.Scene {
     } else {
       a.crack.setVisible(false);
     }
-    a.full.setVisible(packFull(a.pack) && !a.bubbling).setPosition(sprite.x, sprite.y - 22 + Math.sin(time / 200) * 1.5);
+    // backpack full: show the bag, then a pulsing B ("hold B to go home")
+    const full = packFull(a.pack) && !a.bubbling;
+    const bob = Math.sin(time / 200) * 1.5;
+    a.full.setVisible(full).setPosition(sprite.x - 6, sprite.y - 22 + bob);
+    a.fullHint.setVisible(full && Math.floor(time / 500) % 2 === 0).setPosition(sprite.x + 7, sprite.y - 22 + bob);
     if (a.bubbling) {
       const wob = 1 + Math.sin(time / 90) * 0.06;
       a.bubble.setPosition(sprite.x, sprite.y - 7).setScale(wob, 2 - wob);

@@ -74,7 +74,7 @@ export function createKeyboard(target) {
   };
 }
 
-export function createDevices({ nav = globalThis.navigator, target = globalThis.window } = {}) {
+export function createDevices({ nav = globalThis.navigator, target = globalThis.window, extras = [] } = {}) {
   const keyboard = target ? createKeyboard(target) : null;
   return {
     poll() {
@@ -86,10 +86,12 @@ export function createDevices({ nav = globalThis.navigator, target = globalThis.
       }
       const states = pads.filter((gp) => gp && gp.connected !== false).map(readPad);
       if (keyboard) states.push(keyboard.read());
+      for (const d of extras) states.push(d.read());
       return states;
     },
     destroy() {
       if (keyboard) keyboard.destroy();
+      for (const d of extras) d.destroy();
     },
   };
 }
