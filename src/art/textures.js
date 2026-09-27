@@ -13,6 +13,7 @@ import { drawFriends } from './friends.js';
 import { drawDecorItems } from './decorItems.js';
 import { drawAdventures } from './adventures.js';
 import { drawDeep, toyBrick } from './deep.js';
+import { drawDeepCamp } from './deepCamp.js';
 
 const T = 16;
 
@@ -40,7 +41,7 @@ const HOSTS = {
   [B.DEEP]: { base: '#3f3d4f', dark: '#2d2b3a', light: '#555368' },
   [B.CRYSTAL]: { base: '#4b3f8a', dark: '#3a2f6e', light: '#8a7fe0' },
   [B.SAND]: { base: '#c0985a', dark: '#a07c46', light: '#d8b47a' },
-  [B.METEOR]: { base: '#1e1c3a', dark: '#141230', light: '#34305e' },
+  [B.METEOR]: { base: '#1e1c3a', dark: '#16143a', light: '#262450' },
   [B.CORE]: { base: '#5a2418', dark: '#3e160e', light: '#7a3420' },
   [B.MOONROCK]: { base: '#b8b8c8', dark: '#9898aa', light: '#dcdcea' },
 };
@@ -316,7 +317,6 @@ function drawDeepTiles(ctx, at, rng) {
   const spaceRock = (id) => {
     // (the twinkling stars are added in the mine, so they don't repeat in a grid)
     speckle(ctx, at(id), rng, HOSTS[B.METEOR], 5);
-    rect(ctx, '#3e3a70', at(id) + 4, 3);
     rect(ctx, '#0e0c24', at(id) + 9, 10, 4, 2);
     rect(ctx, '#3a3668', at(id) + 9, 12, 4, 1);
   };
@@ -651,4 +651,5 @@ export function drawTextures(scene) {
   drawDecorItems(scene, canvasTexture, rect);
   drawAdventures(scene, canvasTexture, rect);
   drawDeep(scene, canvasTexture, rect);
+  drawDeepCamp(scene, canvasTexture, rect);
 }

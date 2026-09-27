@@ -3,6 +3,8 @@ import { ORES } from '../world/blocks.js';
 import { UPGRADE_KINDS, UPGRADES } from '../game/economy.js';
 import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
+import { B } from '../world/blocks.js';
+import { LAYERS, LAYER_COLORS } from '../tuning.js';
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
 // and the blueprint / upgrade picker.
@@ -43,6 +45,8 @@ export class CampHudScene extends Phaser.Scene {
 
   buildBank() {
     const kinds = shownOres(getState(this.registry));
+    // the Heart of the World sits at the end of the bank once you have one
+    if ((getState(this.registry).bank.heart ?? 0) > 0) kinds.push('heart');
     this.bankKinds = kinds.length;
     const w = 16 + kinds.length * 28 + 50;
     const x = Math.round((this.scale.width - w) / 2);
@@ -77,8 +81,9 @@ export class CampHudScene extends Phaser.Scene {
 
   syncBank(bank, only = null) {
     // a newly found ore makes the bank panel grow
-    if (shownOres(getState(this.registry)).length !== this.bankKinds) this.buildBank();
-    for (const ore of ORES) {
+    const heart = (getState(this.registry).bank.heart ?? 0) > 0 ? 1 : 0;
+    if (shownOres(getState(this.registry)).length + heart !== this.bankKinds) this.buildBank();
+    for (const ore of [...ORES, 'heart']) {
       if (only && ore !== only) continue;
       const b = this.bankIcons[ore];
       if (!b) continue;
@@ -200,7 +205,7 @@ export class CampHudScene extends Phaser.Scene {
 
   openPicker(p) {
     this.closePicker();
-    this.picker = { ...p, index: Math.max(0, p.options.findIndex((o) => o.affordable)) };
+    this.picker = { ...p, index: p.index ?? Math.max(0, p.options.findIndex((o) => o.affordable)) };
     this.renderPicker(true);
     this.camp.events.emit('pickerOpen');
   }
@@ -257,6 +262,24 @@ export class CampHudScene extends Phaser.Scene {
         c.add(this.add.image(midX - 12, y + h - 24, 'icon-bag').setScale(2));
         c.add(this.add.bitmapText(midX + 2, y + h - 30, 'pixel', `x${opt.stock}`).setScale(2).setTint(INK));
       }
+    } else if (pk.kind === 'elevator') {
+      // the layer's badge (or its rock), and a padlock if you haven't been there yet
+      const deep = ['dino', 'brick', 'meteor', 'core'].indexOf(opt.id);
+      const rock = { dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL }[opt.id];
+      const img = deep >= 0 ? this.add.image(midX, y + 40, 'badge', deep).setScale(3.5) : this.add.image(midX, y + 40, 'tiles', rock).setScale(3.5);
+      c.add(this.add.image(midX - 40, y + 50, 'cart', 0).setScale(2));
+      c.add(img);
+      if (!opt.affordable) {
+        img.setTint(0x6a5a4a).setAlpha(0.5);
+        c.add(this.add.image(midX, y + 40, 'icon-lock').setScale(3));
+      }
+      // where it is: the layers top to bottom, this one marked
+      const names = Object.keys(LAYERS);
+      names.forEach((name, i) => {
+        const bx = midX - names.length * 7 + i * 14;
+        c.add(this.add.rectangle(bx, y + h - 34, 12, 8, LAYER_COLORS[name]).setOrigin(0).setAlpha(name === opt.id ? 1 : 0.45));
+        if (name === opt.id) c.add(this.add.image(bx + 6, y + h - 40, 'arrow-r').setAngle(90));
+      });
     } else if (pk.kind === 'blueprint') {
       const img = this.add.image(midX, y + 8, `bld-${opt.id}`).setOrigin(0.5, 0).setScale(0.8);
       if (!opt.affordable) img.setTint(0xb0a090).setAlpha(0.7);
@@ -277,7 +300,7 @@ export class CampHudScene extends Phaser.Scene {
 
     // cost row (or a star when maxed)
     const rowY = y + h - 30;
-    if (pk.kind === 'decor' && opt.stock) {
+    if ((pk.kind === 'decor' && opt.stock) || pk.kind === 'elevator') {
       // (shown above)
     } else if (!opt.cost) {
       c.add(this.add.image(midX, rowY + 6, 'star').setScale(2));

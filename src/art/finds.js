@@ -35,12 +35,15 @@ const EGG = [
   '...oEEEEo...',
   '....oooo....',
 ];
-export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden'];
+export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden', 'rex', 'trike'];
 const EGG_COLORS = {
   mole: { e: '#e8d0b0', s: '#8a5a34', E: '#c8a888' },
   glowbug: { e: '#fff6b0', s: '#ffd84a', E: '#e0c860' },
   batbuddy: { e: '#b8f0f0', s: '#3aa0a8', E: '#88c8cc' },
   golden: { e: '#ffd84a', s: '#fff6c0', E: '#c89a20' },
+  // big speckled dinosaur eggs
+  rex: { e: '#b8e0a0', s: '#3a7a2a', E: '#88b870' },
+  trike: { e: '#f0d0a0', s: '#c86a3a', E: '#c8a070' },
 };
 
 const FOSSILS = [
@@ -66,12 +69,15 @@ export function drawFindsArt(scene, canvasTexture, rect) {
     tex.refresh();
   }
   {
-    const { tex, ctx } = canvasTexture(scene, 'egg', 48, 13);
+    const { tex, ctx } = canvasTexture(scene, 'egg', 12 * EGG_KINDS.length, 13);
     EGG_KINDS.forEach((k, i) => {
       drawMap(ctx, i * 12, 0, EGG, { o: OUT, ...EGG_COLORS[k] });
       tex.add(i, 0, i * 12, 0, 12, 13);
     });
     tex.refresh();
+    const dino = canvasTexture(scene, 'egg-dino', 12, 13);
+    drawMap(dino.ctx, 0, 0, EGG, { o: OUT, ...EGG_COLORS.rex });
+    dino.tex.refresh();
   }
   {
     const { tex, ctx } = canvasTexture(scene, 'find-geode', 16, 16);

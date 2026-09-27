@@ -117,7 +117,8 @@ export function createFindsView(scene) {
     for (const [k, e] of pushing) {
       const dir = e.dirs[0];
       const same = e.dirs.filter((d) => d === dir).length;
-      if (same < (coop ? 2 : 1)) {
+      // in co-op it takes two (or one and the Triceratops)
+      if (same < (coop && !scene.pets?.has('trike') ? 2 : 1)) {
         pushT.delete(k);
         lonely = e;
         continue;
@@ -186,7 +187,7 @@ export function createFindsView(scene) {
         scene.tweens.killTweensOf(e.s);
         scene.tweens.add({ targets: e.s, y: e.s.y - 30, scale: 1.8, alpha: 0, duration: 700, onComplete: () => e.s.destroy() });
         scene.effects.sparkle(e.s.x, e.s.y - 6, 0xfff2a0, 10);
-        earnSticker(scene, e.kind === 'golden' ? 'find-goldegg' : 'find-egg');
+        earnSticker(scene, e.kind === 'golden' ? 'find-goldegg' : e.kind === 'rex' || e.kind === 'trike' ? 'find-dinoegg' : 'find-egg');
         scene.events.emit('egg', e);
         break;
       }

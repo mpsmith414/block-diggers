@@ -6,6 +6,7 @@ import { MINE_H, LAYERS, LAYER_COLORS, TILE } from '../tuning.js';
 import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
 import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
+import { EGG_KINDS } from '../art/finds.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
@@ -173,7 +174,7 @@ export class HudScene extends Phaser.Scene {
       this.carriedShown = carried.length;
       this.carriedEggs.removeAll(true);
       carried.forEach((kind, i) => {
-        const img = this.add.image(i * 13 + 6, 7, 'egg', ['mole', 'glowbug', 'batbuddy', 'golden'].indexOf(kind));
+        const img = this.add.image(i * 13 + 6, 7, 'egg', EGG_KINDS.indexOf(kind));
         this.carriedEggs.add(img);
         if (i === carried.length - 1) this.tweens.add({ targets: img, scale: { from: 2, to: 1 }, duration: 300, ease: 'Back.easeOut' });
       });

@@ -4,6 +4,7 @@ import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
+import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
 import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
@@ -50,9 +51,10 @@ export class MineScene extends Phaser.Scene {
   create() {
     this.session = this.registry.get('input');
     const saved = getState(this.registry);
-    this.eggKinds = ['mole', 'glowbug', 'batbuddy'].filter((k) => !(saved.pets ?? []).includes(k));
+    this.eggKinds = CAVE_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
+    const dinoEggKinds = DINO_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
     this.luck = luck(saved);
-    this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds });
+    this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);

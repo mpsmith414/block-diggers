@@ -30,6 +30,7 @@ const MINE = {
   glug: (s) => s.play('glug'),
   burp: (s) => s.play('burp'),
   spring: (s) => s.play('boing'),
+  rawr: (s) => s.play('rawr'),
   discover: (s) => s.play('fanfare'),
   heart: (s) => s.play('heart'),
   heartChip: (s) => s.play('crack'),

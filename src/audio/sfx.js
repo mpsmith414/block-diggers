@@ -126,6 +126,11 @@ export function createSfx(audio) {
       ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: 0.12 + i * 0.07 }));
     },
     wobble() { tone({ type: 'sine', freq: 300, to: 360, dur: 0.1, gain: 0.06 }); },
+    rawr() {
+      tone({ type: 'sawtooth', freq: 320, to: 180, dur: 0.35, gain: 0.07 });
+      tone({ type: 'square', freq: 480, to: 260, dur: 0.3, gain: 0.04 });
+      noise({ dur: 0.3, gain: 0.08, freq: 900, to: 400, q: 2, type: 'bandpass' });
+    },
     boing() {
       tone({ type: 'sine', freq: 180, to: 520, dur: 0.25, gain: 0.14 });
       tone({ type: 'triangle', freq: 360, to: 900, dur: 0.2, gain: 0.05, at: 0.03 });
