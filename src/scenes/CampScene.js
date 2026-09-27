@@ -10,6 +10,7 @@ import { BUILDING_SIZE } from '../art/camp.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
 import { getState, setState } from '../save/store.js';
+import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
@@ -41,6 +42,9 @@ export class CampScene extends Phaser.Scene {
     this.buildings = [];
     this.critters = [];
     this.leaving = false;
+    // arriving home counts as the next trip for the sky
+    const trips = (getState(this.registry).trips ?? 0) + (this.arrived ? 1 : 0);
+    this.phase = phaseForTrips(trips);
 
     this.drawBackdrop();
     this.drawGround();
@@ -65,32 +69,50 @@ export class CampScene extends Phaser.Scene {
   // ---------- scenery ----------
 
   drawBackdrop() {
+    const ph = PHASES[this.phase];
     const top = -SKY_ROWS * TILE;
     const h = GROUND_Y - top;
     const sky = this.add.graphics().setDepth(-30).setScrollFactor(0.2, 1);
-    sky.fillGradientStyle(0x5b4b8a, 0x5b4b8a, 0xf7a86b, 0xf7a86b, 1);
+    sky.fillGradientStyle(ph.skyTop, ph.skyTop, ph.skyBottom, ph.skyBottom, 1);
     sky.fillRect(-200, top, W + 400, h);
-    // the sun, low and warm
-    const sun = this.add.graphics().setDepth(-29).setScrollFactor(0.1, 1);
-    sun.fillStyle(0xffe6a0, 0.25).fillCircle(300, GROUND_Y - 64, 28);
-    sun.fillStyle(0xffd27a, 1).fillCircle(300, GROUND_Y - 64, 16);
-    sun.fillStyle(0xfff2c8, 1).fillCircle(296, GROUND_Y - 68, 6);
+    const orb = this.add.graphics().setDepth(-29).setScrollFactor(0.1, 1);
+    if (ph.sun) {
+      orb.fillStyle(0xffe6a0, 0.25).fillCircle(ph.sun.x, GROUND_Y - ph.sun.y, 28);
+      orb.fillStyle(ph.sun.color, 1).fillCircle(ph.sun.x, GROUND_Y - ph.sun.y, 16);
+      orb.fillStyle(0xfff8e0, 1).fillCircle(ph.sun.x - 4, GROUND_Y - ph.sun.y - 4, 6);
+    }
+    if (ph.moon) {
+      // twinkling stars and a crescent moon
+      for (let i = 0; i < 60; i++) {
+        const st = this.add.image((i * 173) % (W + 200) - 100, top + ((i * 61) % (h - 40)), 'pixel')
+          .setDepth(-29).setScrollFactor(0.15, 1).setDisplaySize(1, 1).setTint(0xfff6d0);
+        this.tweens.add({ targets: st, alpha: { from: 0.2, to: 1 }, duration: 800 + (i % 7) * 300, yoyo: true, repeat: -1 });
+      }
+      orb.fillStyle(0xfff6d0, 0.15).fillCircle(ph.moon.x, GROUND_Y - ph.moon.y, 26);
+      orb.fillStyle(0xfff6d0, 1).fillCircle(ph.moon.x, GROUND_Y - ph.moon.y, 13);
+      orb.fillStyle(ph.skyTop, 1).fillCircle(ph.moon.x + 6, GROUND_Y - ph.moon.y - 4, 11);
+    }
     // far hills, near hills (parallax)
     const far = this.add.graphics().setDepth(-28).setScrollFactor(0.35, 1);
-    far.fillStyle(0x9a86b8, 1);
+    far.fillStyle(ph.far, 1);
     for (let i = 0; i < 12; i++) far.fillCircle(i * 110 - 40, GROUND_Y - 6, 70);
     const near = this.add.graphics().setDepth(-27).setScrollFactor(0.6, 1);
-    near.fillStyle(0x7fb267, 1);
+    near.fillStyle(ph.near[0], 1);
     for (let i = 0; i < 14; i++) near.fillCircle(i * 95 - 30, GROUND_Y + 12, 58);
-    near.fillStyle(0x6aa258, 1);
+    near.fillStyle(ph.near[1], 1);
     for (let i = 0; i < 14; i++) near.fillCircle(i * 95 + 20, GROUND_Y + 24, 50);
     // drifting clouds
     for (let i = 0; i < 6; i++) {
       const c = this.add.graphics().setDepth(-26).setScrollFactor(0.3, 1);
-      c.fillStyle(0xffffff, 0.85);
+      c.fillStyle(0xffffff, ph.clouds);
       c.fillRect(0, 0, 30, 7).fillRect(6, -5, 16, 5).fillRect(20, -3, 8, 3);
       c.setPosition(i * 190, top + 16 + (i % 3) * 14);
       this.tweens.add({ targets: c, x: c.x + 120, duration: 40000 + i * 5000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    // night: dim the scenery (lights and players are drawn above this)
+    if (ph.night) {
+      this.add.rectangle(-200, top, W + 400, h + CAMP.h * TILE, 0x1a1e48, ph.night)
+        .setOrigin(0).setDepth(25).setBlendMode(Phaser.BlendModes.MULTIPLY);
     }
   }
 
@@ -121,9 +143,11 @@ export class CampScene extends Phaser.Scene {
     this.add.image(CAMP.benchX * TILE + TILE / 2, GROUND_Y, 'bench').setOrigin(0.5, 1).setDepth(5);
     // campfire with flicker, glow and embers
     const fx = CAMP.fireX * TILE + TILE / 2;
-    const glow = this.add.image(fx, GROUND_Y - 6, 'light').setTint(0xffa040).setAlpha(0.28).setScale(1.1).setDepth(6);
+    const night = PHASES[this.phase].night > 0;
+    const glow = this.add.image(fx, GROUND_Y - 6, 'light').setTint(0xffa040).setAlpha(night ? 0.5 : 0.28).setScale(night ? 2.2 : 1.1).setDepth(night ? 26 : 6);
+    if (night) glow.setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: glow, alpha: 0.18, scale: 1.0, duration: 180, yoyo: true, repeat: -1 });
-    const fire = this.add.sprite(fx, GROUND_Y, 'fire', 0).setOrigin(0.5, 1).setDepth(7);
+    const fire = this.add.sprite(fx, GROUND_Y, 'fire', 0).setOrigin(0.5, 1).setDepth(night ? 26 : 7);
     this.time.addEvent({ delay: 120, loop: true, callback: () => fire.setFrame((Number(fire.frame.name) + 1) % 3) });
     this.time.addEvent({
       delay: 350,
@@ -133,10 +157,10 @@ export class CampScene extends Phaser.Scene {
         this.tweens.add({ targets: e, y: e.y - 24, x: e.x + Phaser.Math.Between(-6, 6), alpha: 0, duration: 1200, onComplete: () => e.destroy() });
       },
     });
-    // fireflies drifting about
-    for (let i = 0; i < 10; i++) {
+    // fireflies drifting about (more at night)
+    for (let i = 0; i < PHASES[this.phase].fireflies; i++) {
       const f = this.add.image(Phaser.Math.Between(40, W - 40), GROUND_Y - Phaser.Math.Between(12, 60), 'pixel')
-        .setTint(0xfff27a).setDepth(20).setDisplaySize(1, 1).setBlendMode(Phaser.BlendModes.ADD);
+        .setTint(0xfff27a).setDepth(27).setDisplaySize(1, 1).setBlendMode(Phaser.BlendModes.ADD);
       this.tweens.add({ targets: f, x: f.x + Phaser.Math.Between(-30, 30), y: f.y + Phaser.Math.Between(-12, 12), duration: 3000 + i * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.tweens.add({ targets: f, alpha: { from: 0.2, to: 1 }, duration: 700 + i * 90, yoyo: true, repeat: -1 });
     }
@@ -179,6 +203,8 @@ export class CampScene extends Phaser.Scene {
           this.effects.sparkle(x + BUILDING_SIZE.w / 2, GROUND_Y - 40, 0xffffff, 10);
           this.cameras.main.flash(200, 255, 240, 200);
           this.addExtras(b);
+          this.effects.confetti(x + BUILDING_SIZE.w / 2, GROUND_Y - 50);
+          for (const a of this.avatars) if (a && a.p.grounded) a.p.vy = -170;
           this.events.emit('built', b);
         },
       });
@@ -190,6 +216,11 @@ export class CampScene extends Phaser.Scene {
   // Life for each building: smoke, animals, a waving flag, the minecart.
   addExtras(b) {
     const { x, id } = b;
+    if (id === 'house' && PHASES[this.phase].night) {
+      for (const wx of [26, 70]) {
+        this.add.image(x + wx, GROUND_Y - 26, 'light').setTint(0xffc860).setAlpha(0.45).setScale(0.5).setDepth(26).setBlendMode(Phaser.BlendModes.ADD);
+      }
+    }
     if (id === 'house') {
       this.time.addEvent({
         delay: 700,

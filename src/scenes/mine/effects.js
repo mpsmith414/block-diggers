@@ -85,6 +85,25 @@ export function createEffects(scene) {
       }
     },
 
+    // A celebration: a burst of colourful confetti that flutters down.
+    confetti(x, y) {
+      const colors = [0xff7eb6, 0xffd84a, 0x8ec5ff, 0x7ad65a, 0xffffff, 0xb98cff];
+      for (let i = 0; i < 40; i++) {
+        const c = scene.add.image(x, y, 'pixel').setTint(colors[i % colors.length]).setDisplaySize(2, 3).setDepth(65);
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+        const v = 60 + Math.random() * 70;
+        scene.tweens.add({
+          targets: c,
+          x: x + Math.cos(a) * v,
+          y: { value: y + Math.sin(a) * v + 70, ease: 'Quad.easeIn' },
+          angle: Math.random() * 720 - 360,
+          alpha: { from: 1, to: 0 },
+          duration: 1400 + Math.random() * 600,
+          onComplete: () => c.destroy(),
+        });
+      }
+    },
+
     // Short floating icon (e.g. "bounced off" or "full") above a point.
     flash(x, y, key) {
       const icon = scene.add.image(x, y, key).setDepth(60);
