@@ -19,6 +19,7 @@ import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
 import { packCap, revealsChests, luck } from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
+import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { attachAudio } from '../audio/wire.js';
@@ -74,6 +75,7 @@ export class MineScene extends Phaser.Scene {
     this.dugCount = 0;
     this.hazards = createHazards(this);
     this.finds = createFindsView(this);
+    this.pets = createPetsView(this, saved.pets ?? []);
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
     this.lavaCells = [];
     for (let y = 0; y < MINE_H; y++) {
@@ -242,6 +244,7 @@ export class MineScene extends Phaser.Scene {
     }
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
+    this.pets.update(dt, time);
     for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
     if (coop) this.catchOffscreen(dt);
     this.updateCamera(dt);
@@ -378,7 +381,7 @@ export class MineScene extends Phaser.Scene {
     if (lava) this.lavaBonk(a, lava);
 
     // collect ores lying around (nearby ones float in)
-    attractPickups(this.pickups, { x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, a.pack, dt);
+    attractPickups(this.pickups, { x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }, a.pack, dt, this.pets.magnet());
     const box = { x: a.p.x, y: a.p.y, w: PLAYER.w, h: PLAYER.h };
     const { list, collected } = collectPickups(this.pickups, box, a.pack);
     this.pickups = list;
@@ -650,6 +653,7 @@ export class MineScene extends Phaser.Scene {
       lights.push({ x, y, r: 1.6 * flicker, glow: 0.12, color: 0xff6a2a });
     }
     lights.push(...this.decor.lights(view, flicker));
+    lights.push(...this.pets.lights());
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     for (const c of this.world.chests) {

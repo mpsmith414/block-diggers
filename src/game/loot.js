@@ -81,14 +81,14 @@ export function chestLoot(row, rng) {
 }
 
 // Loose ore near a player with room in their pack floats into them.
-export function attractPickups(list, center, pack, dt) {
+export function attractPickups(list, center, pack, dt, radiusMul = 1) {
   if (packFull(pack)) return;
   for (const p of list) {
     if (p.delay > 0) continue;
     const dx = center.x - p.x;
     const dy = center.y - p.y;
     const d = Math.hypot(dx, dy);
-    if (d > PICKUP.magnetRadius || d < 0.5) continue;
+    if (d > PICKUP.magnetRadius * radiusMul || d < 0.5) continue;
     const step = Math.min(d, PICKUP.magnetSpeed * dt);
     p.x += (dx / d) * step;
     p.y += (dy / d) * step;

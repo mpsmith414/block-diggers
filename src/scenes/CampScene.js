@@ -14,6 +14,7 @@ import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import { createPerksView } from './camp/perksView.js';
+import { createCampPets } from './camp/campPets.js';
 import { earnSticker } from './common/stickers.js';
 import { growGarden, leavePenGift, cartStartRow } from '../game/perks.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -46,6 +47,7 @@ export class CampScene extends Phaser.Scene {
     this.buildings = [];
     this.critters = [];
     this.leaving = false;
+    this.arriving = !!this.arrived; // summary + deposit in progress: the mine waits
     // arriving home counts as the next trip for the sky
     const trips = (getState(this.registry).trips ?? 0) + (this.arrived ? 1 : 0);
     this.phase = phaseForTrips(trips);
@@ -55,6 +57,7 @@ export class CampScene extends Phaser.Scene {
     this.drawProps();
     this.placeBuildings();
     this.perks = createPerksView(this);
+    this.campPets = createCampPets(this);
     this.perks.refresh();
     // older saves: back-fill stickers for buildings already standing
     for (const id of getState(this.registry).plots) if (id) earnSticker(this, `bld-${id}`, { quiet: true });
@@ -355,6 +358,7 @@ export class CampScene extends Phaser.Scene {
 
     this.updateStars(time, prompt);
     this.perks.update(time);
+    this.campPets.update(dt, time);
     this.stepCritters(dt, time);
     this.updateCamera(dt);
   }
@@ -484,12 +488,18 @@ export class CampScene extends Phaser.Scene {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
     const state = setState(this.registry, { ...depositPacks(getState(this.registry), packs), trips: (getState(this.registry).trips ?? 0) + 1 });
-    hud.flyOres(packs, this.avatars, state.bank);
+    const flyTime = hud.flyOres(packs, this.avatars, state.bank);
+    const eggs = this.arrived.eggs ?? [];
+    this.time.delayedCall(flyTime + 400, () => {
+      this.arriving = false;
+      if (eggs.length) this.campPets.hatchAll(eggs);
+    });
     this.arrived = null;
   }
 
   startTrip({ cart = false } = {}) {
-    if (this.leaving) return;
+    if (this.leaving || this.arriving) return;
+    this.campPets.flush();
     this.leaving = true;
     const hud = this.scene.get('CampHud');
     hud.closePicker();

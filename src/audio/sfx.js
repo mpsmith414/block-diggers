@@ -120,6 +120,12 @@ export function createSfx(audio) {
     },
     splash() { noise({ dur: 0.35, gain: 0.18, freq: 1200, to: 400, q: 1, type: 'bandpass' }); },
     egg() { ['C6', 'E6', 'G6', 'C7'].forEach((n, i) => tone({ type: 'sine', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: i * 0.06 })); },
+    sniff() { tone({ type: 'sine', freq: 900, to: 1400, dur: 0.12, gain: 0.05 }); tone({ type: 'sine', freq: 1000, to: 1500, dur: 0.12, gain: 0.05, at: 0.14 }); },
+    hatch() {
+      noise({ dur: 0.1, gain: 0.2, freq: 2500, q: 3 });
+      ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.2, gain: 0.08, at: 0.12 + i * 0.07 }));
+    },
+    wobble() { tone({ type: 'sine', freq: 300, to: 360, dur: 0.1, gain: 0.06 }); },
     join() { ['E5', 'A5'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.07, at: i * 0.08 })); },
     lava() { noise({ dur: 0.3, gain: 0.15, freq: 400, to: 1500, q: 1, type: 'lowpass' }); },
     gravel() { noise({ dur: 0.2, gain: 0.25, freq: 600, to: 150, q: 0.8, type: 'lowpass' }); },

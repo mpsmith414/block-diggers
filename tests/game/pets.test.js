@@ -1,0 +1,70 @@
+import { describe, it, expect } from 'vitest';
+import { PET_KINDS, hatch, sniff, follow, nearestPickup } from '../../src/game/pets.js';
+import { attractPickups, createPickup, createBackpack } from '../../src/game/loot.js';
+import { defaultState } from '../../src/save/save.js';
+import { createGrid } from '../../src/world/grid.js';
+import { B } from '../../src/world/blocks.js';
+import { PICKUP, PETS } from '../../src/tuning.js';
+
+describe('hatch', () => {
+  it('a new kind of egg hatches into a new pet', () => {
+    const r = hatch(defaultState(), 'mole');
+    expect(r.pet).toBe('mole');
+    expect(r.state.pets).toEqual(['mole']);
+    expect(r.gold).toBe(0);
+  });
+  it('a golden egg, or one you already have, gives gold instead', () => {
+    const s = { ...defaultState(), pets: ['mole'] };
+    const dup = hatch(s, 'mole');
+    expect(dup.pet).toBeNull();
+    expect(dup.gold).toBe(PETS.goldenEggGold);
+    expect(dup.state.bank.gold).toBe(PETS.goldenEggGold);
+    expect(hatch(s, 'golden').gold).toBe(PETS.goldenEggGold);
+  });
+  it('knows the three pets', () => {
+    expect(PET_KINDS).toEqual(['mole', 'glowbug', 'batbuddy']);
+  });
+});
+
+describe('sniff', () => {
+  it('finds the nearest ore within range, ignoring plain rock', () => {
+    const g = createGrid(20, 20);
+    for (let y = 0; y < 20; y++) for (let x = 0; x < 20; x++) g.set(x, y, B.STONE);
+    g.set(15, 10, B.IRON);
+    g.set(3, 10, B.GOLD_STONE);
+    expect(sniff(g, 5, 10, 10)).toEqual({ x: 3, y: 10 });
+    expect(sniff(g, 12, 10, 10)).toEqual({ x: 15, y: 10 });
+    expect(sniff(g, 10, 0, 3)).toBeNull();
+  });
+});
+
+describe('follow', () => {
+  it('eases toward the target without overshooting', () => {
+    const p = { x: 0, y: 0 };
+    follow(p, { x: 100, y: 0 }, 0.1, 50);
+    expect(p.x).toBeGreaterThan(0);
+    expect(p.x).toBeLessThanOrEqual(5.0001);
+    for (let i = 0; i < 200; i++) follow(p, { x: 100, y: 0 }, 0.1, 50);
+    expect(p.x).toBeCloseTo(100, 3);
+  });
+});
+
+describe('nearestPickup and the bat buddy magnet', () => {
+  it('finds the nearest collectable pickup within r', () => {
+    const list = [
+      createPickup({ x: 50, y: 0, ore: 'coal' }),
+      createPickup({ x: 20, y: 0, ore: 'iron', delay: 1 }),
+      createPickup({ x: 30, y: 0, ore: 'gold' }),
+    ];
+    expect(nearestPickup(list, 0, 0, 40).ore).toBe('gold');
+    expect(nearestPickup(list, 0, 0, 10)).toBeNull();
+  });
+  it('a radius multiplier pulls from further away', () => {
+    const far = PICKUP.magnetRadius * 1.5;
+    const p1 = createPickup({ x: far, y: 0, ore: 'coal' });
+    attractPickups([p1], { x: 0, y: 0 }, createBackpack(5), 1 / 60);
+    expect(p1.x).toBe(far);
+    attractPickups([p1], { x: 0, y: 0 }, createBackpack(5), 1 / 60, 2);
+    expect(p1.x).toBeLessThan(far);
+  });
+});

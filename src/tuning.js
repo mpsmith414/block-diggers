@@ -89,6 +89,9 @@ export const FUSE = 1.5; // seconds a boom block flashes before going poof
 export const PUSH_TIME = 0.5; // seconds of pushing to roll a boulder
 export const GOLDEN_SLIME = 0.08;
 
+// ---- pets ----
+export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160 };
+
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };
 

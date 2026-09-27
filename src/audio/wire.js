@@ -24,6 +24,7 @@ const MINE = {
   fossil: (s) => s.play('crack'),
   splash: (s) => s.play('splash'),
   egg: (s) => s.play('egg'),
+  sniff: (s) => s.play('sniff'),
 };
 
 const CAMP = {
@@ -38,6 +39,10 @@ const CAMP = {
   tripStart: (s) => s.play('whoosh'),
   jump: (s) => s.play('jump'),
   joined: (s) => s.play('join'),
+  hatch: (s) => s.play('hatch'),
+  wobble: (s) => s.play('wobble'),
+  harvest: (s) => s.play('upgrade'),
+  gift: (s) => s.play('chest'),
 };
 
 const MENU = {

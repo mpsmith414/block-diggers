@@ -137,6 +137,7 @@ export class CampHudScene extends Phaser.Scene {
       this.syncBank(finalBank);
       this.counting = false;
     });
+    return delay + 500;
   }
 
   // side: 1 = something good off to the right, -1 = left, 0 = hide

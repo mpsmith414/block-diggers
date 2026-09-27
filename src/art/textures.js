@@ -8,6 +8,7 @@ import { drawCampArt } from './camp.js';
 import { drawLogo } from './logo.js';
 import { drawDecor } from './decor.js';
 import { drawFindsArt } from './finds.js';
+import { drawPets } from './pets.js';
 
 const T = 16;
 
@@ -453,4 +454,5 @@ export function drawTextures(scene) {
   drawLogo(scene, canvasTexture, rect);
   drawDecor(scene, canvasTexture, rect);
   drawFindsArt(scene, canvasTexture, rect);
+  drawPets(scene, canvasTexture, rect);
 }
