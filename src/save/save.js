@@ -4,7 +4,7 @@
 import { ORES } from '../world/blocks.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 2;
+export const VERSION = 3;
 const PLOT_COUNT = 6;
 
 const emptyBank = () => Object.fromEntries(ORES.map((o) => [o, 0]));
@@ -17,6 +17,14 @@ export function defaultState() {
     plots: Array(PLOT_COUNT).fill(null),
     characters: null,
     trips: 0,
+    records: { deepest: 0, mostOres: 0 },
+    stickers: {},
+    trophiesAwarded: [],
+    pets: [],
+    decor: { stock: {}, placed: [] },
+    garden: { stock: 0 },
+    pen: { gifts: 0 },
+    visitors: { met: [], requests: {} },
   };
 }
 
@@ -28,6 +36,9 @@ export function migrate(raw) {
     buildings.slice(0, PLOT_COUNT).forEach((id, i) => { plots[i] = id; });
     s = { ...defaultState(), ...rest, version: 2, upgrades: { pick, pack, lantern }, plots };
   }
+  if (s.version === 2) {
+    s = { ...s, version: 3 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   return {
@@ -36,6 +47,9 @@ export function migrate(raw) {
     bank: { ...d.bank, ...(s.bank || {}) },
     upgrades: { ...d.upgrades, ...(s.upgrades || {}) },
     plots: Array.from({ length: PLOT_COUNT }, (_, i) => (s.plots && s.plots[i]) || null),
+    records: { ...d.records, ...(s.records || {}) },
+    decor: { ...d.decor, ...(s.decor || {}) },
+    visitors: { ...d.visitors, ...(s.visitors || {}) },
   };
 }
 

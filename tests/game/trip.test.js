@@ -1,0 +1,28 @@
+import { describe, it, expect } from 'vitest';
+import { summarizeTrip } from '../../src/game/trip.js';
+
+const zero = { coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0 };
+
+describe('summarizeTrip', () => {
+  it('adds up every player and reports new records', () => {
+    const r = summarizeTrip(
+      { packs: [{ ...zero, coal: 5, gold: 1 }, { ...zero, iron: 3 }], deepest: 60, chests: 1, stickers: ['ore-gold'] },
+      { deepest: 40, mostOres: 20 },
+    );
+    expect(r.totals).toEqual({ ...zero, coal: 5, iron: 3, gold: 1 });
+    expect(r.count).toBe(9);
+    expect(r.best).toEqual({ deepest: true, mostOres: false });
+    expect(r.records).toEqual({ deepest: 60, mostOres: 20 });
+    expect(r.chests).toBe(1);
+    expect(r.stickers).toEqual(['ore-gold']);
+  });
+  it('a tie is not a record', () => {
+    const r = summarizeTrip({ packs: [{ ...zero, coal: 20 }], deepest: 40, chests: 0, stickers: [] }, { deepest: 40, mostOres: 20 });
+    expect(r.best).toEqual({ deepest: false, mostOres: false });
+  });
+  it('handles missing packs (an empty slot)', () => {
+    const r = summarizeTrip({ packs: [undefined, { ...zero, coal: 1 }], deepest: 0, chests: 0, stickers: [] }, { deepest: 0, mostOres: 0 });
+    expect(r.count).toBe(1);
+    expect(r.best.mostOres).toBe(true);
+  });
+});

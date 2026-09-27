@@ -21,7 +21,7 @@ describe('save', () => {
     const { state, status } = loadState(memStorage());
     expect(status).toBe('new');
     expect(state).toEqual(defaultState());
-    expect(state.version).toBe(2);
+    expect(state.version).toBe(3);
     expect(state.plots).toHaveLength(6);
   });
 
@@ -37,7 +37,7 @@ describe('save', () => {
   it('migrates a v1 save and keeps unknown fields', () => {
     const v1 = { version: 1, bank: { coal: 3 }, pick: 1, pack: 0, lantern: 2, buildings: ['house'], petName: 'x' };
     const s = migrate(v1);
-    expect(s.version).toBe(2);
+    expect(s.version).toBe(3);
     expect(s.upgrades).toEqual({ pick: 1, pack: 0, lantern: 2 });
     expect(s.plots).toEqual(['house', null, null, null, null, null]);
     expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0 });
@@ -64,5 +64,34 @@ describe('save', () => {
   it('missing storage entirely also works', () => {
     expect(loadState(undefined).status).toBe('unavailable');
     expect(saveState(undefined, defaultState())).toBe(false);
+  });
+});
+
+describe('save v3', () => {
+  it('migrates a v2 save: keeps progress and adds the new defaults', () => {
+    const v2 = {
+      version: 2, bank: { coal: 5, iron: 1, gold: 0, diamond: 0, emerald: 0 }, upgrades: { pick: 1, pack: 0, lantern: 1 },
+      plots: ['garden', null, null, null, null, null], characters: ['fox', 'dino'], trips: 7, muted: true,
+    };
+    const s = migrate(v2);
+    expect(s.version).toBe(3);
+    expect(s.bank.coal).toBe(5);
+    expect(s.plots[0]).toBe('garden');
+    expect(s.trips).toBe(7);
+    expect(s.muted).toBe(true);
+    expect(s.records).toEqual({ deepest: 0, mostOres: 0 });
+    expect(s.stickers).toEqual({});
+    expect(s.pets).toEqual([]);
+    expect(s.decor).toEqual({ stock: {}, placed: [] });
+    expect(s.garden).toEqual({ stock: 0 });
+    expect(s.pen).toEqual({ gifts: 0 });
+    expect(s.visitors).toEqual({ met: [], requests: {} });
+    expect(s.trophiesAwarded).toEqual([]);
+  });
+  it('a v3 save round-trips unchanged', () => {
+    const st = memStorage();
+    const s = { ...defaultState(), stickers: { 'ore-coal': true }, pets: ['mole'], decor: { stock: { lamp: 1 }, placed: [{ id: 'fence', x: 700 }] } };
+    saveState(st, s);
+    expect(loadState(st)).toEqual({ state: s, status: 'loaded' });
   });
 });
