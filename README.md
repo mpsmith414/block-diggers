@@ -9,6 +9,34 @@ a keyboard, or (single-player) a phone.
 
 Design: `docs/superpowers/specs/2026-09-25-block-diggers-design.md`
 
+## How to play
+
+1. **Title:** each player presses **A** to join, picks a friend (miner, fox,
+   robot or dino) with left/right, and presses **A** again when ready.
+2. **Camp:** walk to the mine entrance and push **down** to start a trip.
+3. **Mine:** push the stick toward a block to dig it. Digging up or down leaves
+   a ladder, so you can always climb back. Ores fly into your backpack.
+   Twinkles in the dark are ores and treasure chests. The strip on the right
+   shows how deep you are, with gold dots for chests still to find.
+4. **Go home:** hold **B** for 2 seconds. A rope pulls everyone up and the
+   ores count into the shared bank.
+5. **Build:** a gold star shows what you can afford. Stand at the bench or an
+   empty plot and press **A**: left/right to browse, **A** to buy, **B** to close.
+
+Hazards are gentle: slimes (jump on them!), bats, falling gravel and lava only
+knock you back and drop up to 3 ores. Nothing is ever lost for good.
+
+| Button | Action |
+|---|---|
+| Left stick / D-pad | walk, dig, climb |
+| A (or X) | jump / join / choose |
+| B (hold) | go home |
+| Y | float in a bubble to your partner |
+| Start or View | pause (resume, sound on/off, go home, change characters) |
+
+Keyboard: arrows or WASD, Space = A, H = B, B = Y, Esc = pause.
+Phones get on-screen controls.
+
 ## Play on the TV (Sunshine + Moonlight)
 
 The supported way to play on the TV. The game runs in Chrome on the PC, and
@@ -27,9 +55,9 @@ reads them like controllers plugged straight in.
    | Field | Value |
    |---|---|
    | Application Name | Block Diggers |
-   | Command | full path to `tools\sunshinelock-diggers.cmd` in this repo |
+   | Command | full path to `tools\sunshine\block-diggers.cmd` in this repo |
    | Working Directory | full path to the `tools\sunshine` folder |
-   | Image | full path to `tools\sunshinelock-diggers.png` |
+   | Image | full path to `tools\sunshine\block-diggers.png` |
    | Everything else | leave the defaults |
 
 4. Save.
@@ -53,7 +81,7 @@ Add a second application the same way, named "Block Diggers check", with the
 command set to the launcher followed by the controller check URL:
 
 ```
-"C:ull\path	o	ools\sunshinelock-diggers.cmd" https://mpsmith414.github.io/block-diggers/diag.html
+"C:\full\path\to\tools\sunshine\block-diggers.cmd" https://mpsmith414.github.io/block-diggers/diag.html
 ```
 
 ## Develop
@@ -66,6 +94,11 @@ npm run build    # outputs dist/
 ```
 
 Pushing to `main` runs the tests, builds, and deploys to GitHub Pages.
+
+In dev mode, `window.h` is a test harness for the browser console: `h.advance(ms)`
+steps the game frame by frame, `h.hold('ArrowDown', 1000)` holds a key,
+`h.pad(0, { a: true })` plugs in a virtual controller, and `h.shot('name')`
+saves a 3× screenshot to `.shots/name.png`.
 
 ## Fire TV Silk (best-effort)
 

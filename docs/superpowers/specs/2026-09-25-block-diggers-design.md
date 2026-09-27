@@ -1,7 +1,7 @@
 # Block Diggers — Design
 
 **Date:** 2026-09-25
-**Status:** Approved in brainstorming, pending written-spec review
+**Status:** Implemented (milestones 1–6, 2026-09-26). See "Added during the build" at the end.
 
 ## Summary
 
@@ -288,3 +288,21 @@ Whatever fix works here is written up so it can be ported to Family Arcade's Kid
 
 Online multiplayer, free-form block placement, multiple save slots, story or quests,
 spreading lava or water, crafting beyond blueprints, offline/PWA install.
+
+## Added during the build (2026-09-26)
+
+Found by playtesting (screenshots, plus a bot that digs toward ore) and added to make it more fun for a young child:
+
+- **Cave decorations.** Caves get grass tufts and flowers, with hanging roots in the dirt layer; glowing orange mushrooms and pebbles in stone; glowing blue mushrooms, purple crystals and stalactites in the deep layer. Glowing ones light the dark. Decorations disappear when their block is dug away.
+- **Pickaxe in hand.** It swings at the block being dug, and its head is wood, iron or diamond, so an upgrade is visible.
+- **Depth meter.** A strip on the right of the mine HUD shows the three layers, a face for each player, and a gold dot for each unopened chest.
+- **Guidance without words.**
+  - First trip: an animated "push the stick down" icon until three blocks are dug.
+  - Camp: a gold star over the bench or plot when something is affordable, and an edge arrow when that star is off-screen.
+  - Full backpack: a blinking B button next to the full-bag icon.
+- **Time of day at camp.** Each trip home moves it on one step: morning → day → sunset → night. Night has stars, a moon, glowing windows and more fireflies.
+- **Celebrations.** Confetti and a hop for everyone when a building finishes. Dust puffs on landing and walking.
+- **Balance.** Backpacks are 30/60/120, because 20 filled with coal in about 20 s before reaching iron. Dirt coal is rarer, and stone and deep ore are a little richer.
+- **Dropping into a 1-wide hole.** Pressing down while standing across a gap lines you up with it so you drop in. (The bot got stuck there.)
+- **Co-op bubble.** Only one player bubbles at a time, and only after being off-screen for 0.5 s.
+- **Sound.** Soft synthesised effects. The ore "ding" climbs a pentatonic scale during a streak. Music is slow and warm (sine and triangle waves, low-pass filter, soft echo) and sits well under the effects.
