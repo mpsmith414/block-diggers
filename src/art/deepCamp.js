@@ -110,7 +110,12 @@ function drawWorkshop(ctx, rect) {
   rect(ctx, OUT, cx - 1, 29, 2, 7);
 }
 
-function drawRocket(ctx, rect) {
+function drawRocket(ctx, rect, pad = true) {
+  if (pad) drawPad(ctx, rect);
+  drawShip(ctx, rect);
+}
+
+function drawPad(ctx, rect) {
   // launch pad
   rect(ctx, OUT, 16, 74, 64, 6);
   rect(ctx, '#8a94a8', 17, 75, 62, 4);
@@ -120,6 +125,9 @@ function drawRocket(ctx, rect) {
   rect(ctx, '#e0403a', 73, 17, 4, 57);
   for (let y = 20; y < 74; y += 8) rect(ctx, '#f4e4c1', 73, y, 4, 2);
   rect(ctx, OUT, 60, 30, 14, 3);
+}
+
+function drawShip(ctx, rect) {
   // fins
   for (const [x, dir] of [[32, -1], [58, 1]]) {
     for (let k = 0; k < 12; k++) rect(ctx, OUT, x + dir * Math.floor(k / 2), 58 + k, 6, 1);
@@ -244,6 +252,7 @@ export function drawDeepCamp(scene, canvasTexture, rect) {
     fn(ctx);
     tex.refresh();
   };
+  one('rocket-ship', 96, 80, (ctx) => drawShip(ctx, rect));
   one('deco-brickcastle', 28, 28, (ctx) => drawCastle(ctx, rect));
   one('deco-brickcar', 20, 18, (ctx) => drawCar(ctx, rect));
   one('deco-rainbowarch', 26, 30, (ctx) => drawArch(ctx, rect));

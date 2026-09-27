@@ -14,6 +14,7 @@ import { drawDecorItems } from './decorItems.js';
 import { drawAdventures } from './adventures.js';
 import { drawDeep, toyBrick } from './deep.js';
 import { drawDeepCamp } from './deepCamp.js';
+import { drawMoonArt } from './moonArt.js';
 
 const T = 16;
 
@@ -370,10 +371,10 @@ function drawDeepTiles(ctx, at, rng) {
   // the Moon: pale rock with craters; space crystals; moon cheese
   const moonRock = (id) => {
     speckle(ctx, at(id), rng, HOSTS[B.MOONROCK], 5);
-    rect(ctx, '#8a8a9c', at(id) + 3, 4, 5, 1);
-    rect(ctx, '#8a8a9c', at(id) + 2, 5, 1, 2);
-    rect(ctx, '#ececf6', at(id) + 3, 7, 5, 1);
-    rect(ctx, '#8a8a9c', at(id) + 10, 11, 3, 1);
+    // one small soft crater
+    rect(ctx, '#a4a4b6', at(id) + 9, 9, 3, 1);
+    rect(ctx, '#a4a4b6', at(id) + 8, 10, 1, 1);
+    rect(ctx, '#cacad8', at(id) + 9, 11, 3, 1);
   };
   moonRock(B.MOONROCK);
   moonRock(B.SPACE_CRYSTAL);
@@ -652,4 +653,5 @@ export function drawTextures(scene) {
   drawAdventures(scene, canvasTexture, rect);
   drawDeep(scene, canvasTexture, rect);
   drawDeepCamp(scene, canvasTexture, rect);
+  drawMoonArt(scene, canvasTexture, rect);
 }

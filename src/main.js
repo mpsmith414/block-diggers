@@ -6,6 +6,7 @@ import { CampScene } from './scenes/CampScene.js';
 import { TitleScene } from './scenes/TitleScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
 import { SummaryScene } from './scenes/SummaryScene.js';
+import { LaunchScene } from './scenes/LaunchScene.js';
 import { ToastScene } from './scenes/ToastScene.js';
 import { BookScene } from './scenes/BookScene.js';
 import { CampHudScene } from './scenes/CampHudScene.js';
@@ -20,7 +21,7 @@ const game = new Phaser.Game({
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [BootScene, TitleScene, CampScene, CampHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, ToastScene],
+  scene: [BootScene, TitleScene, CampScene, CampHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, LaunchScene, ToastScene],
 });
 
 // Dev-only handle for debugging and screenshots.

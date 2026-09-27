@@ -602,9 +602,9 @@ export class CampScene extends Phaser.Scene {
 
   // The trip card first (records, stickers), then the ores fly into the bank.
   showSummary() {
-    const { packs, deepest = 0, chests = 0, stickers = [] } = this.arrived;
+    const { packs, deepest = 0, chests = 0, stickers = [], moon = false } = this.arrived;
     let state = leavePenGift(growGarden(getState(this.registry)));
-    const summary = summarizeTrip({ packs, deepest, chests, stickers }, state.records);
+    const summary = summarizeTrip({ packs, deepest, chests, stickers, moon }, state.records);
     state = setState(this.registry, { ...refreshRequests({ ...state, records: summary.records }, createRng(Date.now() >>> 0)) });
     this.perks.refresh();
     this.visitors.refreshBubbles();
@@ -616,7 +616,8 @@ export class CampScene extends Phaser.Scene {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
     const hearts = this.arrived.hearts ?? 0;
-    const park = dinoParkGift(depositPacks(getState(this.registry), packs, { hearts }));
+    const cheese = this.arrived.cheese ?? 0;
+    const park = dinoParkGift(depositPacks(getState(this.registry), packs, { hearts, cheese }));
     const state = setState(this.registry, { ...park.state, trips: (getState(this.registry).trips ?? 0) + 1 });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
     // the Heart of the World and the dino park's amber arrive after the packs
@@ -637,9 +638,21 @@ export class CampScene extends Phaser.Scene {
   // The rocket to the Moon (the launch itself is its own scene).
   launchRocket(plot) {
     if (this.leaving || this.arriving) return;
-    const b = this.buildings[plot];
-    this.events.emit('nope');
-    this.tweens.add({ targets: b.sprite, y: b.sprite.y - 3, duration: 60, yoyo: true, repeat: 3 });
+    this.campPets.flush();
+    this.leaving = true;
+    this.scene.get('CampHud').closePicker();
+    this.events.emit('tripStart');
+    // everyone climbs aboard
+    const door = CAMP.plots[plot] * TILE + 48;
+    for (const a of this.avatars.filter(Boolean)) {
+      this.tweens.add({ targets: a.p, x: door - PLAYER.w / 2, duration: 500 });
+      this.tweens.add({ targets: a.sprite, alpha: 0, delay: 450, duration: 250 });
+    }
+    this.time.delayedCall(800, () => this.cameras.main.fadeOut(400, 20, 12, 30));
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      const state = getState(this.registry);
+      this.scene.start('Launch', { seed: (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0, upgrades: state.upgrades });
+    });
   }
 
   startTrip({ startRow = null } = {}) {

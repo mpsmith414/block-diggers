@@ -37,6 +37,7 @@ export function createFindsView(scene) {
     left: 9,
   } : null;
   let hearts = 0;
+  let cheese = 0;
 
   const burst = (x, y, ores, spread = 140) => {
     for (const ore of ores) {
@@ -233,6 +234,7 @@ export function createFindsView(scene) {
     eggs,
     light,
     get hearts() { return hearts; },
+    get cheese() { return cheese; },
     heart,
 
     // A block was dug: geodes and fossils give their treasure.
@@ -258,6 +260,14 @@ export function createFindsView(scene) {
         scene.cameras.main.flash(100, 255, 240, 180);
         earnSticker(scene, 'find-meteorite');
         scene.events.emit('meteorite', m);
+      } else if (m.id === B.CHEESE) {
+        // moon cheese: worth nothing, but you carry it home anyway
+        cheese++;
+        const icon = scene.add.image(x, y, 'ore-cheese').setDepth(60).setScale(1.5);
+        scene.tweens.add({ targets: icon, y: y - 20, scale: 2.2, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => icon.destroy() });
+        scene.effects.sparkle(x, y, 0xffd84a, 5);
+        earnSticker(scene, 'moon-cheese');
+        scene.events.emit('cheese', m);
       } else if (m.id === B.HEART && heart) {
         heart.left = heartLeft(grid, heart);
         scene.effects.sparkle(x, y, 0xff8ab0, 10);

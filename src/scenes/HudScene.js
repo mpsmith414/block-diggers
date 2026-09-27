@@ -36,19 +36,26 @@ export class HudScene extends Phaser.Scene {
     const x = this.scale.width - 10;
     const top = 44;
     const h = this.scale.height - top - 10;
-    this.meter = { x, top, h, scale: h / MINE_H };
+    const moon = !!this.source.moon;
+    const rows = this.source.grid.h;
+    this.meter = { x, top, h, scale: h / rows };
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.35).fillRoundedRect(x - 4, top - 4, 9, h + 8, 3);
     const band = (from, to, color) => g.fillStyle(color, 1).fillRect(x - 2, top + from * this.meter.scale, 5, (to - from + 1) * this.meter.scale);
     band(0, 0, 0x5aa63c);
-    for (const [name, l] of Object.entries(LAYERS)) band(l.top, l.bottom, LAYER_COLORS[name]);
+    if (moon) {
+      band(0, 60, 0xb8b8c8);
+      band(61, rows - 2, 0x3a6a9a);
+    } else {
+      for (const [name, l] of Object.entries(LAYERS)) band(l.top, l.bottom, LAYER_COLORS[name]);
+    }
     // layers you've never reached are in shadow
-    const known = getState(this.registry).records?.layers ?? [];
+    const known = moon ? Object.keys(LAYERS) : getState(this.registry).records?.layers ?? [];
     for (const [name, l] of Object.entries(LAYERS)) {
       if (!known.includes(name)) g.fillStyle(0x000000, 0.55).fillRect(x - 2, top + l.top * this.meter.scale, 5, (l.bottom - l.top + 1) * this.meter.scale);
     }
     // a little flag at the deepest you've ever been
-    const best = getState(this.registry).records?.deepest ?? 0;
+    const best = moon ? 0 : getState(this.registry).records?.deepest ?? 0;
     if (best > 0) {
       const fy = top + best * this.meter.scale;
       g.fillStyle(0xffffff, 1).fillRect(x - 7, fy - 5, 1, 6);
@@ -112,7 +119,7 @@ export class HudScene extends Phaser.Scene {
       }
     }
     const ore = deepestMissing(this.goal);
-    if (ore && ore !== 'coal') {
+    if (ore && ore !== 'coal' && !this.source.moon) {
       const { x, top, scale } = this.meter;
       this.goalArrow.list[1].setTexture(`ore-${ore}`);
       this.goalArrow.setVisible(true).setPosition(x - 12 + Math.sin(time / 200) * 2, top + oreTopRow(ore) * scale);

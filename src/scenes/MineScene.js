@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { generateMine, carveStation } from '../world/worldgen.js';
+import { generateMoon } from '../world/moon.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
@@ -46,6 +47,7 @@ export class MineScene extends Phaser.Scene {
     this.seed = data?.seed ?? (Date.now() >>> 0);
     this.upgrades = data?.upgrades ?? this.registry.get('upgrades') ?? DEFAULT_UPGRADES;
     this.startRow = data?.startRow ?? null;
+    this.moon = data?.world === 'moon';
   }
 
   create() {
@@ -54,8 +56,9 @@ export class MineScene extends Phaser.Scene {
     this.eggKinds = CAVE_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
     const dinoEggKinds = DINO_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
     this.luck = luck(saved);
-    this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
+    this.world = this.moon ? generateMoon(this.seed) : generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
+    if (this.moon) this.startRow = null;
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     // Phaser reuses this object across trips: reset all per-trip state here.
@@ -75,9 +78,9 @@ export class MineScene extends Phaser.Scene {
     this.events.on('sticker', onSticker);
     this.events.once('shutdown', () => this.events.off('sticker', onSticker));
 
-    this.drawSky();
-    this.mapView = createMapView(this, this.grid);
-    this.drawEntrance();
+    if (this.moon) this.drawSpace(); else this.drawSky();
+    this.mapView = createMapView(this, this.grid, { moon: this.moon });
+    if (this.moon) this.drawLander(); else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
     this.decor = createDecorView(this, this.world.decor);
@@ -86,10 +89,11 @@ export class MineScene extends Phaser.Scene {
     this.hazards = createHazards(this);
     this.finds = createFindsView(this);
     this.pets = createPetsView(this, saved.pets ?? []);
-    this.darkness = createDarkness(this, { w: MINE_W * TILE, h: MINE_H * TILE });
+    const rows = this.grid.h;
+    this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE });
     this.lavaCells = [];
     this.meteorites = [];
-    for (let y = 0; y < MINE_H; y++) {
+    for (let y = 0; y < rows; y++) {
       for (let x = 0; x < MINE_W; x++) {
         const id = this.grid.get(x, y);
         if (id === B.LAVA) this.lavaCells.push({ x, y });
@@ -98,7 +102,7 @@ export class MineScene extends Phaser.Scene {
     }
 
     const cam = this.cameras.main;
-    cam.setBounds(0, -SKY_ROWS * TILE, MINE_W * TILE, (MINE_H + SKY_ROWS) * TILE);
+    cam.setBounds(0, -SKY_ROWS * TILE, MINE_W * TILE, (rows + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
     this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: (this.startRow ?? -1) * TILE };
     cam.setZoom(this.cam.zoom);
@@ -127,6 +131,36 @@ export class MineScene extends Phaser.Scene {
       g.fillRect(x, y, 26, 6);
       g.fillRect(x + 5, y - 4, 14, 4);
     }
+  }
+
+  // The Moon's sky: black, full of stars, with the Earth hanging in it.
+  drawSpace() {
+    const top = -SKY_ROWS * TILE;
+    const g = this.add.graphics().setDepth(-10);
+    g.fillGradientStyle(0x05040f, 0x05040f, 0x1a1a38, 0x1a1a38, 1);
+    g.fillRect(0, top, MINE_W * TILE, SKY_ROWS * TILE);
+    const rng = createRng(this.seed ^ 0x5a5a);
+    for (let i = 0; i < 90; i++) {
+      const s = this.add.image(rng.int(0, MINE_W * TILE), top + rng.int(0, SKY_ROWS * TILE - 8), 'pixel').setDepth(-9)
+        .setTint(rng.pick([0xffffff, 0xfff6d0, 0x9ff6ff])).setAlpha(0.4 + rng.next() * 0.6);
+      if (i % 4 === 0) this.tweens.add({ targets: s, alpha: 0.1, duration: 700 + (i % 5) * 300, yoyo: true, repeat: -1 });
+    }
+    this.earth = this.add.image(SHAFT_X * TILE + 150, top + 60, 'earth').setDepth(-8).setScale(1.6);
+    this.tweens.add({ targets: this.earth, y: this.earth.y - 4, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  // The rocket stands where you landed, and (every trip) you plant a flag.
+  drawLander() {
+    const x = SHAFT_X * TILE + TILE / 2;
+    this.add.image(x + 44, 0, 'rocket-ship').setOrigin(0.5, 0.95).setDepth(5);
+    this.lander = { x: x + 44, y: -40 };
+    this.time.delayedCall(1200, () => {
+      const flag = this.add.image(x - 22, 1, 'moon-flag').setOrigin(0.15, 1).setDepth(6).setScale(1, 0);
+      this.tweens.add({ targets: flag, scaleY: 1, duration: 400, ease: 'Back.easeOut' });
+      this.effects.sparkle(x - 20, -8, 0xffffff, 8);
+      earnSticker(this, 'moon-flag');
+    });
+    this.time.delayedCall(3500, () => earnSticker(this, 'moon-earthrise'));
   }
 
   // A little wooden frame over the shaft, with a lantern.
@@ -283,11 +317,16 @@ export class MineScene extends Phaser.Scene {
     a.ring.fillStyle(0xc8904e, 1).fillRect(x - 1, y - 3, 2, 6); // a little rope
   }
 
-  // A rope drops to each player and pulls everyone up to camp.
+  // A rope drops to each player and pulls everyone up to camp (on the Moon,
+  // you're beamed back to the rocket instead).
   goHome() {
     if (this.goingHome) return;
     this.goingHome = true;
     this.events.emit('goHome');
+    if (this.moon) {
+      this.beamHome();
+      return;
+    }
     const top = -2 * TILE;
     const players = this.avatars.filter(Boolean);
     for (const a of players) {
@@ -316,15 +355,38 @@ export class MineScene extends Phaser.Scene {
       });
     }
     this.time.delayedCall(1300, () => this.cameras.main.fadeOut(700, 20, 12, 30));
-    this.cameras.main.once('camerafadeoutcomplete', () => {
-      const packs = [];
-      for (const a of players) packs[a.slot] = { ...a.pack.ores };
-      this.scene.start('Camp', {
-        arrived: {
-          packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
-          stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
-        },
-      });
+    this.cameras.main.once('camerafadeoutcomplete', () => this.arriveHome(players));
+  }
+
+  // Beam me up: a column of light, a sparkle, and everyone floats away.
+  beamHome() {
+    const players = this.avatars.filter(Boolean);
+    for (const a of players) {
+      a.ring.clear();
+      a.bubbling = false;
+      a.bubble.setVisible(false);
+      a.p.mining = null;
+      a.crack.setVisible(false);
+      const beam = this.add.rectangle(a.sprite.x, a.sprite.y + 2, 18, 400, 0x9ff6ff, 0.45).setOrigin(0.5, 1).setDepth(52)
+        .setBlendMode(Phaser.BlendModes.ADD).setScale(0.3, 0);
+      this.tweens.add({ targets: beam, scaleY: 1, scaleX: 1, duration: 400, ease: 'Quad.easeOut' });
+      this.tweens.add({ targets: beam, alpha: 0, delay: 1300, duration: 400 });
+      this.tweens.add({ targets: a.sprite, alpha: 0, scaleX: 0.2, delay: 500, duration: 700 });
+      for (let i = 0; i < 6; i++) this.time.delayedCall(400 + i * 120, () => this.effects.sparkle(a.sprite.x, a.sprite.y - 8 - i * 6, 0x9ff6ff, 4));
+    }
+    this.time.delayedCall(1500, () => this.cameras.main.fadeOut(700, 5, 4, 15));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.arriveHome(players));
+  }
+
+  arriveHome(players) {
+    const packs = [];
+    for (const a of players) packs[a.slot] = { ...a.pack.ores };
+    this.scene.start('Camp', {
+      arrived: {
+        packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
+        stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
+        cheese: this.finds.cheese, moon: this.moon,
+      },
     });
   }
 
@@ -373,7 +435,7 @@ export class MineScene extends Phaser.Scene {
     const mul = multipliers(a.pu);
     // drinking: stand still and glug
     const row = (a.p.y + PLAYER.h / 2) / TILE;
-    const floaty = row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom;
+    const floaty = this.moon || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom);
     const r = stepPlayer(a.p, mul.drinking ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk, gravityMul: floaty ? LOW_GRAVITY : 1 });
     if (r.sprung) {
@@ -391,6 +453,7 @@ export class MineScene extends Phaser.Scene {
       this.hazards.mined(m.x, m.y);
       this.decor.mined(m.x, m.y);
       this.finds.mined(m);
+      if (m.id === B.MOONROCK) earnSticker(this, 'moon-rock');
       this.dugCount++;
       if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
     }
@@ -520,7 +583,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   squash(a, e) {
-    earnSticker(this, e.golden ? 'creature-goldslime' : `creature-${e.species ?? 'slime'}`);
+    earnSticker(this, e.golden ? 'creature-goldslime' : e.species === 'moonblob' ? 'moon-blob' : `creature-${e.species ?? 'slime'}`);
     if (e.golden) {
       for (let i = 0; i < 5; i++) {
         this.pickups.push(createPickup({ x: e.x + 6, y: e.y, ore: 'gold', delay: 0.3, vx: (this.rng.next() - 0.5) * 140, vy: -140 - this.rng.next() * 60 }));
@@ -720,7 +783,7 @@ export class MineScene extends Phaser.Scene {
       if (!a) continue;
       const row = Math.floor((a.p.y + PLAYER.h / 2) / TILE);
       this.trip.deepest = Math.max(this.trip.deepest, row);
-      const found = discovery(row, this.knownLayers);
+      const found = this.moon ? null : discovery(row, this.knownLayers);
       if (found) this.discover(found, a);
     }
     this.scanT -= dt;
@@ -733,7 +796,8 @@ export class MineScene extends Phaser.Scene {
       this.world.chests.forEach((c, i) => {
         if (Math.hypot(c.x - cx, c.y - cy) <= r) this.seenChests.add(i);
       });
-      for (const kind of this.decor.kindsNear(cx, cy, r - 0.5)) earnSticker(this, kind === 'skeleton' ? 'find-skeleton' : `cave-${kind}`);
+      const STICKER_FOR = { skeleton: 'find-skeleton', spacecrystal: 'moon-crystal' };
+      for (const kind of this.decor.kindsNear(cx, cy, r - 0.5)) earnSticker(this, STICKER_FOR[kind] ?? `cave-${kind}`);
     }
   }
 

@@ -5,6 +5,7 @@ import { createEdge } from '../input/intents.js';
 import { MINE_H, LAYERS, LAYER_COLORS } from '../tuning.js';
 import { shownOres } from '../game/ores.js';
 import { getState } from '../save/store.js';
+import { MOON } from '../world/moon.js';
 
 // The "how did we do?" card shown when you get home: ores per player, how
 // deep you went (with a gold "best!" ribbon for records), chests, new stickers.
@@ -46,7 +47,7 @@ export class SummaryScene extends Phaser.Scene {
     c.add(g);
 
     // header: a house icon and a little rope
-    c.add(this.add.image(240, y + 14, 'icon-home').setScale(2));
+    c.add(this.add.image(240, y + 14, this.summary.moon ? 'icon-rocket' : 'icon-home').setScale(2));
 
     // ores per player
     let ry = y + 34;
@@ -72,12 +73,18 @@ export class SummaryScene extends Phaser.Scene {
     const barW = W - 110;
     const barY = ry + 10;
     const bar = this.add.graphics();
-    const seg = (from, to, color) => bar.fillStyle(color, 1).fillRect(barX + (from / MINE_H) * barW, barY, ((to - from) / MINE_H) * barW, 8);
-    for (const [name, l] of Object.entries(LAYERS)) seg(name === 'dirt' ? 0 : l.top, l.bottom + 1, LAYER_COLORS[name]);
+    const depthH = this.summary.moon ? MOON.h : MINE_H;
+    const seg = (from, to, color) => bar.fillStyle(color, 1).fillRect(barX + (from / depthH) * barW, barY, ((to - from) / depthH) * barW, 8);
+    if (this.summary.moon) {
+      seg(0, MOON.rock.bottom + 1, 0xb8b8c8);
+      seg(MOON.caves.top, MOON.h, 0x3a6a9a);
+    } else {
+      for (const [name, l] of Object.entries(LAYERS)) seg(name === 'dirt' ? 0 : l.top, l.bottom + 1, LAYER_COLORS[name]);
+    }
     c.add(bar);
     const marker = this.add.image(barX, barY + 4, `char-${this.chars[0]}`, 0).setScale(0.8);
     c.add(marker);
-    this.tweens.add({ targets: marker, x: barX + (Math.max(0, this.summary.deepest) / MINE_H) * barW, duration: 900, delay: 300, ease: 'Cubic.easeOut' });
+    this.tweens.add({ targets: marker, x: barX + (Math.max(0, this.summary.deepest) / depthH) * barW, duration: 900, delay: 300, ease: 'Cubic.easeOut' });
     if (this.summary.best.deepest) this.ribbon(c, barX + barW + 4, barY - 2);
     const chestX = x + W - 66;
     c.add(this.add.image(chestX, barY + 4, 'tiles', 16));

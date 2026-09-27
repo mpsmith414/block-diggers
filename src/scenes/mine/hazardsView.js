@@ -48,7 +48,7 @@ export function createHazards(scene) {
     };
     const count = (kind) => enemies.filter((e) => e.kind === kind).length;
     // each layer has its own creature: walkers move like slimes, flyers like bats
-    const { species, walker } = creatureFor(near.cy);
+    const { species, walker } = scene.moon ? { species: 'moonblob', walker: true } : creatureFor(near.cy);
     const kind = walker ? 'slime' : 'bat';
     if (kind === 'slime' && count('slime') >= SLIME.max) return;
     if (kind === 'bat' && count('bat') >= BAT.max) return;
