@@ -48,7 +48,7 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt }) {
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true }) {
   const out = { mined: [], bounced: false, stepped: false };
   let ix = intent.moveX || 0;
   let iy = intent.moveY || 0;
@@ -167,6 +167,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt }) {
     columnsOf(p.x).some((c) => isSolid(grid.get(c, underRow)) || (iy <= 0 && ladderTop(grid, c, underRow)));
 
   // mining progress
+  if (!canMine) target = null;
   if (target) {
     const m = p.mining;
     if (m && m.cx === target.x && m.cy === target.y) {

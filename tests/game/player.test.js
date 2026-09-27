@@ -213,3 +213,15 @@ describe('knockback', () => {
     expect(p.grounded).toBe(true);
   });
 });
+
+describe('canMine: false (camp)', () => {
+  it('walks but never mines', () => {
+    const g = makeGrid(['#...#', '#...#', '#ddd#', '#####']);
+    const p = createPlayer(standAt(2, 1));
+    settle(p, g);
+    const ev = run(p, { ...idle, moveY: 1 }, g, 1, { canMine: false });
+    expect(ev.mined).toHaveLength(0);
+    expect(g.get(2, 2)).toBe(B.DIRT);
+    expect(p.mining).toBeNull();
+  });
+});
