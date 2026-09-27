@@ -3,6 +3,8 @@ import { ORES } from '../world/blocks.js';
 import { packFull } from '../game/loot.js';
 import { B } from '../world/blocks.js';
 import { MINE_H, LAYERS, TILE } from '../tuning.js';
+import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
+import { getState } from '../save/store.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
@@ -46,9 +48,67 @@ export class HudScene extends Phaser.Scene {
     this.eggDots = this.source.world.eggs.map((e) => this.add.rectangle(x + 5, top + e.y * this.meter.scale, 3, 4, 0xfff6d0).setOrigin(0.5));
     const bc = this.source.world.bigChest;
     this.bigDot = bc ? this.add.rectangle(x - 4, top + bc.y * this.meter.scale, 4, 3, 0xd08cff).setOrigin(0.5) : null;
-    this.carriedEggs = this.add.container(4, 38);
+    this.carriedEggs = this.add.container(96, 38);
+    this.buildGoal();
     this.carriedShown = 0;
     this.faces = [];
+  }
+
+  // "We're saving up for…": the next thing to get and the ore it still needs,
+  // plus an arrow on the depth meter at the layer where that ore is found.
+  buildGoal() {
+    this.goalCard = this.add.container(4, 36);
+    this.goalArrow = this.add.container(0, 0).setVisible(false);
+    this.goalArrow.add([this.add.image(0, 0, 'arrow-r').setScale(1.5), this.add.image(-10, 0, 'ore-iron')]);
+    this.goalKey = '';
+    this.goalT = 0;
+  }
+
+  updateGoal(dt, time) {
+    this.goalT -= dt;
+    if (this.goalT <= 0) {
+      this.goalT = 0.5;
+      const state = getState(this.registry);
+      const bank = { ...state.bank };
+      for (const a of this.source.avatars) if (a) for (const o of ORES) bank[o] += a.pack.ores[o];
+      const goal = nextGoal({ ...state, bank });
+      const key = goal ? `${goal.id}:${JSON.stringify(goal.missing)}` : 'none';
+      if (key !== this.goalKey) {
+        this.goalKey = key;
+        this.goalCard.removeAll(true);
+        this.goal = goal;
+        if (goal) {
+          const missing = Object.entries(goal.missing);
+          const w = 30 + Math.max(1, missing.length) * 28;
+          const g = this.add.graphics();
+          g.fillStyle(0x8a5a34, 1).fillRoundedRect(0, 0, w, 20, 4);
+          g.fillStyle(0xf4e4c1, 1).fillRoundedRect(1, 1, w - 2, 18, 3);
+          this.goalCard.add(g);
+          const icon = goal.kind === 'blueprint'
+            ? this.add.image(12, 10, `bld-${goal.id}`).setScale(0.17)
+            : this.add.image(12, 10, { pick: 'icon-pick', pack: 'icon-bag', lantern: 'icon-lantern' }[goal.id]);
+          this.goalCard.add(icon);
+          if (!missing.length) {
+            // enough ore: go home and get it!
+            const home = this.add.image(38, 10, 'icon-home');
+            this.goalCard.add(home);
+            this.tweens.add({ targets: home, scale: 1.3, duration: 400, yoyo: true, repeat: -1 });
+          }
+          missing.forEach(([ore, n], i) => {
+            this.goalCard.add(this.add.image(30 + i * 28, 10, `ore-${ore}`));
+            this.goalCard.add(this.add.bitmapText(37 + i * 28, 7, 'pixel', String(n)).setTint(0x4a3222));
+          });
+        }
+      }
+    }
+    const ore = deepestMissing(this.goal);
+    if (ore && ore !== 'coal') {
+      const { x, top, scale } = this.meter;
+      this.goalArrow.list[1].setTexture(`ore-${ore}`);
+      this.goalArrow.setVisible(true).setPosition(x - 12 + Math.sin(time / 200) * 2, top + oreTopRow(ore) * scale);
+    } else {
+      this.goalArrow.setVisible(false);
+    }
   }
 
   updateDepthMeter(time) {
@@ -114,8 +174,9 @@ export class HudScene extends Phaser.Scene {
     return panel;
   }
 
-  update(time) {
+  update(time, delta) {
     this.updateDepthMeter(time);
+    this.updateGoal(delta / 1000, time);
     for (const a of this.source.avatars) {
       if (!a) continue;
       const p = this.panelFor(a);

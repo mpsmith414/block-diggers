@@ -16,7 +16,7 @@ const BUTTON_CSS = [
   'user-select:none', '-webkit-user-select:none', 'box-shadow:0 3px 0 rgba(0,0,0,.35)',
 ].join(';');
 
-export function createTouch({ doc, win, radius = 50 }) {
+export function createTouch({ doc, win, radius = 60 }) {
   const root = doc.createElement('div');
   root.id = 'touch-controls';
   root.style.cssText = 'position:fixed;inset:0;z-index:20;pointer-events:none;';
@@ -33,16 +33,25 @@ export function createTouch({ doc, win, radius = 50 }) {
   const a = doc.createElement('div');
   a.id = 'touch-a';
   a.textContent = 'A';
-  a.style.cssText = `${BUTTON_CSS};right:28px;bottom:36px;width:84px;height:84px;background:#4cc24a;`;
+  a.style.cssText = `${BUTTON_CSS};right:24px;bottom:30px;width:96px;height:96px;font-size:34px;background:#4cc24a;`;
   const home = doc.createElement('div');
   home.id = 'touch-home';
   home.textContent = '⌂';
-  home.style.cssText = `${BUTTON_CSS};right:126px;bottom:22px;width:60px;height:60px;background:#d0463a;`;
+  home.style.cssText = `${BUTTON_CSS};right:132px;bottom:18px;width:70px;height:70px;background:#d0463a;`;
   const pause = doc.createElement('div');
   pause.id = 'touch-pause';
   pause.textContent = 'II';
   pause.style.cssText = `${BUTTON_CSS};left:50%;top:8px;width:40px;height:40px;margin-left:-20px;font-size:16px;background:rgba(0,0,0,.35);`;
-  root.append(zone, a, home, pause);
+  const book = doc.createElement('div');
+  book.id = 'touch-book';
+  book.textContent = '📖';
+  book.style.cssText = `${BUTTON_CSS};left:10px;top:10px;width:44px;height:44px;font-size:22px;background:rgba(0,0,0,.35);`;
+  // the book opens straight from here (scenes listen for this event)
+  book.addEventListener('pointerdown', (e) => {
+    if (e.preventDefault) e.preventDefault();
+    win.dispatchEvent(new Event('block-diggers:book'));
+  });
+  root.append(zone, a, home, pause, book);
   doc.body.appendChild(root);
 
   let stick = { x: 0, y: 0 };

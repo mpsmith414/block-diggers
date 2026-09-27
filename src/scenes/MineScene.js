@@ -63,7 +63,10 @@ export class MineScene extends Phaser.Scene {
     this.seenChests = new Set();
     this.revealAll = revealsChests(getState(this.registry));
     this.scanT = 0;
-    this.events.on('sticker', (id) => this.trip.stickers.push(id));
+    // scene events outlive a restart, so remove this listener when the trip ends
+    const onSticker = (id) => { if (!this.trip.stickers.includes(id)) this.trip.stickers.push(id); };
+    this.events.on('sticker', onSticker);
+    this.events.once('shutdown', () => this.events.off('sticker', onSticker));
 
     this.drawSky();
     this.mapView = createMapView(this, this.grid);

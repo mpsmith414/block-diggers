@@ -31,6 +31,7 @@ describe('createTouch', () => {
   it('left-half drag moves the stick; release recentres it', () => {
     Object.defineProperty(window, 'innerWidth', { value: 800, configurable: true });
     const t = createTouch({ doc: document, win: window, radius: 50 });
+    expect(document.getElementById('touch-book')).not.toBeNull();
     const pad = document.getElementById('touch-stick-zone');
     pad.dispatchEvent(ev('pointerdown', 100, 300));
     pad.dispatchEvent(ev('pointermove', 150, 300));

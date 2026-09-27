@@ -20,7 +20,17 @@ export function createPauseWatch(scene) {
   };
 
   const offBack = session.onBack(() => open('pause'));
-  scene.events.once('shutdown', offBack);
+  // the phone's book button
+  const onBook = () => {
+    if (!scene.scene.isActive()) return;
+    scene.scene.pause();
+    scene.scene.launch('Book', { target: scene.sys.settings.key });
+  };
+  window.addEventListener('block-diggers:book', onBook);
+  scene.events.once('shutdown', () => {
+    offBack();
+    window.removeEventListener('block-diggers:book', onBook);
+  });
 
   return {
     // Returns true if the game was just paused (skip the rest of the frame).
