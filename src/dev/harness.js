@@ -55,6 +55,25 @@ export function installHarness(game) {
       h.advance(50);
     },
     scene(key) { return game.scene.getScene(key); },
+    // Join from the title, patch the save, then start a scene: h.quick('Mine', { planet: 'moon' }, { pets: [...] }).
+    quick(key, data = {}, save = {}) {
+      h.advance(1200);
+      for (let i = 0; i < 4 && !game.scene.isActive('Camp'); i++) { h.tap(' '); h.advance(400); }
+      const reg = game.registry;
+      reg.set('save', { ...reg.get('save'), ...save });
+      const from = game.scene.getScenes(true)[0];
+      from.scene.start(key, data);
+      h.advance(1500);
+      return game.scene.getScenes(true).map((s) => s.sys.settings.key);
+    },
+    // Put player `slot` standing in cell (cx, cy) and snap the camera there.
+    goCell(cx, cy, slot = 0) {
+      const s = game.scene.getScene('Mine');
+      const a = s.avatars[slot];
+      a.p.x = cx * 16 + 2; a.p.y = (cy + 1) * 16 - 14; a.p.vx = 0; a.p.vy = 0;
+      s.cam.x = cx * 16; s.cam.y = cy * 16;
+      return a;
+    },
     // Saves a crisp 3× upscale of the current frame to .shots/<name>.png.
     shot(name, scale = 3) {
       const src = game.canvas;

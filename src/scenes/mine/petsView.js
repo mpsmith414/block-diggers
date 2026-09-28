@@ -15,13 +15,13 @@ export function createPetsView(scene, kinds) {
     kind,
     pos: { x: 0, y: 0 },
     placed: false,
-    sprite: scene.add.sprite(0, 0, `pet-${kind}`, 0).setDepth(31),
+    sprite: scene.add.sprite(0, 0, `pet-${kind}`, 0).setDepth(31).setScale(PETS.scale),
     t: Math.random() * 10,
     sniffT: 2,
     roarT: 0,
     carrying: null,
   }));
-  const WALKERS = ['mole', 'rex', 'trike'];
+  const WALKERS = ['mole', 'rex', 'trike', 'moonpup'];
 
   const ownerOf = (kind) => {
     const ps = scene.avatars.filter(Boolean);
@@ -54,8 +54,8 @@ export function createPetsView(scene, kinds) {
       const d = scene.add.image(pet.pos.x + dx, pet.pos.y + 5, 'smoke').setDepth(30).setScale(0.6).setTint(0xd8c8b0);
       scene.tweens.add({ targets: d, x: d.x + dx * 2, y: d.y - 4, scale: 1.4, alpha: 0, duration: 450, onComplete: () => d.destroy() });
     }
-    pet.sprite.setScale(1.4);
-    scene.tweens.add({ targets: pet.sprite, scale: 1, duration: 300, ease: 'Back.easeOut' });
+    pet.sprite.setScale(PETS.scale * 1.4);
+    scene.tweens.add({ targets: pet.sprite, scale: PETS.scale, duration: 300, ease: 'Back.easeOut' });
     for (let i = 0; i < 2; i++) {
       const ring = scene.add.image(pet.pos.x, pet.pos.y, 'ring').setDepth(40).setScale(0.5).setTint(0x9ae67a);
       scene.tweens.add({ targets: ring, scale: 5, alpha: 0, delay: i * 150, duration: 600, onComplete: () => ring.destroy() });
@@ -68,6 +68,13 @@ export function createPetsView(scene, kinds) {
 
   return {
     has: (kind) => kinds.includes(kind),
+    // everyone pops over to you (after a teleport)
+    regroup() {
+      for (const pet of pets) {
+        pet.placed = false;
+        scene.effects.sparkle(pet.pos.x, pet.pos.y, 0x3affe0, 3);
+      }
+    },
     sprites: () => pets.map((p) => p.sprite),
     trick() {
       for (const pet of pets) playTrick(scene, pet);
@@ -86,11 +93,13 @@ export function createPetsView(scene, kinds) {
         const c = center(a);
         pet.t += dt;
         let target;
-        if (pet.kind === 'mole') target = { x: c.x - a.p.facing * 14, y: c.y + 2 + Math.abs(Math.sin(pet.t * 8)) * -3 };
-        else if (pet.kind === 'rex') target = { x: c.x - a.p.facing * 24, y: c.y + 1 + Math.abs(Math.sin(pet.t * 9)) * -2 };
-        else if (pet.kind === 'trike') target = { x: c.x - a.p.facing * 20, y: c.y + 1 + Math.abs(Math.sin(pet.t * 7)) * -2 };
-        else if (pet.kind === 'glowbug') target = { x: c.x + Math.cos(pet.t * 2.2) * 12, y: c.y - 16 + Math.sin(pet.t * 3.1) * 4 };
-        else target = { x: c.x + a.p.facing * 16, y: c.y - 12 + Math.sin(pet.t * 4) * 3 };
+        // (pets are small, so they trail close behind; the walkers each keep their own spot)
+        if (pet.kind === 'mole') target = { x: c.x - a.p.facing * 10, y: c.y + 3 + Math.abs(Math.sin(pet.t * 8)) * -3 };
+        else if (pet.kind === 'moonpup') target = { x: c.x - a.p.facing * 6, y: c.y + 3 + Math.abs(Math.sin(pet.t * 10)) * -4 };
+        else if (pet.kind === 'rex') target = { x: c.x - a.p.facing * 18, y: c.y + 3 + Math.abs(Math.sin(pet.t * 9)) * -2 };
+        else if (pet.kind === 'trike') target = { x: c.x - a.p.facing * 14, y: c.y + 3 + Math.abs(Math.sin(pet.t * 7)) * -2 };
+        else if (pet.kind === 'glowbug') target = { x: c.x + Math.cos(pet.t * 2.2) * 10, y: c.y - 14 + Math.sin(pet.t * 3.1) * 3 };
+        else target = { x: c.x + a.p.facing * 12, y: c.y - 11 + Math.sin(pet.t * 4) * 3 };
 
         // bat buddy: swoop to loose ore nearby and bring it back
         if (pet.kind === 'batbuddy') {

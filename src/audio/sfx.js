@@ -197,6 +197,26 @@ export function createSfx(audio) {
     join() { ['E5', 'A5'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.07, at: i * 0.08 })); },
     lava() { noise({ dur: 0.3, gain: 0.15, freq: 400, to: 1500, q: 1, type: 'lowpass' }); },
     gravel() { noise({ dur: 0.2, gain: 0.25, freq: 600, to: 150, q: 0.8, type: 'lowpass' }); },
+    // the Moon: singing crystals (each its own note), teleports, the UFO, a cheese party
+    chime(i = 0) {
+      const f = noteFreq(PENTATONIC[(i * 2) % PENTATONIC.length]) * 2;
+      tone({ type: 'sine', freq: f, dur: 1.2, gain: 0.1, attack: 0.01 });
+      tone({ type: 'triangle', freq: f * 1.5, dur: 0.9, gain: 0.04, at: 0.06 });
+      tone({ type: 'sine', freq: f * 2, dur: 0.6, gain: 0.03, at: 0.12 });
+    },
+    zap() {
+      tone({ type: 'square', freq: 200, to: 1800, dur: 0.25, gain: 0.06 });
+      tone({ type: 'sine', freq: 1800, to: 300, dur: 0.3, gain: 0.08, at: 0.2 });
+    },
+    ufo() {
+      tone({ type: 'sine', freq: 500, to: 900, dur: 0.4, gain: 0.08 });
+      tone({ type: 'sine', freq: 900, to: 500, dur: 0.4, gain: 0.08, at: 0.4 });
+      ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.05, at: 0.8 + i * 0.08 }));
+    },
+    party() {
+      ['C5', 'E5', 'G5', 'E5', 'C6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.1, gain: 0.07, at: i * 0.09 }));
+      noise({ dur: 0.3, gain: 0.1, freq: 6000, q: 0.7, type: 'highpass', at: 0.45 });
+    },
   };
 
   return {

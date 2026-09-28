@@ -32,11 +32,11 @@ export const MOON_LAYERS = {
 // How the Moon is made: ore veins (per layer), caves, and things to find.
 export const MOON_GEN = {
   ores: {
-    craters: { veins: 30, weights: { moonstone: 5, cheese: 1 } },
+    craters: { veins: 30, weights: { moonstone: 1 } },
     cheesecaves: { veins: 38, weights: { cheese: 5, moonstone: 1 } },
     mooncrystal: { veins: 32, weights: { spacegem: 5, moonstone: 1 } },
     alienbase: { veins: 32, weights: { gizmo: 5, spacegem: 1 } },
-    mooncore: { veins: 34, weights: { moonstone: 2, spacegem: 2, gizmo: 2, cheese: 1 } },
+    mooncore: { veins: 34, weights: { moonstone: 1, spacegem: 1, gizmo: 1 } },
   },
   caves: {
     craters: { count: 7, radius: 2, length: [22, 36] },
@@ -179,7 +179,7 @@ export const POWERUPS = {
 };
 
 // ---- pets ----
-export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
+export const PETS = { scale: 0.7, goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
 
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };

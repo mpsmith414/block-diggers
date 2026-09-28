@@ -1,7 +1,7 @@
 // Player movement and mining as a pure step function over the grid.
 // Position (x, y) is the top-left of a PLAYER.w × PLAYER.h box, in pixels.
 
-import { B, isSolid } from '../world/blocks.js';
+import { B, isSolid, isBoulder } from '../world/blocks.js';
 import { mineTime, mineCell } from '../world/grid.js';
 import { TILE, PLAYER } from '../tuning.js';
 
@@ -147,7 +147,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     const tc = blockedX > 0 ? Math.floor((p.x + PLAYER.w + 0.5) / T) : Math.floor((p.x - 0.5) / T);
     const row = cy;
     if (isSolid(grid.get(tc, row))) {
-      const leanOn = grid.get(tc, row) === B.BOULDER || grid.get(tc, row) === B.BOOM; // push or light it instead
+      const leanOn = isBoulder(grid.get(tc, row)) || grid.get(tc, row) === B.BOOM; // push or light it instead
       const canStep = !leanOn && p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
       if (canStep) {
         p.y = row * T - PLAYER.h;

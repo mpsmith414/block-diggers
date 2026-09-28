@@ -35,7 +35,7 @@ const EGG = [
   '...oEEEEo...',
   '....oooo....',
 ];
-export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden', 'rex', 'trike'];
+export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden', 'rex', 'trike', 'moonpup'];
 const EGG_COLORS = {
   mole: { e: '#e8d0b0', s: '#8a5a34', E: '#c8a888' },
   glowbug: { e: '#fff6b0', s: '#ffd84a', E: '#e0c860' },
@@ -44,6 +44,8 @@ const EGG_COLORS = {
   // big speckled dinosaur eggs
   rex: { e: '#b8e0a0', s: '#3a7a2a', E: '#88b870' },
   trike: { e: '#f0d0a0', s: '#c86a3a', E: '#c8a070' },
+  // the Moon Pup's egg: silver with blue spots
+  moonpup: { e: '#e0e4f0', s: '#5ab0f0', E: '#a8b0c8' },
 };
 
 const FOSSILS = [

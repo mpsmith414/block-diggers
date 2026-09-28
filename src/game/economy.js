@@ -83,10 +83,9 @@ export function buildOnPlot(state, plot, id, planet = 'earth') {
   return withPlots({ ...state, bank: spend(state.bank, bp.cost) }, planet, plots);
 }
 
-export function depositPacks(state, packs, { hearts = 0, cheese = 0 } = {}) {
+export function depositPacks(state, packs, { hearts = 0 } = {}) {
   const bank = { ...state.bank };
   for (const pack of packs) for (const ore of ORES) bank[ore] = (bank[ore] ?? 0) + (pack[ore] ?? 0);
   bank.heart = (bank.heart ?? 0) + hearts;
-  bank.cheese = (bank.cheese ?? 0) + cheese;
   return { ...state, bank };
 }

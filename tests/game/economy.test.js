@@ -85,8 +85,8 @@ describe('depositPacks', () => {
     expect(s.bank.heart).toBe(2);
     expect(depositPacks(defaultState(), [{}]).bank.heart).toBe(0);
   });
-  it('moon cheese goes in the bank too (it is worth nothing, but it is very funny)', () => {
-    expect(depositPacks(defaultState(), [{}], { cheese: 3 }).bank.cheese).toBe(3);
+  it('moon cheese is an ore now: it rides home in the backpack', () => {
+    expect(depositPacks(defaultState(), [{ cheese: 3 }]).bank.cheese).toBe(3);
   });
 });
 

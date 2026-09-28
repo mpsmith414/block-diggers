@@ -1,6 +1,7 @@
 // Cave decorations (3 variants each, 16×16), the pickaxe (3 levels) and hint icons.
 
 import { drawMap } from './pixelmap.js';
+import { MOON_DECOR, MOON_DECOR_PAL, MOON_GLOWING } from './moonWorld.js';
 
 const OUT = '#2a1d2e';
 
@@ -145,13 +146,18 @@ PAL.spacecrystal = { o: '#0f1a3a', x: '#6ff0ff', X: '#ffffff' };
 DECOR.emberflower = DECOR.flower;
 PAL.emberflower = { g: '#8a3a2a', G: '#5a2a1a', p: '#ff6a2a', b: '#ffb34a', w: '#ffe066', y: '#fff2a0', o: '#ff4a1a' };
 
+// the Moon's decorations
+Object.assign(DECOR, MOON_DECOR);
+Object.assign(PAL, MOON_DECOR_PAL);
+
 export const GLOWING = {
   mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff, giantshroom: 0x6ff0ff, moss: 0x7aff9a, amethyst: 0xd08cff,
   spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a,
+  ...Object.fromEntries(Object.entries(MOON_GLOWING).filter(([, c]) => c)),
 };
 
-// wood, iron, diamond, amber picks; then the brick drill and the star drill
-const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066'];
+// wood, iron, diamond, amber picks; then the brick, star, moon, crystal and laser drills
+const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066', '#9ad8ff', '#b070ff', '#ff4a8a'];
 
 export function drawDecor(scene, canvasTexture, rect) {
   for (const [kind, variants] of Object.entries(DECOR)) {

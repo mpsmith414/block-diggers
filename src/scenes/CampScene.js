@@ -21,7 +21,7 @@ import { BUYABLE, buyDecor, decorById, decorUnlocked } from '../game/decor.js';
 import { refreshRequests, presentVisitors } from '../game/visitors.js';
 import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
-import { growGarden, leavePenGift, elevatorStops, dinoParkGift } from '../game/perks.js';
+import { growGarden, leavePenGift, elevatorStops, dinoParkGift, winSuitPiece } from '../game/perks.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
@@ -628,9 +628,9 @@ export class CampScene extends Phaser.Scene {
 
   // The trip card first (records, stickers), then the ores fly into the bank.
   showSummary() {
-    const { packs, deepest = 0, chests = 0, stickers = [], moon = false } = this.arrived;
+    const { packs, deepest = 0, chests = 0, stickers = [], planet = 'earth' } = this.arrived;
     let state = leavePenGift(growGarden(getState(this.registry)));
-    const summary = summarizeTrip({ packs, deepest, chests, stickers, moon }, state.records);
+    const summary = summarizeTrip({ packs, deepest, chests, stickers, planet }, state.records);
     state = setState(this.registry, { ...refreshRequests({ ...state, records: summary.records }, createRng(Date.now() >>> 0)) });
     this.perks.refresh();
     this.visitors.refreshBubbles();
@@ -642,8 +642,9 @@ export class CampScene extends Phaser.Scene {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
     const hearts = this.arrived.hearts ?? 0;
-    const cheese = this.arrived.cheese ?? 0;
-    const park = dinoParkGift(depositPacks(getState(this.registry), packs, { hearts, cheese }));
+    let banked = depositPacks(getState(this.registry), packs, { hearts });
+    if (this.arrived.moonHearts) banked = winSuitPiece(banked, 'helmet');
+    const park = dinoParkGift(banked);
     const state = setState(this.registry, { ...park.state, trips: (getState(this.registry).trips ?? 0) + 1 });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
     // the Heart of the World and the dino park's amber arrive after the packs

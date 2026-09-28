@@ -128,6 +128,16 @@ describe('Moon treasure', () => {
     expect(wheelsMeet(grid, 7, 3)).toBe(false);
   });
 
+  it('you lean on a cheese wheel to push it (no stepping up onto it)', () => {
+    const grid = createGrid(10, 6);
+    for (let x = 0; x < 10; x++) grid.set(x, 5, B.MOONROCK);
+    grid.set(5, 4, B.CHEESE_WHEEL);
+    const p = createPlayer(standAt(4, 4));
+    for (let i = 0; i < 30; i++) stepPlayer(p, { moveX: 1, moveY: 0, jump: false }, grid, { dt: 1 / 60 });
+    expect(p.y).toBe(standAt(4, 4).y);
+    expect(p.mining).toMatchObject({ cx: 5, cy: 4 });
+  });
+
   it('the Moon Heart counts its own cells', () => {
     const grid = createGrid(10, 10);
     for (let y = 2; y < 5; y++) for (let x = 2; x < 5; x++) grid.set(x, y, B.MOON_HEART);
