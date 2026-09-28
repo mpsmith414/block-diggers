@@ -2,10 +2,10 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { stickerById } from '../game/stickers.js';
 import { createEdge } from '../input/intents.js';
-import { MINE_H, LAYERS, LAYER_COLORS } from '../tuning.js';
+import { LAYER_COLORS } from '../tuning.js';
 import { shownOres } from '../game/ores.js';
 import { getState } from '../save/store.js';
-import { MOON } from '../world/moon.js';
+import { layersOf, mineRows } from '../game/planets.js';
 
 // The "how did we do?" card shown when you get home: ores per player, how
 // deep you went (with a gold "best!" ribbon for records), chests, new stickers.
@@ -73,14 +73,10 @@ export class SummaryScene extends Phaser.Scene {
     const barW = W - 110;
     const barY = ry + 10;
     const bar = this.add.graphics();
-    const depthH = this.summary.moon ? MOON.h : MINE_H;
+    const planet = this.summary.planet ?? 'earth';
+    const depthH = mineRows(planet);
     const seg = (from, to, color) => bar.fillStyle(color, 1).fillRect(barX + (from / depthH) * barW, barY, ((to - from) / depthH) * barW, 8);
-    if (this.summary.moon) {
-      seg(0, MOON.rock.bottom + 1, 0xb8b8c8);
-      seg(MOON.caves.top, MOON.h, 0x3a6a9a);
-    } else {
-      for (const [name, l] of Object.entries(LAYERS)) seg(name === 'dirt' ? 0 : l.top, l.bottom + 1, LAYER_COLORS[name]);
-    }
+    Object.entries(layersOf(planet)).forEach(([name, l], i) => seg(i === 0 ? 0 : l.top, l.bottom + 1, LAYER_COLORS[name]));
     c.add(bar);
     const marker = this.add.image(barX, barY + 4, `char-${this.chars[0]}`, 0).setScale(0.8);
     c.add(marker);

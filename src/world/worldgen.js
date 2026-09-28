@@ -4,7 +4,7 @@
 
 import { createRng } from './rng.js';
 import { createGrid } from './grid.js';
-import { B, isSolid } from './blocks.js';
+import { B, isSolid, isBoulder } from './blocks.js';
 import {
   MINE_W, MINE_H, SHAFT_X, SHAFT_DEPTH, LAYERS, ORE_VEINS, VEIN_SIZE,
   GRAVEL_POCKETS, CAVES, LAVA_POOLS, CHESTS, FINDS, SILLY,
@@ -327,16 +327,17 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
 // decorations that still have something to stand on or hang from.
 export function carveStation(mine, x0, row) {
   const { grid } = mine;
-  const keep = new Set([B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.EGG]);
+  const hostAt = mine.hostAt ?? ((y) => HOST[layerAt(y)]);
+  const keep = new Set([B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.EGG, B.UFO, B.TELEPORT]);
   for (let y = row - 2; y <= row; y++) {
     for (let x = x0 - 3; x <= x0 + 3; x++) if (!keep.has(grid.get(x, y))) grid.set(x, y, B.AIR);
   }
   for (let x = x0 - 3; x <= x0 + 3; x++) {
-    if (!isSolid(grid.get(x, row + 1))) grid.set(x, row + 1, HOST[layerAt(row + 1)]);
+    if (!isSolid(grid.get(x, row + 1))) grid.set(x, row + 1, hostAt(row + 1));
   }
   mine.decor = mine.decor.filter((d) => grid.get(d.x, d.y) === B.AIR &&
     isSolid(d.on === 'ceil' ? grid.get(d.x, d.y - 1) : grid.get(d.x, d.y + 1)));
-  mine.boulders = (mine.boulders ?? []).filter((b) => grid.get(b.x, b.y) === B.BOULDER);
+  mine.boulders = (mine.boulders ?? []).filter((b) => isBoulder(grid.get(b.x, b.y)));
   return mine.decor;
 }
 

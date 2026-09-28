@@ -29,6 +29,29 @@ export const MOON_LAYERS = {
   mooncore: { top: 201, bottom: 250 },
 };
 
+// How the Moon is made: ore veins (per layer), caves, and things to find.
+export const MOON_GEN = {
+  ores: {
+    craters: { veins: 30, weights: { moonstone: 5, cheese: 1 } },
+    cheesecaves: { veins: 38, weights: { cheese: 5, moonstone: 1 } },
+    mooncrystal: { veins: 32, weights: { spacegem: 5, moonstone: 1 } },
+    alienbase: { veins: 32, weights: { gizmo: 5, spacegem: 1 } },
+    mooncore: { veins: 34, weights: { moonstone: 2, spacegem: 2, gizmo: 2, cheese: 1 } },
+  },
+  caves: {
+    craters: { count: 7, radius: 2, length: [22, 36] },
+    cheesecaves: { count: 10, radius: 2.2, length: [24, 40] },
+    mooncrystal: { count: 10, radius: 3, length: [26, 42] },
+    alienbase: { count: 9, radius: 2, length: [26, 44] },
+    mooncore: { count: 8, radius: 2.4, length: [24, 40] },
+  },
+  chests: { craters: 1, cheesecaves: 1, mooncrystal: 2, alienbase: 1, mooncore: 1 },
+  meteorites: 5,
+  wheels: 6, // cheese wheels, in pairs
+  chimes: 6,
+  teleports: 3,
+};
+
 // Each layer's colour on the depth meter and the trip summary.
 export const LAYER_COLORS = {
   dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
