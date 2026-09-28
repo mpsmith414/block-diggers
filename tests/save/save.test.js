@@ -40,7 +40,7 @@ describe('save', () => {
     expect(s.version).toBe(4);
     expect(s.upgrades).toEqual({ pick: 1, pack: 0, lantern: 2 });
     expect(s.plots).toEqual(['house', null, null, null, null, null, null, null, null]);
-    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 });
+    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0 });
     expect(s.petName).toBe('x');
     const st = memStorage({ [SAVE_KEY]: JSON.stringify(v1) });
     expect(loadState(st).status).toBe('migrated');

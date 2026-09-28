@@ -78,7 +78,7 @@ describe('building', () => {
 describe('depositPacks', () => {
   it('adds every pack into the bank', () => {
     const s = depositPacks(withBank({ coal: 1 }), [{ coal: 2, gold: 1 }, { coal: 3, diamond: 1 }]);
-    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0 }));
+    expect(s.bank).toEqual(bank({ coal: 6, gold: 1, diamond: 1, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0 }));
   });
   it('a Heart of the World carried home goes into the bank too', () => {
     const s = depositPacks({ ...defaultState(), bank: { ...defaultState().bank, heart: 1 } }, [{}], { hearts: 1 });

@@ -19,10 +19,21 @@ export const LAYERS = {
   core: { top: 339, bottom: 388 },
 };
 
+// The Moon (planet 1): five layers of fifty rows, bedrock at row 251.
+export const MOON_H = 252;
+export const MOON_LAYERS = {
+  craters: { top: 1, bottom: 50 },
+  cheesecaves: { top: 51, bottom: 100 },
+  mooncrystal: { top: 101, bottom: 150 },
+  alienbase: { top: 151, bottom: 200 },
+  mooncore: { top: 201, bottom: 250 },
+};
+
 // Each layer's colour on the depth meter and the trip summary.
 export const LAYER_COLORS = {
   dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
   dino: 0xd0a868, brick: 0xe0403a, meteor: 0x2a2860, core: 0xff7a2a,
+  craters: 0xb8b8c8, cheesecaves: 0xffd84a, mooncrystal: 0x8a6ae0, alienbase: 0x5ad07a, mooncore: 0xc8f0ff,
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -53,20 +64,25 @@ export const LAVA_POOLS = 7;
 export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
 export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6, oases: 5, springs: 7, meteorites: 6, coreLava: 8, skeletons: 3 };
 
-// ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
-// Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill.
+// ---- mining (seconds) by hardness and tool level ----
+// Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill,
+// 6 moon drill, 7 crystal drill, 8 laser drill.
 const X = Infinity;
 export const MINE_TIME = {
-  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07],
-  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13],
-  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2],
-  crystal: [X, X, 0.6, 0.45, 0.35, 0.3],
-  sand: [X, X, 0.5, 0.4, 0.3, 0.25],
-  bricks: [X, X, X, 0.5, 0.4, 0.3],
-  meteor: [X, X, X, X, 0.5, 0.4],
-  core: [X, X, X, X, X, 0.5],
-  moon: [X, X, 0.6, 0.5, 0.4, 0.3],
-  bedrock: [X, X, X, X, X, X],
+  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05],
+  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1],
+  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14],
+  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2],
+  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18],
+  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
+  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26],
+  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3],
+  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
+  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1],
+  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3],
+  alien: [X, X, X, X, X, X, X, 0.45, 0.36],
+  mooncore: [X, X, X, X, X, X, X, X, 0.45],
+  bedrock: [X, X, X, X, X, X, X, X, X],
 };
 
 // ---- the player (pixels, seconds) ----
@@ -92,8 +108,8 @@ export const PLAYER = {
 
 // ---- upgrades: value per level ----
 // Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
-export const BACKPACK = [30, 60, 120, 180, 250];
-export const LANTERN = [3, 5, 7, 9, 11]; // light radius in blocks
+export const BACKPACK = [30, 60, 120, 180, 250, 320];
+export const LANTERN = [3, 5, 7, 9, 11, 13]; // light radius in blocks
 
 // ---- pickups ----
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
