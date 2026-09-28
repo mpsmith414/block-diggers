@@ -54,7 +54,7 @@ describe('upgrades', () => {
     s = buyUpgrade(s, 'pick');
     expect(s.upgrades.pick).toBe(2);
     expect(nextUpgrade(s, 'pick')).toEqual({ level: 3, cost: { amber: 10, diamond: 5 } });
-    const maxed = { ...s, upgrades: { ...s.upgrades, pick: 5 } };
+    const maxed = { ...s, upgrades: { ...s.upgrades, pick: 8 } };
     expect(nextUpgrade(maxed, 'pick')).toBeNull();
     expect(buyUpgrade(maxed, 'pick')).toBeNull();
   });

@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 76 unique stickers over 10 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(10);
-    expect(ALL_STICKERS).toHaveLength(76);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(76);
+  it('has 101 unique stickers over 12 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(12);
+    expect(ALL_STICKERS).toHaveLength(101);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(101);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -51,5 +51,15 @@ describe('the Silly page', () => {
     expect(STICKER_PAGES[9].stickers.map((s) => s.id)).toEqual([
       'silly-duck', 'silly-sock', 'silly-whoopee', 'silly-sneeze', 'silly-dizzy', 'silly-trick', 'silly-giggle',
     ]);
+  });
+});
+
+describe('the Moon stickers', () => {
+  it('Space has 12, Moon Base 12 and Journey 7', () => {
+    const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
+    expect(byName.space).toHaveLength(12);
+    expect(byName.space).toContain('ore-cheese'); // cheese is an ore now: its sticker shows it in the HUD
+    expect(byName.moonbase).toEqual(expect.arrayContaining(['bld-marsrocket', 'suit-helmet', 'pet-moonpup', 'find-moonheart']));
+    expect(byName.journey).toEqual(['badge-craters', 'badge-cheesecaves', 'badge-mooncrystal', 'badge-alienbase', 'badge-mooncore', 'trip-moonbase', 'trip-starmap']);
   });
 });

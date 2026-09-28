@@ -2,6 +2,7 @@
 
 import { ORES, isSolid } from '../world/blocks.js';
 import { TILE, PICKUP, LAYERS } from '../tuning.js';
+import { layerOfRow } from './planets.js';
 
 export function createBackpack(cap) {
   return { cap, ores: Object.fromEntries(ORES.map((o) => [o, 0])), count: 0 };
@@ -74,8 +75,17 @@ export function collectPickups(list, box, pack) {
   return { list: left, collected };
 }
 
+// Moon chests: each layer's own ore (the core has a bit of everything).
+const MOON_CHEST = {
+  craters: ['moonstone'], cheesecaves: ['cheese'], mooncrystal: ['spacegem'], alienbase: ['gizmo'], mooncore: ['moonstone', 'spacegem', 'gizmo'],
+};
+
 // A treasure chest holds 3-6 of the best ore for its layer.
-export function chestLoot(row, rng) {
+export function chestLoot(row, rng, planet = 'earth') {
+  if (planet === 'moon') {
+    const pool = MOON_CHEST[layerOfRow(row, 'moon')];
+    return Array.from({ length: rng.int(3, 6) }, () => rng.pick(pool));
+  }
   const ore = row > LAYERS.stone.bottom ? rng.pick(['diamond', 'emerald']) : 'gold';
   return Array.from({ length: rng.int(3, 6) }, () => ore);
 }

@@ -27,12 +27,12 @@ describe('the deeper ores', () => {
     expect(mineTime(B.STONE, 5)).toBeLessThan(mineTime(B.STONE, 2));
   });
   it('tool, backpack and lantern tiers 3-5 cost the new ores', () => {
-    expect(UPGRADES.pick).toEqual([
+    expect(UPGRADES.pick.slice(0, 5)).toEqual([
       { iron: 10, coal: 5 }, { diamond: 5, gold: 10 },
       { amber: 10, diamond: 5 }, { brick: 20, amber: 10 }, { star: 10, brick: 20 },
     ]);
-    expect(UPGRADES.pack.slice(2)).toEqual([{ amber: 10, diamond: 10 }, { brick: 20, star: 5 }]);
-    expect(UPGRADES.lantern.slice(2)).toEqual([{ amber: 10, emerald: 5 }, { brick: 10, star: 5 }]);
+    expect(UPGRADES.pack.slice(2, 4)).toEqual([{ amber: 10, diamond: 10 }, { brick: 20, star: 5 }]);
+    expect(UPGRADES.lantern.slice(2, 4)).toEqual([{ amber: 10, emerald: 5 }, { brick: 10, star: 5 }]);
     expect(BACKPACK).toEqual([30, 60, 120, 180, 250, 320]);
     expect(LANTERN).toEqual([3, 5, 7, 9, 11, 13]);
   });
@@ -45,9 +45,9 @@ describe('save v4', () => {
   it('adds the new bank keys and records, keeping everything else', () => {
     const v3 = { version: 3, bank: { coal: 4, iron: 0, gold: 0, diamond: 0, emerald: 2 }, stickers: { 'ore-coal': true }, records: { deepest: 60, mostOres: 20 } };
     const s = migrate(v3);
-    expect(s.version).toBe(4);
+    expect(s.version).toBe(5);
     expect(s.bank).toEqual({ coal: 4, iron: 0, gold: 0, diamond: 0, emerald: 2, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0 });
-    expect(s.records).toEqual({ deepest: 60, mostOres: 20, layers: ['dirt', 'stone'], moonTrips: 0 });
+    expect(s.records).toEqual({ deepest: 60, mostOres: 20, layers: ['dirt', 'stone'], moonTrips: 0, planetDeepest: {} });
     expect(s.stickers).toEqual({ 'ore-coal': true });
   });
 });

@@ -12,7 +12,7 @@ export function createPlayer({ x, y }) {
   return {
     x, y, vx: 0, vy: 0,
     grounded: false, climbing: false, facing: 1,
-    mining: null, jumpHeld: false, knock: null,
+    mining: null, jumpHeld: false, knock: null, airJumpsUsed: 0,
   };
 }
 
@@ -48,8 +48,8 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1 }) {
-  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false };
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0 }) {
+  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false };
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
   let ix = intent.moveX || 0;
@@ -110,6 +110,12 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     p.vy = -PLAYER.jumpSpeed;
     p.climbing = false;
     out.jumped = true;
+  } else if (jumpPressed && !p.climbing && p.airJumpsUsed < airJumps) {
+    // the Moon Pup's double jump: one more hop in mid-air
+    p.vy = -PLAYER.jumpSpeed * PLAYER.airJump;
+    p.airJumpsUsed++;
+    out.jumped = true;
+    out.doubleJumped = true;
   } else if (p.climbing) {
     p.vy = iy * PLAYER.climbSpeed;
   } else if (inLadder && p.vy >= 0) {
@@ -190,6 +196,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   const underRow = Math.round(bottom / T);
   p.grounded = Math.abs(bottom - underRow * T) < 0.01 &&
     columnsOf(p.x).some((c) => isSolid(grid.get(c, underRow)) || (iy <= 0 && ladderTop(grid, c, underRow)));
+  if (p.grounded || p.climbing || inWater) p.airJumpsUsed = 0;
 
   // mining progress
   if (!canMine) target = null;

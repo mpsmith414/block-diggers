@@ -117,6 +117,7 @@ export const PLAYER = {
   gravity: 900,
   maxFall: 420,
   jumpSpeed: 190, // ≈ 1.25 blocks high
+  airJump: 0.9, // the Moon Pup's double jump, as a share of a jump
   climbSnap: 10, // how fast x eases to the ladder column (1/s)
   knockSpeed: 110,
   knockTime: 0.25,
@@ -138,7 +139,7 @@ export const LANTERN = [3, 5, 7, 9, 11, 13]; // light radius in blocks
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
 
 // ---- building perks ----
-export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42 };
+export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2 };
 
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
