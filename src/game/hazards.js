@@ -1,7 +1,8 @@
 // Gentle danger: slimes, bats, falling gravel, lava. Pure step functions.
 
 import { B, isSolid } from '../world/blocks.js';
-import { TILE, SLIME, BAT, GRAVEL, LAYERS } from '../tuning.js';
+import { TILE, SLIME, BAT, GRAVEL } from '../tuning.js';
+import { layersOf, layerOfRow } from './planets.js';
 
 const T = TILE;
 
@@ -143,27 +144,26 @@ export function lavaEscape(grid, cx, cy) {
 
 // ---- spawning ----
 
-// Which creature lives in each layer, and whether it walks or flies.
+// Which creature lives in each layer (on every planet), and whether it walks or flies.
 const CREATURES = {
   dirt: 'slime', stone: 'slime', deep: 'bat', crystal: 'bat',
   dino: 'ptero', brick: 'robot', meteor: 'alien', core: 'wisp',
+  craters: 'moonblob', cheesecaves: 'mouse', mooncrystal: 'jelly', alienbase: 'drone', mooncore: 'sprite',
 };
-const WALKERS = new Set(['slime', 'robot']);
+const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse']);
 
-export function layerOfRow(y) {
-  for (const [name, { top, bottom }] of Object.entries(LAYERS)) if (y >= top && y <= bottom) return name;
-  return y < 1 ? 'dirt' : 'core';
-}
+export { layerOfRow };
 
-export function creatureFor(row) {
-  const species = CREATURES[layerOfRow(row)];
+export function creatureFor(row, planet = 'earth') {
+  const species = CREATURES[layerOfRow(row, planet)];
   return { species, walker: WALKERS.has(species) };
 }
 
 // A spawn cell near `near`, in the same layer, for a walker (on a floor) or a flyer.
-export function spawnSpot(grid, rng, { walker, near, avoid }) {
-  const layer = LAYERS[layerOfRow(near.cy)];
-  const top = Math.max(layer.top, LAYERS.dirt.top + 2);
+export function spawnSpot(grid, rng, { walker, near, avoid, planet = 'earth' }) {
+  const layers = layersOf(planet);
+  const layer = layers[layerOfRow(near.cy, planet)];
+  const top = Math.max(layer.top, Object.values(layers)[0].top + 2);
   const bottom = layer.bottom;
   for (let i = 0; i < 30; i++) {
     const cx = near.cx + rng.int(-20, 20);

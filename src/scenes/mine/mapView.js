@@ -6,7 +6,7 @@ import { BACK, TILE_MARGIN, TILE_SPACING } from '../../art/textures.js';
 import { layerAt } from '../../world/worldgen.js';
 import { TILE } from '../../tuning.js';
 
-export function createMapView(scene, grid, { moon = false } = {}) {
+export function createMapView(scene, grid, { layerAt: layerOf = layerAt, top = 'dirt' } = {}) {
   const map = scene.make.tilemap({ width: grid.w, height: grid.h, tileWidth: TILE, tileHeight: TILE });
   const tileset = map.addTilesetImage('tiles', 'tiles', TILE, TILE, TILE_MARGIN, TILE_SPACING);
   const back = map.createBlankLayer('back', tileset).setDepth(0);
@@ -18,9 +18,9 @@ export function createMapView(scene, grid, { moon = false } = {}) {
     const b = [];
     const f = [];
     for (let x = 0; x < grid.w; x++) {
-      b.push(moon ? BACK.moon : y === 0 ? BACK.dirt : BACK[layerAt(y)]);
+      b.push(y === 0 ? BACK[top] : BACK[layerOf(y)]);
       const id = grid.get(x, y);
-      f.push(id === B.AIR || id === B.EGG ? -1 : id);
+      f.push(id === B.AIR || id === B.EGG || id === B.UFO ? -1 : id);
     }
     backRows.push(b);
     frontRows.push(f);
@@ -30,7 +30,7 @@ export function createMapView(scene, grid, { moon = false } = {}) {
 
   const sync = (x, y) => {
     const id = grid.get(x, y);
-    if (id === B.AIR || id === B.EGG) front.removeTileAt(x, y);
+    if (id === B.AIR || id === B.EGG || id === B.UFO) front.removeTileAt(x, y);
     else front.putTileAt(id, x, y);
   };
 

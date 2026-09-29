@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { summarizeTrip, layersReached, discovery } from '../../src/game/trip.js';
 
-const zero = { coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0 };
+const zero = { coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, moonstone: 0, cheese: 0, spacegem: 0, gizmo: 0 };
 
 describe('summarizeTrip', () => {
   it('adds up every player and reports new records', () => {
@@ -62,13 +62,13 @@ describe('discovery', () => {
 });
 
 describe('a trip to the Moon', () => {
-  it('counts a moon trip, and moon depth is not a mine depth record', () => {
+  it('counts a moon trip, and moon depth is not an Earth depth record', () => {
     const records = { deepest: 200, mostOres: 5, layers: ['dirt'], moonTrips: 1 };
-    const r = summarizeTrip({ packs: [], deepest: 90, chests: 0, stickers: [], moon: true }, records);
+    const r = summarizeTrip({ packs: [], deepest: 90, chests: 0, stickers: [], planet: 'moon' }, records);
     expect(r.records.moonTrips).toBe(2);
     expect(r.records.deepest).toBe(200);
-    expect(r.records.layers).toEqual(['dirt', 'stone', 'deep', 'crystal', 'dino']);
-    expect(r.best.deepest).toBe(false);
+    expect(r.records.layers).toEqual(['dirt', 'stone', 'deep', 'crystal', 'dino', 'craters', 'cheesecaves']);
+    expect(r.records.planetDeepest).toEqual({ moon: 90 });
     expect(r.moon).toBe(true);
   });
 });

@@ -6,7 +6,8 @@ import { PETS } from '../tuning.js';
 // cave pets come from cave eggs (and the owl); dinosaurs from dino eggs
 export const CAVE_KINDS = ['mole', 'glowbug', 'batbuddy'];
 export const DINO_KINDS = ['rex', 'trike'];
-export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS];
+export const MOON_KINDS = ['moonpup'];
+export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS];
 
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {

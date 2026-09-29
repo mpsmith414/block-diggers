@@ -70,6 +70,18 @@ export class TitleScene extends Phaser.Scene {
     for (let i = 0; i < 30; i++) {
       this.add.image(8 + i * 16 + (i % 3) * 3, GROUND + 1, 'flower', i % 3).setOrigin(0.5, 1).setDepth(4);
     }
+    // the Moon hangs in the sky, and now and then a little rocket zooms up to it
+    this.add.image(84, 66, 'planet-moon').setAlpha(0.9);
+    const zoom = () => {
+      const r = this.add.image(-10, 190, 'icon-rocket').setAngle(37).setDepth(2);
+      this.tweens.add({
+        targets: r, x: 78, y: 72, duration: 2200, ease: 'Sine.easeIn',
+        onUpdate: () => { if (Math.random() < 0.4) this.effects.sparkle(r.x - 6, r.y + 6, 0xffb34a, 1); },
+        onComplete: () => { this.effects.sparkle(84, 66, 0xffffff, 6); r.destroy(); },
+      });
+    };
+    this.time.delayedCall(1500, zoom);
+    this.time.addEvent({ delay: 9000, loop: true, callback: zoom });
   }
 
   makeCard(slot) {

@@ -11,7 +11,12 @@ import { TILE, PLAYER, SLIME, BAT, SPAWN, GOLDEN_SLIME, SILLY } from '../../tuni
 import { earnSticker } from '../common/stickers.js';
 
 // each creature's own little noise
-const VOICE = { slime: 'blorp', bat: 'squeak', ptero: 'caw', robot: 'whirr', alien: 'giggle', wisp: 'crackle', moonblob: 'blorp' };
+const VOICE = {
+  slime: 'blorp', bat: 'squeak', ptero: 'caw', robot: 'whirr', alien: 'giggle', wisp: 'crackle',
+  moonblob: 'blorp', mouse: 'squeak', jelly: 'blorp', drone: 'whirr', sprite: 'giggle',
+};
+// texture for each creature (most are named after it)
+const TEXTURE = { robot: 'toyrobot', sprite: 'starsprite' };
 
 export function createHazards(scene) {
   let enemies = [];
@@ -22,7 +27,7 @@ export function createHazards(scene) {
   const spriteFor = (e) => {
     let s = sprites.get(e);
     if (!s) {
-      const key = e.golden ? 'slime-gold' : e.species === 'robot' ? 'toyrobot' : (e.species ?? e.kind);
+      const key = e.golden ? 'slime-gold' : TEXTURE[e.species] ?? (e.species ?? e.kind);
       if (e.kind === 'slime') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 1).setDepth(28);
       else if (e.kind === 'bat') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 0.5).setDepth(28);
       else s = scene.add.image(0, 0, 'tiles', B.GRAVEL).setOrigin(0, 0).setDepth(12);
@@ -52,11 +57,11 @@ export function createHazards(scene) {
     };
     const count = (kind) => enemies.filter((e) => e.kind === kind).length;
     // each layer has its own creature: walkers move like slimes, flyers like bats
-    const { species, walker } = scene.moon ? { species: 'moonblob', walker: true } : creatureFor(near.cy);
+    const { species, walker } = creatureFor(near.cy, scene.planet);
     const kind = walker ? 'slime' : 'bat';
     if (kind === 'slime' && count('slime') >= SLIME.max) return;
     if (kind === 'bat' && count('bat') >= BAT.max) return;
-    const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid });
+    const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid, planet: scene.planet });
     if (!spot) return;
     const dir = scene.rng.chance(0.5) ? 1 : -1;
     const e = walker

@@ -42,6 +42,10 @@ const MINE = {
   heart: (s) => s.play('heart'),
   heartChip: (s) => s.play('crack'),
   meteorite: (s) => s.play('crack'),
+  chime: (s, i) => s.play('chime', i),
+  teleport: (s) => s.play('zap'),
+  ufo: (s) => s.play('ufo'),
+  cheeseParty: (s) => s.play('party'),
 };
 
 const CAMP = {
@@ -65,6 +69,7 @@ const CAMP = {
   glug: (s) => s.play('glug'),
   burp: (s) => s.play('burp'),
   trick: (s) => s.play('trick'),
+  fanfare: (s) => s.play('fanfare'),
 };
 
 const MENU = {
@@ -76,7 +81,7 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU };
+const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp' };
 
 export function attachAudio(scene) {

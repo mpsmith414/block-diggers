@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { packFull } from '../game/loot.js';
 import { B } from '../world/blocks.js';
-import { MINE_H, LAYERS, LAYER_COLORS, TILE } from '../tuning.js';
+import { LAYER_COLORS, TILE } from '../tuning.js';
+import { layersOf } from '../game/planets.js';
 import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
 import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
@@ -36,26 +37,23 @@ export class HudScene extends Phaser.Scene {
     const x = this.scale.width - 10;
     const top = 44;
     const h = this.scale.height - top - 10;
-    const moon = !!this.source.moon;
+    const planet = this.source.planet ?? 'earth';
+    const layers = layersOf(planet);
     const rows = this.source.grid.h;
     this.meter = { x, top, h, scale: h / rows };
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.35).fillRoundedRect(x - 4, top - 4, 9, h + 8, 3);
     const band = (from, to, color) => g.fillStyle(color, 1).fillRect(x - 2, top + from * this.meter.scale, 5, (to - from + 1) * this.meter.scale);
-    band(0, 0, 0x5aa63c);
-    if (moon) {
-      band(0, 60, 0xb8b8c8);
-      band(61, rows - 2, 0x3a6a9a);
-    } else {
-      for (const [name, l] of Object.entries(LAYERS)) band(l.top, l.bottom, LAYER_COLORS[name]);
-    }
+    band(0, 0, planet === 'earth' ? 0x5aa63c : LAYER_COLORS[Object.keys(layers)[0]]);
+    for (const [name, l] of Object.entries(layers)) band(l.top, l.bottom, LAYER_COLORS[name]);
     // layers you've never reached are in shadow
-    const known = moon ? Object.keys(LAYERS) : getState(this.registry).records?.layers ?? [];
-    for (const [name, l] of Object.entries(LAYERS)) {
+    const records = getState(this.registry).records ?? {};
+    const known = records.layers ?? [];
+    for (const [name, l] of Object.entries(layers)) {
       if (!known.includes(name)) g.fillStyle(0x000000, 0.55).fillRect(x - 2, top + l.top * this.meter.scale, 5, (l.bottom - l.top + 1) * this.meter.scale);
     }
     // a little flag at the deepest you've ever been
-    const best = moon ? 0 : getState(this.registry).records?.deepest ?? 0;
+    const best = planet === 'earth' ? records.deepest ?? 0 : records.planetDeepest?.[planet] ?? 0;
     if (best > 0) {
       const fy = top + best * this.meter.scale;
       g.fillStyle(0xffffff, 1).fillRect(x - 7, fy - 5, 1, 6);
@@ -88,7 +86,7 @@ export class HudScene extends Phaser.Scene {
       const state = getState(this.registry);
       const bank = { ...state.bank };
       for (const a of this.source.avatars) if (a) for (const o of ORES) bank[o] += a.pack.ores[o];
-      const goal = nextGoal({ ...state, bank });
+      const goal = nextGoal({ ...state, bank }, this.source.planet ?? 'earth');
       const key = goal ? `${goal.id}:${JSON.stringify(goal.missing)}` : 'none';
       if (key !== this.goalKey) {
         this.goalKey = key;
@@ -118,11 +116,13 @@ export class HudScene extends Phaser.Scene {
         }
       }
     }
-    const ore = deepestMissing(this.goal);
-    if (ore && ore !== 'coal' && !this.source.moon) {
+    const planet = this.source.planet ?? 'earth';
+    const ore = deepestMissing(this.goal, planet);
+    const row = ore ? oreTopRow(ore, planet) : 0;
+    if (ore && row > 1) {
       const { x, top, scale } = this.meter;
       this.goalArrow.list[1].setTexture(`ore-${ore}`);
-      this.goalArrow.setVisible(true).setPosition(x - 12 + Math.sin(time / 200) * 2, top + oreTopRow(ore) * scale);
+      this.goalArrow.setVisible(true).setPosition(x - 12 + Math.sin(time / 200) * 2, top + row * scale);
     } else {
       this.goalArrow.setVisible(false);
     }
@@ -136,6 +136,11 @@ export class HudScene extends Phaser.Scene {
       brick: { rock: B.BRICKS, ore: B.BRICK_ORE, creature: 'toyrobot', color: 0xe0403a },
       meteor: { rock: B.METEOR, ore: B.STAR, creature: 'alien', color: 0x2a2860 },
       core: { rock: B.CORE, ore: B.HEART, creature: 'wisp', color: 0xff7a2a },
+      craters: { rock: B.MOONROCK, ore: B.MOONSTONE, creature: 'moonblob', color: 0xb8b8c8 },
+      cheesecaves: { rock: B.CHEESE_ROCK, ore: B.CHEESE, creature: 'mouse', color: 0xffd84a },
+      mooncrystal: { rock: B.MOON_CRYSTAL, ore: B.SPACE_GEM, creature: 'jelly', color: 0x8a6ae0 },
+      alienbase: { rock: B.ALIEN_PANEL, ore: B.GIZMO, creature: 'drone', color: 0x5ad07a },
+      mooncore: { rock: B.MOON_CORE, ore: B.MOON_HEART, creature: 'starsprite', color: 0xc8f0ff },
     }[layer];
     if (!LOOK) return;
     const w = 190;
@@ -146,7 +151,7 @@ export class HudScene extends Phaser.Scene {
     g.fillStyle(LOOK.color, 1).fillRoundedRect(-w / 2, -28, w, 56, 7);
     g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-w / 2 + 4, -24, w - 8, 48, 5);
     c.add(g);
-    const badge = this.add.image(-w / 2 + 28, 0, 'badge', ['dino', 'brick', 'meteor', 'core'].indexOf(layer)).setScale(2.4);
+    const badge = this.add.image(-w / 2 + 28, 0, 'badge', ['dino', 'brick', 'meteor', 'core', 'craters', 'cheesecaves', 'mooncrystal', 'alienbase', 'mooncore'].indexOf(layer)).setScale(2.4);
     c.add(badge);
     for (let i = 0; i < 4; i++) c.add(this.add.image(-22 + i * 20, 8, 'tiles', i === 1 ? LOOK.ore : LOOK.rock).setScale(1.25));
     const critter = this.add.sprite(46, -12, LOOK.creature, 0).setScale(1.5);
@@ -197,7 +202,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   panelFor(a) {
-    const kinds = shownOres(getState(this.registry));
+    const kinds = shownOres(getState(this.registry), this.source.planet ?? 'earth');
     const old = this.panels[a.slot];
     if (old && old.kinds.length === kinds.length) return old;
     if (old) old.c.destroy();

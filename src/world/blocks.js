@@ -45,9 +45,21 @@ export const B = {
   MOONROCK: 39,
   SPACE_CRYSTAL: 40,
   CHEESE: 41,
+  // the planets (M19): the 5-layer Moon
+  CHEESE_ROCK: 42,
+  MOON_CRYSTAL: 43,
+  ALIEN_PANEL: 44,
+  MOON_CORE: 45,
+  MOONSTONE: 46,
+  SPACE_GEM: 47,
+  GIZMO: 48,
+  CHEESE_WHEEL: 49,
+  TELEPORT: 50,
+  MOON_HEART: 51,
+  UFO: 52,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -91,11 +103,24 @@ def(B.HEART, 'heart of the world', true, 'core');
 def(B.SPRING, 'spring block', true, 'bricks');
 def(B.METEORITE, 'meteorite', true, 'meteor');
 def(B.MOONROCK, 'moon rock', true, 'moon');
-def(B.SPACE_CRYSTAL, 'space crystal', true, 'moon', 'diamond');
-def(B.CHEESE, 'moon cheese', true, 'soft');
+def(B.SPACE_CRYSTAL, 'space crystal', true, 'moon', 'spacegem');
+def(B.CHEESE, 'moon cheese', true, 'cheese', 'cheese');
+def(B.CHEESE_ROCK, 'cheese rock', true, 'cheese');
+def(B.MOON_CRYSTAL, 'moon crystal rock', true, 'mooncrystal');
+def(B.ALIEN_PANEL, 'alien panel', true, 'alien');
+def(B.MOON_CORE, 'moon core rock', true, 'mooncore');
+def(B.MOONSTONE, 'moonstone', true, 'moon', 'moonstone');
+def(B.SPACE_GEM, 'space gem', true, 'mooncrystal', 'spacegem');
+def(B.GIZMO, 'alien gizmo', true, 'alien', 'gizmo');
+def(B.CHEESE_WHEEL, 'cheese wheel', true, 'bedrock');
+def(B.TELEPORT, 'teleport pad', false, null);
+def(B.MOON_HEART, 'moon heart', true, 'mooncore');
+def(B.UFO, 'crashed ufo', false, null);
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];
 export const isSolid = (id) => !!(TABLE[id] && TABLE[id].solid);
 export const hardnessOf = (id) => (TABLE[id] ? TABLE[id].hardness : null);
 export const dropOf = (id) => (TABLE[id] ? TABLE[id].drop : null);
+// boulders you push around (cheese wheels on the Moon)
+export const isBoulder = (id) => id === B.BOULDER || id === B.CHEESE_WHEEL;

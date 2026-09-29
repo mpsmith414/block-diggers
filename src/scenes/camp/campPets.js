@@ -5,30 +5,32 @@ import { follow } from '../../game/pets.js';
 import { getState, setState } from '../../save/store.js';
 import { EGG_KINDS } from '../../art/finds.js';
 import { earnSticker } from '../common/stickers.js';
-import { TILE, CAMP, PLAYER } from '../../tuning.js';
+import { TILE, CAMP, PLAYER, PETS } from '../../tuning.js';
 import { playTrick, trickOffset } from '../common/petTricks.js';
 
-const WALKERS = ['mole', 'rex', 'trike'];
+const WALKERS = ['mole', 'rex', 'trike', 'moonpup'];
 const DINOS = ['rex', 'trike'];
 
 export function createCampPets(camp) {
-  const groundY = CAMP.ground * TILE;
-  const nest = { x: (CAMP.fireX + 2) * TILE + 8, y: groundY };
+  const L = camp.L ?? CAMP;
+  const groundY = L.ground * TILE;
+  const nest = { x: L.nestX * TILE + 8, y: groundY };
   camp.add.image(nest.x, nest.y + 1, 'nest').setOrigin(0.5, 1).setDepth(6);
   const pets = [];
   let queue = [];
   let current = null; // the egg in the nest right now, until it cracks
 
   function addPet(kind, x, y) {
-    const pet = { kind, pos: { x, y }, sprite: camp.add.sprite(x, y, `pet-${kind}`, 0).setDepth(29), t: Math.random() * 10, wanderX: 0, wanderT: 0 };
+    const pet = { kind, pos: { x, y }, sprite: camp.add.sprite(x, y, `pet-${kind}`, 0).setDepth(29).setScale(PETS.scale), t: Math.random() * 10, wanderX: 0, wanderT: 0 };
     pets.push(pet);
     return pet;
   }
   const home = getState(camp.registry);
-  const parkAt = home.plots.indexOf('dinopark');
+  const onEarth = (camp.planet ?? 'earth') === 'earth';
+  const parkAt = onEarth ? home.plots.indexOf('dinopark') : -1;
   for (const [i, kind] of (home.pets ?? []).entries()) {
     // dinosaurs start the day in their park
-    const x = parkAt >= 0 && DINOS.includes(kind) ? CAMP.plots[parkAt] * TILE + 30 + i * 8 : nest.x + i * 12;
+    const x = parkAt >= 0 && DINOS.includes(kind) ? L.plots[parkAt] * TILE + 30 + i * 8 : nest.x + i * 12;
     addPet(kind, x, groundY - 20);
   }
 
@@ -64,7 +66,7 @@ export function createCampPets(camp) {
       if (r.pet) {
         const pet = addPet(r.pet, nest.x, nest.y - 12);
         pet.sprite.setScale(0.2);
-        camp.tweens.add({ targets: pet.sprite, scale: 1.6, duration: 300, ease: 'Back.easeOut', yoyo: true, hold: 600 });
+        camp.tweens.add({ targets: pet.sprite, scale: 1.6, duration: 300, ease: 'Back.easeOut', yoyo: true, hold: 600, onComplete: () => pet.sprite.setScale(PETS.scale) });
         earnSticker(camp, `pet-${r.pet}`);
       } else {
         camp.scene.get('CampHud').flyList(nest.x, nest.y - 16, Array(r.gold).fill('gold'), r.state.bank);
@@ -101,8 +103,8 @@ export function createCampPets(camp) {
     },
     update(dt, time) {
       const players = camp.avatars.filter(Boolean);
-      const parkPlot = getState(camp.registry).plots.indexOf('dinopark');
-      const park = parkPlot >= 0 && camp.buildings[parkPlot] && !camp.buildings[parkPlot].building ? CAMP.plots[parkPlot] * TILE + 48 : null;
+      const parkPlot = onEarth ? getState(camp.registry).plots.indexOf('dinopark') : -1;
+      const park = parkPlot >= 0 && camp.buildings[parkPlot] && !camp.buildings[parkPlot].building ? L.plots[parkPlot] * TILE + 48 : null;
       pets.forEach((pet, i) => {
         pet.t += dt;
         const a = players[i % Math.max(1, players.length)];
@@ -111,11 +113,11 @@ export function createCampPets(camp) {
           pet.wanderT = 1.5 + Math.random() * 2;
           pet.wanderX = (Math.random() - 0.5) * 50;
         }
-        let baseX = a ? a.p.x + PLAYER.w / 2 - a.p.facing * (18 + i * 10) + pet.wanderX * 0.4 : nest.x + pet.wanderX;
+        let baseX = a ? a.p.x + PLAYER.w / 2 - a.p.facing * (14 + i * 7) + pet.wanderX * 0.4 : nest.x + pet.wanderX;
         // baby dinosaurs play in their park
         if (park && DINOS.includes(pet.kind)) baseX = park + pet.wanderX * 1.4;
         let target;
-        if (WALKERS.includes(pet.kind)) target = { x: baseX, y: groundY - 6 - Math.abs(Math.sin(pet.t * 7)) * 3 };
+        if (WALKERS.includes(pet.kind)) target = { x: baseX, y: groundY - 4 - Math.abs(Math.sin(pet.t * 7)) * 3 };
         else if (pet.kind === 'glowbug') target = { x: baseX, y: groundY - 30 + Math.sin(pet.t * 3) * 6 };
         else target = { x: baseX, y: groundY - 36 + Math.sin(pet.t * 4) * 5 };
         follow(pet.pos, target, dt, 90);

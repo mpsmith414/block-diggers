@@ -3,6 +3,7 @@
 // skeletons; the Heart of the World, meteorites and the four layer badges.
 
 import { drawMap } from './pixelmap.js';
+import { drawMoonBadges } from './moonWorld.js';
 
 const OUT = '#2a1d2e';
 const BONE = '#efe4c8';
@@ -232,7 +233,7 @@ export function drawDeep(scene, canvasTexture, rect) {
 
   // layer badges: dino, brick, meteor, core
   {
-    const { tex, ctx } = canvasTexture(scene, 'badge', 64, 16);
+    const { tex, ctx } = canvasTexture(scene, 'badge', 144, 16);
     const ring = (ox, c, dark) => {
       ctx.fillStyle = '#ffd84a';
       ctx.beginPath(); ctx.arc(ox + 8, 8, 7.5, 0, Math.PI * 2); ctx.fill();
@@ -252,7 +253,8 @@ export function drawDeep(scene, canvasTexture, rect) {
     ring(48, '#ff8a3a', '#a83a1a');
     drawMap(ctx, 48 + 3, 2, ['....y.....', '...yy.....', '...yoy....', '..yooy....', '..yoooy...', '.yoorooy..', '.yoooooy..', '..yoooy...', '...yyy....'],
       { y: '#fff2a0', o: '#ffc040', r: '#ffffff' });
-    for (let i = 0; i < 4; i++) tex.add(i, 0, i * 16, 0, 16, 16);
+    drawMoonBadges(ctx, rect, ring);
+    for (let i = 0; i < 9; i++) tex.add(i, 0, i * 16, 0, 16, 16);
     tex.refresh();
   }
 }

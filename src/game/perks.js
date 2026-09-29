@@ -1,24 +1,43 @@
 // What each building does for you. Immutable: state in, new state out.
 
-import { BACKPACK, PERKS, LAYERS, PETS } from '../tuning.js';
+import { BACKPACK, LANTERN, PERKS, PETS } from '../tuning.js';
+import { plotsOf } from './economy.js';
+import { layersOf } from './planets.js';
 
 const has = (state, id) => state.plots.includes(id);
+export const hasBuilt = (state, id, planet = 'earth') => plotsOf(state, planet).includes(id);
 
 export const packCap = (state) => BACKPACK[state.upgrades.pack] + (has(state, 'house') ? PERKS.houseBonus : 0);
 export const luck = (state) => (has(state, 'statue') ? 2 : 1);
-export const revealsChests = (state) => has(state, 'tower');
+export const revealsChests = (state, planet = 'earth') => hasBuilt(state, planet === 'moon' ? 'telescope' : 'tower', planet);
+
+// ---- the Sun Suit: one piece from the bottom of each planet ----
+
+export const hasSuit = (state, piece) => (state.suit ?? []).includes(piece);
+export const winSuitPiece = (state, piece) => (hasSuit(state, piece) ? state : { ...state, suit: [...(state.suit ?? []), piece] });
+
+// the Helmet's headlamp: 2 more blocks of light, in every mine
+export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSuit(state, 'helmet') ? PERKS.headlamp : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);
 
-// ---- minecart: an elevator to the top of any layer you've reached ----
+// ---- minecart (the UFO on the Moon): an elevator to the top of any layer you've reached ----
 
-export function elevatorStops(state) {
-  if (!has(state, 'minecart')) return [];
+export function elevatorStops(state, planet = 'earth') {
+  if (!hasBuilt(state, planet === 'moon' ? 'hangar' : 'minecart', planet)) return [];
   const reached = state.records?.layers ?? [];
-  return Object.entries(LAYERS).map(([layer, l]) => ({
+  return Object.entries(layersOf(planet)).map(([layer, l], i) => ({
     layer,
-    row: layer === 'dirt' ? null : l.top + 1,
-    open: layer === 'dirt' || reached.includes(layer),
+    row: i === 0 ? null : l.top + 1,
+    open: i === 0 || reached.includes(layer),
   }));
+}
+
+// ---- cheese factory: the space mice make cheese while you're away ----
+
+export function cheeseFactoryGift(state) {
+  if (!hasBuilt(state, 'cheesefactory', 'moon')) return { state, ores: [] };
+  const ores = Array(PERKS.factoryCheese).fill('cheese');
+  return { state: { ...state, bank: { ...state.bank, cheese: (state.bank.cheese ?? 0) + ores.length } }, ores };
 }
 
 // ---- dino park: the baby dinosaurs dig up amber while you're away ----

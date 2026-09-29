@@ -19,10 +19,44 @@ export const LAYERS = {
   core: { top: 339, bottom: 388 },
 };
 
+// The Moon (planet 1): five layers of fifty rows, bedrock at row 251.
+export const MOON_H = 252;
+export const MOON_LAYERS = {
+  craters: { top: 1, bottom: 50 },
+  cheesecaves: { top: 51, bottom: 100 },
+  mooncrystal: { top: 101, bottom: 150 },
+  alienbase: { top: 151, bottom: 200 },
+  mooncore: { top: 201, bottom: 250 },
+};
+
+// How the Moon is made: ore veins (per layer), caves, and things to find.
+export const MOON_GEN = {
+  ores: {
+    craters: { veins: 42, weights: { moonstone: 1 } },
+    cheesecaves: { veins: 50, weights: { cheese: 5, moonstone: 1 } },
+    mooncrystal: { veins: 44, weights: { spacegem: 5, moonstone: 1 } },
+    alienbase: { veins: 44, weights: { gizmo: 5, spacegem: 1 } },
+    mooncore: { veins: 46, weights: { moonstone: 1, spacegem: 1, gizmo: 1 } },
+  },
+  caves: {
+    craters: { count: 7, radius: 2, length: [22, 36] },
+    cheesecaves: { count: 10, radius: 2.2, length: [24, 40] },
+    mooncrystal: { count: 10, radius: 3, length: [26, 42] },
+    alienbase: { count: 9, radius: 2, length: [26, 44] },
+    mooncore: { count: 8, radius: 2.4, length: [24, 40] },
+  },
+  chests: { craters: 1, cheesecaves: 1, mooncrystal: 2, alienbase: 1, mooncore: 1 },
+  meteorites: 5,
+  wheels: 6, // cheese wheels, in pairs
+  chimes: 6,
+  teleports: 3,
+};
+
 // Each layer's colour on the depth meter and the trip summary.
 export const LAYER_COLORS = {
   dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
   dino: 0xd0a868, brick: 0xe0403a, meteor: 0x2a2860, core: 0xff7a2a,
+  craters: 0xb8b8c8, cheesecaves: 0xffd84a, mooncrystal: 0x8a6ae0, alienbase: 0x5ad07a, mooncore: 0xc8f0ff,
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -53,20 +87,25 @@ export const LAVA_POOLS = 7;
 export const CHESTS = 3; // in stone + deep; the crystal layer adds one more
 export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 1, eggs: 2, waterPools: 9, puddles: 6, oases: 5, springs: 7, meteorites: 6, coreLava: 8, skeletons: 3 };
 
-// ---- mining (seconds) by hardness, for pick level 0 (wood), 1 (iron), 2 (diamond) ----
-// Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill.
+// ---- mining (seconds) by hardness and tool level ----
+// Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill,
+// 6 moon drill, 7 crystal drill, 8 laser drill.
 const X = Infinity;
 export const MINE_TIME = {
-  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07],
-  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13],
-  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2],
-  crystal: [X, X, 0.6, 0.45, 0.35, 0.3],
-  sand: [X, X, 0.5, 0.4, 0.3, 0.25],
-  bricks: [X, X, X, 0.5, 0.4, 0.3],
-  meteor: [X, X, X, X, 0.5, 0.4],
-  core: [X, X, X, X, X, 0.5],
-  moon: [X, X, 0.6, 0.5, 0.4, 0.3],
-  bedrock: [X, X, X, X, X, X],
+  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05],
+  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1],
+  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14],
+  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2],
+  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18],
+  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
+  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26],
+  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3],
+  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
+  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1],
+  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3],
+  alien: [X, X, X, X, X, X, X, 0.45, 0.36],
+  mooncore: [X, X, X, X, X, X, X, X, 0.45],
+  bedrock: [X, X, X, X, X, X, X, X, X],
 };
 
 // ---- the player (pixels, seconds) ----
@@ -78,6 +117,7 @@ export const PLAYER = {
   gravity: 900,
   maxFall: 420,
   jumpSpeed: 190, // ≈ 1.25 blocks high
+  airJump: 0.9, // the Moon Pup's double jump, as a share of a jump
   climbSnap: 10, // how fast x eases to the ladder column (1/s)
   knockSpeed: 110,
   knockTime: 0.25,
@@ -92,14 +132,14 @@ export const PLAYER = {
 
 // ---- upgrades: value per level ----
 // Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
-export const BACKPACK = [30, 60, 120, 180, 250];
-export const LANTERN = [3, 5, 7, 9, 11]; // light radius in blocks
+export const BACKPACK = [30, 60, 120, 180, 250, 320];
+export const LANTERN = [3, 5, 7, 9, 11, 13]; // light radius in blocks
 
 // ---- pickups ----
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
 
 // ---- building perks ----
-export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42 };
+export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2 };
 
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
@@ -139,7 +179,7 @@ export const POWERUPS = {
 };
 
 // ---- pets ----
-export const PETS = { goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
+export const PETS = { scale: 0.7, goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
 
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };
@@ -155,6 +195,22 @@ export const CAMP = {
   stallX: 63,
   fireX: 15,
   plots: [19, 26, 33, 40, 47, 54, 86, 93, 100],
+  plotW: 6,
+  buildSeconds: 5,
+  nestX: 17,
+};
+
+// ---- Moon Base (cells): the Moon's own camp ----
+export const MOON_CAMP = {
+  w: 62,
+  h: 14,
+  ground: 11,
+  shaftX: 5, // the hatch down into the Moon
+  benchX: 10,
+  lecternX: 12,
+  nestX: 15,
+  padX: 20, // the landing pad (its middle), where the rocket stands
+  plots: [26, 33, 40, 47],
   plotW: 6,
   buildSeconds: 5,
 };

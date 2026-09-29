@@ -1,7 +1,7 @@
 // Player movement and mining as a pure step function over the grid.
 // Position (x, y) is the top-left of a PLAYER.w × PLAYER.h box, in pixels.
 
-import { B, isSolid } from '../world/blocks.js';
+import { B, isSolid, isBoulder } from '../world/blocks.js';
 import { mineTime, mineCell } from '../world/grid.js';
 import { TILE, PLAYER } from '../tuning.js';
 
@@ -12,7 +12,7 @@ export function createPlayer({ x, y }) {
   return {
     x, y, vx: 0, vy: 0,
     grounded: false, climbing: false, facing: 1,
-    mining: null, jumpHeld: false, knock: null,
+    mining: null, jumpHeld: false, knock: null, airJumpsUsed: 0,
   };
 }
 
@@ -48,8 +48,8 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1 }) {
-  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false };
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0 }) {
+  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false };
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
   let ix = intent.moveX || 0;
@@ -110,6 +110,12 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     p.vy = -PLAYER.jumpSpeed;
     p.climbing = false;
     out.jumped = true;
+  } else if (jumpPressed && !p.climbing && p.airJumpsUsed < airJumps) {
+    // the Moon Pup's double jump: one more hop in mid-air
+    p.vy = -PLAYER.jumpSpeed * PLAYER.airJump;
+    p.airJumpsUsed++;
+    out.jumped = true;
+    out.doubleJumped = true;
   } else if (p.climbing) {
     p.vy = iy * PLAYER.climbSpeed;
   } else if (inLadder && p.vy >= 0) {
@@ -141,7 +147,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     const tc = blockedX > 0 ? Math.floor((p.x + PLAYER.w + 0.5) / T) : Math.floor((p.x - 0.5) / T);
     const row = cy;
     if (isSolid(grid.get(tc, row))) {
-      const leanOn = grid.get(tc, row) === B.BOULDER || grid.get(tc, row) === B.BOOM; // push or light it instead
+      const leanOn = isBoulder(grid.get(tc, row)) || grid.get(tc, row) === B.BOOM; // push or light it instead
       const canStep = !leanOn && p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
       if (canStep) {
         p.y = row * T - PLAYER.h;
@@ -190,6 +196,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   const underRow = Math.round(bottom / T);
   p.grounded = Math.abs(bottom - underRow * T) < 0.01 &&
     columnsOf(p.x).some((c) => isSolid(grid.get(c, underRow)) || (iy <= 0 && ladderTop(grid, c, underRow)));
+  if (p.grounded || p.climbing || inWater) p.airJumpsUsed = 0;
 
   // mining progress
   if (!canMine) target = null;

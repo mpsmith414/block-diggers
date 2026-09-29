@@ -2,10 +2,13 @@
 // on touch, boulders to push (together, in co-op), the big chest, geodes,
 // fossils, and bubbles in the water.
 
-import { B } from '../../world/blocks.js';
-import { explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft } from '../../game/finds.js';
+import { B, isBoulder } from '../../world/blocks.js';
+import {
+  explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft,
+  wheelsMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot,
+} from '../../game/finds.js';
 import { cushionPressed } from '../../game/silly.js';
-import { knockback, playerCell } from '../../game/player.js';
+import { knockback, playerCell, standAt } from '../../game/player.js';
 import { createPickup } from '../../game/loot.js';
 import { overlaps } from '../../game/hazards.js';
 import { EGG_KINDS } from '../../art/finds.js';
@@ -31,11 +34,22 @@ export function createFindsView(scene) {
 
   const together = scene.add.image(0, 0, 'icon-together').setDepth(64).setVisible(false);
 
-  // the Heart of the World: a big glowing gem over its 3x3 cells
+  // the Heart of the World (or the Moon Heart): a big glowing gem over its 3x3 cells
+  const moonHeart = world.heart?.kind === 'moon';
   const heart = world.heart ? {
     ...world.heart,
-    s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, 'heart-big').setDepth(22),
+    s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, moonHeart ? 'moonheart-big' : 'heart-big').setDepth(22),
     left: 9,
+  } : null;
+  // the Moon: singing crystals, teleport pads and a crashed UFO
+  const chimes = (world.chimes ?? []).map((c, i) => ({
+    ...c, note: i, t: 0,
+    s: scene.add.sprite(c.x * TILE + 8, (c.y + 1) * TILE, 'chime', 0).setOrigin(0.5, 1).setDepth(9),
+  }));
+  const teleports = world.teleports ?? [];
+  const ufo = world.ufo ? {
+    ...world.ufo, open: false,
+    s: scene.add.sprite((world.ufo.x + 1.5) * TILE, (world.ufo.y + 1) * TILE + 3, 'ufo', 0).setOrigin(0.5, 1).setDepth(9).setAngle(-8),
   } : null;
   // rubber ducks bobbing on pools
   const ducks = (world.ducks ?? []).map((d) => {
@@ -48,7 +62,7 @@ export function createFindsView(scene) {
     ...c, flat: 0, armed: true, s: scene.add.sprite(c.x * TILE + 8, (c.y + 1) * TILE, 'cushion', 0).setOrigin(0.5, 1).setDepth(23),
   }));
   let hearts = 0;
-  let cheese = 0;
+  let moonHearts = 0;
 
   const burst = (x, y, ores, spread = 140) => {
     for (const ore of ores) {
@@ -115,7 +129,7 @@ export function createFindsView(scene) {
     const pushing = new Map();
     for (const a of players()) {
       const m = a.p.mining;
-      if (!m || grid.get(m.cx, m.cy) !== B.BOULDER || a.bubbling) continue;
+      if (!m || !isBoulder(grid.get(m.cx, m.cy)) || a.bubbling) continue;
       const { cx, cy } = playerCell(a.p);
       if (m.cy !== cy || m.cx === cx) continue;
       const k = `${m.cx},${m.cy}`;
@@ -140,20 +154,107 @@ export function createFindsView(scene) {
       if (Math.random() < 0.3) scene.effects.sparkle(e.x * TILE + 8, (e.y + 1) * TILE - 2, 0xc8b8a0, 1);
       if (t >= PUSH_TIME) {
         pushT.delete(k);
+        const wheel = grid.get(e.x, e.y) === B.CHEESE_WHEEL;
         const r = pushBoulder(grid, e.x, e.y, dir);
         if (r.moved) {
           scene.mapView.sync(e.x, e.y);
           for (let y = e.y; y <= r.y; y++) scene.mapView.sync(r.x, y);
           scene.decor.filled(r.x, r.y);
-          scene.effects.chunks(r.x, r.y, B.STONE);
+          scene.effects.chunks(r.x, r.y, wheel ? B.CHEESE : B.STONE);
           scene.cameras.main.shake(100, 0.004);
           for (const a of e.who) a.p.mining = null;
-          earnSticker(scene, 'find-boulder');
+          earnSticker(scene, wheel ? 'find-cheesewheel' : 'find-boulder');
           scene.events.emit('boulder', r);
+          const other = wheel && wheelsMeet(grid, r.x, r.y);
+          if (other) cheeseParty(r, other);
         }
       }
     }
     return lonely;
+  }
+
+  // Two cheese wheels bump together: a cheese party! Both burst into cheese.
+  function cheeseParty(a, b) {
+    for (const c of [a, b]) {
+      grid.set(c.x, c.y, B.AIR);
+      scene.mapView.sync(c.x, c.y);
+      scene.effects.chunks(c.x, c.y, B.CHEESE);
+    }
+    const x = ((a.x + b.x) / 2 + 0.5) * TILE;
+    const y = a.y * TILE + 8;
+    burst(x, y, cheesePartyLoot(scene.rng), 200);
+    for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 200, () => scene.effects.confetti(x + (i - 1) * 14, y - 6));
+    scene.cameras.main.flash(150, 255, 230, 120);
+    scene.events.emit('cheeseParty', { x, y });
+  }
+
+  // Singing crystals ring a note as you pass (each one its own note).
+  function updateChimes(dt) {
+    for (const c of chimes) {
+      c.t = Math.max(0, c.t - dt);
+      const near = players().some((a) => !a.bubbling && Math.abs(a.p.x + PLAYER.w / 2 - (c.x * TILE + 8)) < 10 && Math.abs(a.p.y + PLAYER.h - (c.y + 1) * TILE) < 20);
+      if (near && c.t === 0) {
+        c.t = 1.2;
+        c.s.setFrame(1);
+        scene.tweens.add({ targets: c.s, scaleX: 1.15, duration: 80, yoyo: true, repeat: 3 });
+        for (let i = 0; i < 3; i++) {
+          const n = scene.add.image(c.s.x + (i - 1) * 6, c.s.y - 26, 'note').setDepth(40).setTint([0xc8b8ff, 0xffe066, 0x9ff6ff][i]);
+          scene.tweens.add({ targets: n, y: n.y - 16 - i * 4, alpha: 0, delay: i * 120, duration: 800, onComplete: () => n.destroy() });
+        }
+        scene.events.emit('chime', c.note);
+        earnSticker(scene, 'find-chime');
+      } else if (c.t < 0.6) {
+        c.s.setFrame(0);
+      }
+    }
+  }
+
+  // Step on a teleport pad: ZAP, you're at the other one.
+  function updateTeleports() {
+    for (const a of players()) {
+      if (a.bubbling) continue;
+      const { cx, cy } = playerCell(a.p);
+      const pair = teleports.find((t) => (t.a.x === cx && t.a.y === cy) || (t.b.x === cx && t.b.y === cy));
+      if (!pair) { a.onPad = false; continue; }
+      if (a.onPad || !a.p.grounded) continue;
+      const to = pair.a.x === cx && pair.a.y === cy ? pair.b : pair.a;
+      const from = { x: a.sprite.x, y: a.sprite.y };
+      const pos = standAt(to.x, to.y);
+      a.p.x = pos.x;
+      a.p.y = pos.y;
+      a.p.vx = 0;
+      a.p.vy = 0;
+      a.p.mining = null;
+      a.onPad = true;
+      for (const p of [from, { x: to.x * TILE + 8, y: (to.y + 1) * TILE }]) {
+        const beam = scene.add.rectangle(p.x, p.y, 14, 40, 0x3affe0, 0.5).setOrigin(0.5, 1).setDepth(52).setBlendMode('ADD');
+        scene.tweens.add({ targets: beam, scaleX: 0, alpha: 0, duration: 500, onComplete: () => beam.destroy() });
+        scene.effects.sparkle(p.x, p.y - 8, 0x3affe0, 10);
+      }
+      scene.offscreenGraceUntil = scene.time.now + 800;
+      scene.pets.regroup();
+      scene.events.emit('teleport', a);
+      earnSticker(scene, 'find-teleport');
+    }
+  }
+
+  // The crashed UFO: walk up to it and its hatch pops open.
+  function updateUfo() {
+    if (!ufo || ufo.open) return;
+    const box = cellBox(ufo.x, ufo.y, 3);
+    if (!players().some((a) => !a.bubbling && overlaps(boxOf(a), box))) return;
+    ufo.open = true;
+    grid.set(ufo.x + 1, ufo.y, B.AIR);
+    ufo.s.setFrame(1);
+    scene.tweens.add({ targets: ufo.s, angle: 0, duration: 400, ease: 'Back.easeOut' });
+    const x = ufo.s.x;
+    const y = ufo.s.y - 10;
+    burst(x, y, ufoLoot(scene.rng), 200);
+    scene.effects.confetti(x, y);
+    scene.cameras.main.flash(160, 160, 255, 200);
+    earnSticker(scene, 'find-ufo');
+    scene.trip.chests++;
+    scene.events.emit('ufo', ufo);
   }
 
   function updateBigChest() {
@@ -200,6 +301,7 @@ export function createFindsView(scene) {
         scene.tweens.add({ targets: e.s, y: e.s.y - 30, scale: 1.8, alpha: 0, duration: 700, onComplete: () => e.s.destroy() });
         scene.effects.sparkle(e.s.x, e.s.y - 6, 0xfff2a0, 10);
         earnSticker(scene, e.kind === 'golden' ? 'find-goldegg' : e.kind === 'rex' || e.kind === 'trike' ? 'find-dinoegg' : 'find-egg');
+        if (e.kind === 'moonpup') scene.effects.confetti(e.s.x, e.s.y - 6);
         scene.events.emit('egg', e);
         break;
       }
@@ -265,7 +367,8 @@ export function createFindsView(scene) {
 
   // All 9 cells dug: the Heart is yours! It floats up and rides home with you.
   function winHeart() {
-    hearts++;
+    if (moonHeart) moonHearts++;
+    else hearts++;
     const s = heart.s;
     scene.tweens.killTweensOf(s);
     s.setAlpha(1).setScale(1);
@@ -274,8 +377,10 @@ export function createFindsView(scene) {
     for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 300, () => scene.effects.confetti(s.x + (i - 1) * 20, s.y));
     scene.cameras.main.flash(300, 255, 180, 210);
     scene.cameras.main.shake(300, 0.005);
-    burst(s.x, s.y, ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], 220);
-    earnSticker(scene, 'find-heart');
+    burst(s.x, s.y, moonHeart
+      ? ['moonstone', 'moonstone', 'spacegem', 'spacegem', 'gizmo', 'gizmo', 'cheese', 'cheese']
+      : ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], 220);
+    earnSticker(scene, moonHeart ? 'find-moonheart' : 'find-heart');
     scene.events.emit('heart', heart);
     heart.s = null;
   }
@@ -285,8 +390,10 @@ export function createFindsView(scene) {
     eggs,
     light,
     get hearts() { return hearts; },
-    get cheese() { return cheese; },
+    get moonHearts() { return moonHearts; },
     heart,
+    chimes,
+    ufo,
 
     // A block was dug: geodes and fossils give their treasure.
     mined(m) {
@@ -306,20 +413,12 @@ export function createFindsView(scene) {
         earnSticker(scene, `find-fossil-${FOSSIL_KINDS[v]}`);
         scene.events.emit('fossil', m);
       } else if (m.id === B.METEORITE) {
-        burst(x, y, meteoriteLoot(scene.rng), 150);
+        burst(x, y, scene.moon ? moonMeteoriteLoot(scene.rng) : meteoriteLoot(scene.rng), 150);
         scene.effects.sparkle(x, y, 0xffe066, 14);
         scene.cameras.main.flash(100, 255, 240, 180);
         earnSticker(scene, 'find-meteorite');
         scene.events.emit('meteorite', m);
-      } else if (m.id === B.CHEESE) {
-        // moon cheese: worth nothing, but you carry it home anyway
-        cheese++;
-        const icon = scene.add.image(x, y, 'ore-cheese').setDepth(60).setScale(1.5);
-        scene.tweens.add({ targets: icon, y: y - 20, scale: 2.2, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => icon.destroy() });
-        scene.effects.sparkle(x, y, 0xffd84a, 5);
-        earnSticker(scene, 'moon-cheese');
-        scene.events.emit('cheese', m);
-      } else if (m.id === B.HEART && heart) {
+      } else if ((m.id === B.HEART || m.id === B.MOON_HEART) && heart) {
         heart.left = heartLeft(grid, heart);
         scene.effects.sparkle(x, y, 0xff8ab0, 10);
         scene.events.emit('heartChip', m);
@@ -338,6 +437,9 @@ export function createFindsView(scene) {
       updateEggs();
       updateWater(dt);
       updateSilly(dt);
+      updateChimes(dt);
+      updateTeleports();
+      updateUfo();
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);
       together.setVisible(!!spot);

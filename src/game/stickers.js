@@ -1,4 +1,4 @@
-// The sticker book: 40 things to find, on 6 pages. A full page earns a trophy.
+// The sticker book: 101 things to find, on 12 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 
@@ -45,11 +45,24 @@ export const STICKER_PAGES = [
   ]),
   page('space', 'icon-rocket', [
     ['moon-rock', 'tiles', B.MOONROCK], ['moon-crystal', 'decor-spacecrystal'], ['moon-blob', 'moonblob'],
-    ['moon-cheese', 'ore-cheese'], ['moon-flag', 'moon-flag'], ['moon-earthrise', 'earth'],
+    ['ore-cheese', 'ore-cheese'], ['moon-flag', 'moon-flag'], ['moon-earthrise', 'earth'],
+    ['ore-moonstone', 'ore-moonstone'], ['ore-spacegem', 'ore-spacegem'], ['ore-gizmo', 'ore-gizmo'],
+    ['creature-mouse', 'mouse'], ['creature-jelly', 'jelly'], ['creature-drone', 'drone'],
   ]),
   page('silly', 'duck', [
     ['silly-duck', 'duck'], ['silly-sock', 'sock'], ['silly-whoopee', 'cushion'], ['silly-sneeze', 'achoo'],
     ['silly-dizzy', 'dizzy-star'], ['silly-trick', 'heart'], ['silly-giggle', 'note'],
+  ]),
+  page('moonbase', 'bld-marsrocket', [
+    ['bld-cheesefactory', 'bld-cheesefactory'], ['bld-telescope', 'bld-telescope'], ['bld-hangar', 'bld-hangar'],
+    ['bld-marsrocket', 'bld-marsrocket'], ['creature-sprite', 'starsprite'], ['find-cheesewheel', 'tiles', B.CHEESE_WHEEL],
+    ['find-chime', 'chime-icon'], ['find-teleport', 'tiles', B.TELEPORT], ['find-ufo', 'ufo'],
+    ['find-moonheart', 'moonheart-gem'], ['suit-helmet', 'suit-helmet'], ['pet-moonpup', 'pet-moonpup'],
+  ]),
+  page('journey', 'icon-starmap', [
+    ['badge-craters', 'badge', 4], ['badge-cheesecaves', 'badge', 5], ['badge-mooncrystal', 'badge', 6],
+    ['badge-alienbase', 'badge', 7], ['badge-mooncore', 'badge', 8],
+    ['trip-moonbase', 'icon-moonbase'], ['trip-starmap', 'icon-starmap'],
   ]),
 ];
 

@@ -16,6 +16,8 @@ import { drawDeep, toyBrick } from './deep.js';
 import { drawDeepCamp } from './deepCamp.js';
 import { drawMoonArt } from './moonArt.js';
 import { drawSillyArt } from './silly.js';
+import { drawMoonWorld, drawMoonTiles, drawMoonBacks, drawMoonOreIcon } from './moonWorld.js';
+import { drawMoonBase } from './moonBase.js';
 
 const T = 16;
 
@@ -28,14 +30,19 @@ export const ORE_COLORS = {
   amber: ['#f0a030', '#ffe0a0'],
   brick: ['#e0403a', '#ff9a8a'],
   star: ['#ffe066', '#fffbe0'],
+  moonstone: ['#9ad8ff', '#e8f8ff'],
+  cheese: ['#ffd84a', '#fff0a0'],
+  spacegem: ['#b070ff', '#ffc0f0'],
+  gizmo: ['#6ae07a', '#e0e8f0'],
 };
 
 // Background (back wall) tiles live after the block tiles in the tileset.
 export const BACK = {
   dirt: BLOCK_COUNT, stone: BLOCK_COUNT + 1, deep: BLOCK_COUNT + 2, crystal: BLOCK_COUNT + 3,
   dino: BLOCK_COUNT + 4, brick: BLOCK_COUNT + 5, meteor: BLOCK_COUNT + 6, core: BLOCK_COUNT + 7, moon: BLOCK_COUNT + 8,
+  craters: BLOCK_COUNT + 9, cheesecaves: BLOCK_COUNT + 10, mooncrystal: BLOCK_COUNT + 11, alienbase: BLOCK_COUNT + 12, mooncore: BLOCK_COUNT + 13,
 };
-const TILE_FRAMES = BLOCK_COUNT + 9;
+const TILE_FRAMES = BLOCK_COUNT + 14;
 
 const HOSTS = {
   [B.DIRT]: { base: '#8a5a34', dark: '#6b4424', light: '#a3703f' },
@@ -218,6 +225,8 @@ function drawTiles(scene) {
   rect(ctx, '#3d2410', cx + 1, 9, 14, 1);
 
   drawDeepTiles(ctx, at, rng);
+  // the Moon's five layers (their own random stream, so Earth's tiles never change)
+  drawMoonTiles(ctx, at, createRng(777), B, rect, speckle);
 
   // back walls: darker, low-contrast versions of each host rock
   const back = (frame, pal) => {
@@ -242,6 +251,7 @@ function drawTiles(scene) {
   back(BACK.core, { base: '#2e120c', dark: '#220c08', light: '#3a1a10' });
   rect(ctx, '#4a1a0e', BACK.core * T + 4, 9, 5, 1);
   back(BACK.moon, { base: '#44445a', dark: '#383848', light: '#50506a' });
+  drawMoonBacks(ctx, rect, back, BACK);
 
   const P = T + TILE_SPACING;
   const { tex, ctx: out } = canvasTexture(scene, 'tiles', TILE_MARGIN * 2 + P * TILE_FRAMES - TILE_SPACING, T + TILE_MARGIN * 2);
@@ -413,7 +423,9 @@ function drawOreIcons(scene) {
     const { tex, ctx } = canvasTexture(scene, `ore-${ore}`, S, S);
     const [c, hi] = ORE_COLORS[ore];
     const shade = 'rgba(0,0,0,0.35)';
-    if (ore === 'amber') {
+    if (drawMoonOreIcon(ctx, rect, ore)) {
+      // drawn
+    } else if (ore === 'amber') {
       // a honey-coloured drop with a tiny bug inside
       rect(ctx, c, 3, 1, 4, 2);
       rect(ctx, c, 2, 3, 6, 5);
@@ -656,4 +668,6 @@ export function drawTextures(scene) {
   drawDeepCamp(scene, canvasTexture, rect);
   drawMoonArt(scene, canvasTexture, rect);
   drawSillyArt(scene, canvasTexture, rect);
+  drawMoonWorld(scene, canvasTexture, rect);
+  drawMoonBase(scene, canvasTexture, rect);
 }

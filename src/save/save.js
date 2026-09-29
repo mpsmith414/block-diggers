@@ -3,9 +3,10 @@
 
 import { ORES } from '../world/blocks.js';
 import { layersReached } from '../game/trip.js';
+import { MOON_PLOTS } from '../game/economy.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 4;
+export const VERSION = 5;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -19,7 +20,7 @@ export function defaultState() {
     plots: Array(PLOT_COUNT).fill(null),
     characters: null,
     trips: 0,
-    records: { deepest: 0, mostOres: 0, layers: [], moonTrips: 0 },
+    records: { deepest: 0, mostOres: 0, layers: [], moonTrips: 0, planetDeepest: {} },
     stickers: {},
     trophiesAwarded: [],
     pets: [],
@@ -27,6 +28,10 @@ export function defaultState() {
     garden: { stock: 0 },
     pen: { gifts: 0 },
     visitors: { met: [], requests: {}, seen: [] },
+    // the planets: where you are, each planet's camp, and the Sun Suit pieces you have
+    planet: 'earth',
+    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) } },
+    suit: [],
   };
 }
 
@@ -44,6 +49,12 @@ export function migrate(raw) {
   if (s.version === 3) {
     s = { ...s, version: 4 };
   }
+  if (s.version === 4) {
+    // moon cheese is an ore now: its old sticker becomes the ore sticker
+    const stickers = { ...(s.stickers || {}) };
+    if (stickers['moon-cheese']) { stickers['ore-cheese'] = true; delete stickers['moon-cheese']; }
+    s = { ...s, version: 5, stickers };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -58,6 +69,12 @@ export function migrate(raw) {
     records,
     decor: { ...d.decor, ...(s.decor || {}) },
     visitors: { ...d.visitors, ...(s.visitors || {}) },
+    bases: {
+      ...d.bases,
+      ...(s.bases || {}),
+      moon: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.moon?.plots?.[i] || null) },
+    },
+    suit: [...new Set(s.suit || [])],
   };
 }
 
