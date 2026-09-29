@@ -8,7 +8,7 @@
 
 import { ORES } from '../world/blocks.js';
 import {
-  LAYERS, MOON_LAYERS, MARS_LAYERS, MINE_H, MOON_H, MARS_H, LOW_GRAVITY, CAMP, MOON_CAMP, MARS_CAMP, PERKS, PETS,
+  LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, LOW_GRAVITY, CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, PERKS, PETS,
 } from '../tuning.js';
 
 const tops = (layers, byOre) => Object.fromEntries(Object.entries(byOre).map(([ore, layer]) => [ore, layers[layer].top]));
@@ -31,7 +31,12 @@ export const PLANETS = [
     chests: { dunes: ['ruby'], rovers: ['bolt'], volcano: ['opal'], ruins: ['coin'], marscore: ['ruby', 'opal', 'coin'] },
     oreRows: tops(MARS_LAYERS, { ruby: 'dunes', bolt: 'rovers', opal: 'volcano', coin: 'ruins' }),
   },
-  { id: 'saturn', comingSoon: true, suit: 'gloves' },
+  {
+    id: 'saturn', layers: SATURN_LAYERS, rows: SATURN_H, ores: ['frost', 'icecream', 'pearl', 'comet'], gravity: 1, suit: 'gloves', camp: SATURN_CAMP, heart: 'saturn',
+    perks: { reveal: 'lighthouse', elevator: 'skilift', gift: { building: 'parlour', ore: 'icecream', n: 3 } },
+    chests: { rings: ['frost'], icecream: ['icecream'], aurora: ['pearl'], comets: ['comet'], saturncore: ['frost', 'pearl', 'comet'] },
+    oreRows: tops(SATURN_LAYERS, { frost: 'rings', icecream: 'icecream', pearl: 'aurora', comet: 'comets' }),
+  },
   { id: 'dino', comingSoon: true, suit: 'jetpack' },
   { id: 'sun', comingSoon: true, finale: true, suit: null },
 ];
@@ -60,7 +65,9 @@ export function planetOfLayer(layer) {
 // What unlocks each planet: a rocket built on the planet before it.
 const ROCKET_TO = {
   moon: { at: 'earth', id: 'rocket' }, mars: { at: 'moon', id: 'marsrocket' }, saturn: { at: 'mars', id: 'saturnrocket' },
+  dino: { at: 'saturn', id: 'dinorocket' },
 };
+export const rocketTo = (planet) => ROCKET_TO[planet] ?? null;
 const built = (state, planet, id) => (planet === 'earth' ? state.plots : state.bases?.[planet]?.plots ?? []).includes(id);
 
 // Can you fly from this camp? Earth needs its Rocket Ship; other camps have a landing pad.

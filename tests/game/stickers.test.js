@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 130 unique stickers over 14 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(14);
-    expect(ALL_STICKERS).toHaveLength(130);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(130);
+  it('has 160 unique stickers over 17 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(17);
+    expect(ALL_STICKERS).toHaveLength(160);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(160);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -72,5 +72,16 @@ describe('the Mars stickers', () => {
     expect(byName.marsbase).toHaveLength(12);
     expect(byName.marsbase).toEqual(expect.arrayContaining(['bld-robotfactory', 'bld-weather', 'bld-garage', 'bld-saturnrocket', 'find-marsheart', 'suit-boots', 'pet-rover', 'mars-storm', 'trip-marsbase']));
     expect(byName.journey.slice(7)).toEqual(['badge-dunes', 'badge-rovers', 'badge-volcano', 'badge-ruins', 'badge-marscore']);
+  });
+});
+
+describe('the Saturn stickers', () => {
+  it('Saturn has 12, Ring Station 12, and Journey 2 the Saturn badges', () => {
+    const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
+    expect(byName.saturn).toHaveLength(12);
+    expect(byName.saturn).toEqual(expect.arrayContaining(['ore-frost', 'ore-icecream', 'ore-pearl', 'ore-comet', 'creature-penguin', 'creature-scoop', 'creature-owl', 'creature-cometling', 'creature-snowflake', 'find-snowman', 'find-snowglobe', 'find-frozencomet']));
+    expect(byName.ringstation).toHaveLength(12);
+    expect(byName.ringstation).toEqual(expect.arrayContaining(['bld-parlour', 'bld-lighthouse', 'bld-skilift', 'bld-dinorocket', 'find-saturnheart', 'suit-gloves', 'pet-yeti', 'saturn-slide', 'trip-saturnbase']));
+    expect(byName.journey2).toEqual(['badge-rings', 'badge-icecream', 'badge-aurora', 'badge-comets', 'badge-saturncore', 'saturn-aurora']);
   });
 });

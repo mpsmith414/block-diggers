@@ -75,12 +75,15 @@ export class LaunchScene extends Phaser.Scene {
   drawGround() {
     const g = this.add.graphics().setDepth(5);
     const earth = this.from === 'earth';
-    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
+    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a], saturn: [0xc8e0f0, 0xf4faff, 0xffffff] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
     g.fillStyle(look[0], 1);
     for (let i = 0; i < 7; i++) g.fillCircle(i * 90 - 20, GROUND + 6, 44);
     g.fillStyle(look[1], 1).fillRect(0, GROUND, W, H - GROUND);
     g.fillStyle(look[2], 1).fillRect(0, GROUND, W, 3);
-    if (this.from === 'mars') {
+    if (this.from === 'saturn') {
+      // giant Saturn fills the sky over the snow
+      this.add.image(W - 120, 70, 'saturn-big').setScale(1.2).setDepth(-5);
+    } else if (this.from === 'mars') {
       // Mars's two little moons over the red ground
       g.fillStyle(0xd8c8b8, 1).fillEllipse(W - 110, 50, 18, 13);
       g.fillStyle(0xd8c8b8, 1).fillCircle(90, 80, 4);

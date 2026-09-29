@@ -188,6 +188,11 @@ export class HudScene extends Phaser.Scene {
       volcano: { rock: B.BASALT, ore: B.OPAL, creature: 'newt', color: 0xff8a2a },
       ruins: { rock: B.RUIN_STONE, ore: B.COIN, creature: 'martian', color: 0xe0b060 },
       marscore: { rock: B.MARS_CORE, ore: B.MARS_HEART, creature: 'ember', color: 0xff5a2a },
+      rings: { rock: B.ICE, ore: B.FROST, creature: 'penguin', color: 0x9fd8f0 },
+      icecream: { rock: B.SOFTSERVE, ore: B.ICECREAM, creature: 'scoop', color: 0xff8ab8 },
+      aurora: { rock: B.AURORA_ROCK, ore: B.PEARL, creature: 'owl', color: 0x3ae0a0 },
+      comets: { rock: B.COMET_ROCK, ore: B.COMET, creature: 'cometling', color: 0x4a8aff },
+      saturncore: { rock: B.SATURN_CORE, ore: B.SATURN_HEART, creature: 'snowflake', color: 0xffd84a },
     }[layer];
     if (!LOOK) return;
     const w = 190;

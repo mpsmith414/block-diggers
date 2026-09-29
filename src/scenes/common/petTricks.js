@@ -2,7 +2,7 @@
 
 import { earnSticker } from './stickers.js';
 
-const FLIPPERS = ['mole', 'rex', 'trike', 'moonpup', 'rover'];
+const FLIPPERS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti'];
 const TRICK_TIME = 0.7;
 
 export function playTrick(scene, pet) {

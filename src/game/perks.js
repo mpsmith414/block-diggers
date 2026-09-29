@@ -30,6 +30,9 @@ export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSu
 // the Boots: faster everywhere (and dust storms can't push you)
 export const walkMul = (state) => (hasSuit(state, 'boots') ? PERKS.bootsSpeed : 1);
 export const stormProof = (state) => hasSuit(state, 'boots');
+// the Gloves: digging is faster everywhere (and you never slip on ice)
+export const digMul = (state) => (hasSuit(state, 'gloves') ? PERKS.glovesDig : 1);
+export const iceGrip = (state) => hasSuit(state, 'gloves');
 // the Weather Station: storms on Mars carry rubies
 export const stormRubies = (state) => (hasBuilt(state, 'weather', 'mars') ? PERKS.stormRubies : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);

@@ -1,9 +1,9 @@
 // Player movement and mining as a pure step function over the grid.
 // Position (x, y) is the top-left of a PLAYER.w × PLAYER.h box, in pixels.
 
-import { B, isSolid, isBoulder } from '../world/blocks.js';
+import { B, isSolid, isBoulder, isSlippery } from '../world/blocks.js';
 import { mineTime, mineCell } from '../world/grid.js';
-import { TILE, PLAYER } from '../tuning.js';
+import { TILE, PLAYER, ICE } from '../tuning.js';
 
 const T = TILE;
 const EPS = 0.001;
@@ -48,7 +48,7 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0 }) {
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false }) {
   const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false };
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
@@ -123,7 +123,15 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   } else {
     p.vy = Math.min(maxFall, p.vy + gravity * dt);
   }
-  p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed * walkMul * (inWater ? PLAYER.swimSlow : 1);
+  const want = ix * PLAYER.walkSpeed * walkMul * (inWater ? PLAYER.swimSlow : 1);
+  // standing on Saturn's ice: slow to speed up, slow to stop (the Gloves grip)
+  const onIce = !grip && !knocked && !inWater && p.grounded && columnsOf(p.x).some((c) => isSlippery(grid.get(c, footRow)));
+  p.sliding = onIce && Math.abs(p.vx - want) > 1;
+  if (knocked) p.vx = p.knock.vx;
+  else if (onIce) {
+    const rate = (want === 0 || Math.sign(want) !== Math.sign(p.vx) ? ICE.friction : ICE.accel) * dt;
+    p.vx = Math.abs(want - p.vx) <= rate ? want : p.vx + Math.sign(want - p.vx) * rate;
+  } else p.vx = want;
   // a Mars dust storm pushes you along (not on a ladder, in water or mid-bonk)
   if (windX && !knocked && !p.climbing && !inLadder && !inWater) p.vx += windX;
   // Stepping sideways off a ladder: line up with the row first, so the box
@@ -139,6 +147,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     if (rowsOf(p.y).some((r) => isSolid(grid.get(col, r)))) {
       p.x = p.vx > 0 ? col * T - PLAYER.w : (col + 1) * T;
       blockedX = Math.sign(p.vx);
+      if (!knocked) p.vx = 0; // (a slide on ice stops at the wall)
     } else {
       p.x = nx;
     }

@@ -6,7 +6,7 @@
 import { B, isBoulder } from '../../world/blocks.js';
 import {
   explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft,
-  wheelsMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot,
+  boulderPairMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot, snowmanLoot, globeLoot, cometLoot,
 } from '../../game/finds.js';
 import { cushionPressed } from '../../game/silly.js';
 import { knockback, playerCell, standAt } from '../../game/player.js';
@@ -69,6 +69,15 @@ export function createFindsView(scene) {
     s: scene.add.sprite((r.x + 1.5) * TILE, (r.y + 1) * TILE + 3, 'oldrover', 0).setOrigin(0.5, 1).setDepth(9),
   }));
   const vaults = (world.vaults ?? []).map((v) => ({ ...v, open: false }));
+  // Saturn: snow globes and the frozen comet
+  const globes = (world.globes ?? []).map((g) => ({
+    ...g, open: false,
+    s: scene.add.sprite((g.x + 1.5) * TILE, (g.y + 1) * TILE, 'snowglobe', 0).setOrigin(0.5, 1).setDepth(9),
+  }));
+  const comet = world.comet ? {
+    ...world.comet, open: false,
+    s: scene.add.sprite((world.comet.x + 1.5) * TILE, (world.comet.y + 1) * TILE + 2, 'frozencomet', 0).setOrigin(0.5, 1).setDepth(9),
+  } : null;
   let hearts = 0; // the Heart of the World (banked on Earth)
   let moonHearts = 0;
   let suitHearts = 0; // a planet's heart (it brings that planet's Sun Suit piece)
@@ -163,19 +172,21 @@ export function createFindsView(scene) {
       if (Math.random() < 0.3) scene.effects.sparkle(e.x * TILE + 8, (e.y + 1) * TILE - 2, 0xc8b8a0, 1);
       if (t >= PUSH_TIME) {
         pushT.delete(k);
-        const wheel = grid.get(e.x, e.y) === B.CHEESE_WHEEL;
+        const kind = grid.get(e.x, e.y);
         const r = pushBoulder(grid, e.x, e.y, dir);
         if (r.moved) {
           scene.mapView.sync(e.x, e.y);
           for (let y = e.y; y <= r.y; y++) scene.mapView.sync(r.x, y);
           scene.decor.filled(r.x, r.y);
-          scene.effects.chunks(r.x, r.y, wheel ? B.CHEESE : B.STONE);
+          scene.effects.chunks(r.x, r.y, { [B.CHEESE_WHEEL]: B.CHEESE, [B.SNOWBALL]: B.SNOWBALL }[kind] ?? B.STONE);
           scene.cameras.main.shake(100, 0.004);
           for (const a of e.who) a.p.mining = null;
-          earnSticker(scene, wheel ? 'find-cheesewheel' : 'find-boulder');
+          earnSticker(scene, { [B.CHEESE_WHEEL]: 'find-cheesewheel', [B.SNOWBALL]: 'find-snowball' }[kind] ?? 'find-boulder');
           scene.events.emit('boulder', r);
-          const other = wheel && wheelsMeet(grid, r.x, r.y);
-          if (other) cheeseParty(r, other);
+          // two cheese wheels have a cheese party; two snowballs make a snowman
+          const other = boulderPairMeet(grid, r.x, r.y);
+          if (other && kind === B.CHEESE_WHEEL) cheeseParty(r, other);
+          else if (other) snowman(r, other);
         }
       }
     }
@@ -195,6 +206,62 @@ export function createFindsView(scene) {
     for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 200, () => scene.effects.confetti(x + (i - 1) * 14, y - 6));
     scene.cameras.main.flash(150, 255, 230, 120);
     scene.events.emit('cheeseParty', { x, y });
+  }
+
+  // Two snowballs bump together: they stack up into a snowman, and a shower of
+  // frost gems bursts out. The snowman stays and waves.
+  function snowman(a, b) {
+    for (const c of [a, b]) {
+      grid.set(c.x, c.y, B.AIR);
+      scene.mapView.sync(c.x, c.y);
+      scene.effects.chunks(c.x, c.y, B.SNOWBALL);
+    }
+    const x = ((a.x + b.x) / 2 + 0.5) * TILE;
+    const y = (a.y + 1) * TILE;
+    const s = scene.add.image(x, y, 'snowman').setOrigin(0.5, 1).setDepth(9).setScale(0.2);
+    scene.tweens.add({ targets: s, scale: 1, duration: 500, ease: 'Back.easeOut' });
+    scene.tweens.add({ targets: s, angle: { from: -4, to: 4 }, delay: 600, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    burst(x, y - 16, snowmanLoot(scene.rng), 200);
+    for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 200, () => scene.effects.confetti(x + (i - 1) * 14, y - 20));
+    scene.cameras.main.flash(150, 220, 240, 255);
+    earnSticker(scene, 'find-snowman');
+    scene.events.emit('snowman', { x, y });
+  }
+
+  // A snow globe: walk up to it, it shakes (snow swirling), and pearls pour out.
+  function updateGlobes() {
+    for (const g of globes) {
+      if (g.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(g.x, g.y, 3)))) continue;
+      g.open = true;
+      grid.set(g.x + 1, g.y, B.AIR);
+      g.s.setFrame(1);
+      scene.tweens.add({ targets: g.s, angle: { from: -12, to: 12 }, duration: 90, yoyo: true, repeat: 5, onComplete: () => g.s.setAngle(0) });
+      scene.events.emit('globe', g);
+      scene.time.delayedCall(600, () => {
+        burst(g.s.x, g.s.y - 20, globeLoot(scene.rng), 180);
+        scene.effects.confetti(g.s.x, g.s.y - 20);
+        for (let i = 0; i < 12; i++) scene.effects.sparkle(g.s.x + (Math.random() - 0.5) * 24, g.s.y - 16 - Math.random() * 16, 0xffffff, 1);
+      });
+      earnSticker(scene, 'find-snowglobe');
+      scene.trip.chests++;
+    }
+  }
+
+  // The frozen comet: walk up to it and its ice cracks open, full of treasure.
+  function updateComet() {
+    if (!comet || comet.open) return;
+    if (!players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(comet.x, comet.y, 3)))) return;
+    comet.open = true;
+    grid.set(comet.x + 1, comet.y, B.AIR);
+    comet.s.setFrame(1);
+    scene.cameras.main.shake(250, 0.005);
+    scene.cameras.main.flash(160, 200, 230, 255);
+    burst(comet.s.x, comet.s.y - 12, cometLoot(scene.rng), 220);
+    scene.effects.confetti(comet.s.x, comet.s.y - 12);
+    scene.effects.sparkle(comet.s.x, comet.s.y - 12, 0x9fe8ff, 14);
+    earnSticker(scene, 'find-frozencomet');
+    scene.trip.chests++;
+    scene.events.emit('frozenComet', comet);
   }
 
   // Singing crystals ring a note as you pass (each one its own note).
@@ -567,6 +634,8 @@ export function createFindsView(scene) {
       updateUfo();
       updateGeysers(dt);
       updateRovers();
+      updateGlobes();
+      updateComet();
       updateVaults();
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);

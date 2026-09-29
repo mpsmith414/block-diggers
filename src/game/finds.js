@@ -6,7 +6,7 @@ import { LAYERS } from '../tuning.js';
 // Things a boom never clears.
 const TOUGH = new Set([
   B.BEDROCK, B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.BOULDER, B.CHEESE_WHEEL, B.EGG, B.LADDER, B.WATER, B.LAVA, B.TELEPORT, B.UFO,
-  B.GEYSER, B.OLD_ROVER, B.VAULT, B.VAULT_DOOR, B.GLYPH,
+  B.GEYSER, B.OLD_ROVER, B.VAULT, B.VAULT_DOOR, B.GLYPH, B.SNOWBALL, B.SNOW_GLOBE, B.FROZEN_COMET,
 ]);
 
 // A boom at (x, y) clears the 3×3 around it. Other boom blocks it reaches are
@@ -46,12 +46,21 @@ export function pushBoulder(grid, x, y, dir) {
   return { moved: true, x: nx, y: ny, fell: ny - y };
 }
 
-// Two cheese wheels side by side have a cheese party: the other wheel, or false.
-export function wheelsMeet(grid, x, y) {
-  if (grid.get(x, y) !== B.CHEESE_WHEEL) return false;
-  for (const dx of [1, -1]) if (grid.get(x + dx, y) === B.CHEESE_WHEEL) return { x: x + dx, y };
+// Two cheese wheels side by side have a cheese party, and two snowballs make
+// a snowman: the other one of the pair, or false. (A plain boulder never meets.)
+export function boulderPairMeet(grid, x, y) {
+  const id = grid.get(x, y);
+  if (id !== B.CHEESE_WHEEL && id !== B.SNOWBALL) return false;
+  for (const dx of [1, -1]) if (grid.get(x + dx, y) === id) return { x: x + dx, y };
   return false;
 }
+export const wheelsMeet = (grid, x, y) => grid.get(x, y) === B.CHEESE_WHEEL && boulderPairMeet(grid, x, y);
+
+// Saturn: a snowman bursts into frost gems, a snow globe pours out pearls,
+// and the frozen comet cracks open full of comet chunks.
+export const snowmanLoot = (rng) => Array.from({ length: rng.int(8, 10) }, () => 'frost');
+export const globeLoot = (rng) => [...Array.from({ length: rng.int(6, 8) }, () => 'pearl'), 'frost', 'frost'];
+export const cometLoot = (rng) => [...Array.from({ length: rng.int(6, 8) }, () => 'comet'), 'pearl', 'pearl'];
 
 export const cheesePartyLoot = (rng) => Array.from({ length: rng.int(8, 10) }, () => 'cheese');
 
@@ -96,6 +105,7 @@ export const HEARTS = {
   earth: { block: B.HEART, big: 'heart-big', loot: ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], sticker: 'find-heart', color: 0xff6a9a },
   moon: { block: B.MOON_HEART, big: 'moonheart-big', loot: ['moonstone', 'moonstone', 'spacegem', 'spacegem', 'gizmo', 'gizmo', 'cheese', 'cheese'], sticker: 'find-moonheart', color: 0x6ad0ff },
   mars: { block: B.MARS_HEART, big: 'marsheart-big', loot: ['ruby', 'ruby', 'bolt', 'bolt', 'opal', 'opal', 'coin', 'coin'], sticker: 'find-marsheart', color: 0xff5a3a },
+  saturn: { block: B.SATURN_HEART, big: 'saturnheart-big', loot: ['frost', 'frost', 'icecream', 'icecream', 'pearl', 'pearl', 'comet', 'comet'], sticker: 'find-saturnheart', color: 0xffe8a0 },
 };
 export const heartOf = (kind) => HEARTS[kind] ?? HEARTS.earth;
 

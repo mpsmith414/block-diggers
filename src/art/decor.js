@@ -3,6 +3,7 @@
 import { drawMap } from './pixelmap.js';
 import { MOON_DECOR, MOON_DECOR_PAL, MOON_GLOWING } from './moonWorld.js';
 import { MARS_DECOR, MARS_DECOR_PAL, MARS_GLOWING } from './marsWorld.js';
+import { SATURN_DECOR, SATURN_DECOR_PAL } from './saturnWorld.js';
 
 const OUT = '#2a1d2e';
 
@@ -157,15 +158,25 @@ Object.assign(PAL, MARS_DECOR_PAL);
 DECOR.firecrystal = DECOR.crystal;
 PAL.firecrystal = { o: '#4a0a0a', x: '#ff5a2a', X: '#ffe066' };
 
+// Saturn's decorations (and ice and aurora crystals; drips of strawberry ice cream)
+Object.assign(DECOR, SATURN_DECOR);
+Object.assign(PAL, SATURN_DECOR_PAL);
+DECOR.icecrystal = DECOR.crystal;
+PAL.icecrystal = { o: '#2a6a98', x: '#9fe8ff', X: '#ffffff' };
+DECOR.auroracrystal = DECOR.crystal;
+PAL.auroracrystal = { o: '#1a2a5a', x: '#3ae0a0', X: '#d0a0ff' };
+DECOR.icedrip = DECOR.cheesedrip;
+PAL.icedrip = { c: '#ff8ab8', C: '#ffd0e4' };
+
 export const GLOWING = {
   mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff, giantshroom: 0x6ff0ff, moss: 0x7aff9a, amethyst: 0xd08cff,
-  spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a, firecrystal: 0xff6a2a, ...MARS_GLOWING,
+  spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a, firecrystal: 0xff6a2a, ...MARS_GLOWING, icecrystal: 0x9fe8ff, auroracrystal: 0x3ae0a0,
   ...Object.fromEntries(Object.entries(MOON_GLOWING).filter(([, c]) => c)),
 };
 
 // wood, iron, diamond, amber picks; then the brick, star, moon, crystal and laser drills;
 // then the ruby, opal and mega drills
-const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066', '#9ad8ff', '#b070ff', '#ff4a8a', '#ff2a4a', '#ff8a2a', '#3affe0'];
+const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066', '#9ad8ff', '#b070ff', '#ff4a8a', '#ff2a4a', '#ff8a2a', '#3affe0', '#c8f8ff', '#ffc8e8', '#4a6aff'];
 
 export function drawDecor(scene, canvasTexture, rect) {
   for (const [kind, variants] of Object.entries(DECOR)) {

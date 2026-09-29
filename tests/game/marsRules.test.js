@@ -24,14 +24,13 @@ const rich = (extra = {}) => ({
 });
 
 describe('Mars, the planet', () => {
-  it('is open now (Saturn is still coming soon), with the Boots at its bottom', () => {
+  it('is open, with the Boots at its bottom', () => {
     const mars = planetById('mars');
     expect(mars.comingSoon).toBeFalsy();
     expect(mars.suit).toBe('boots');
     expect(mars.gravity).toBe(1);
     expect(mars.ores).toEqual(['ruby', 'bolt', 'opal', 'coin']);
     expect(mars.camp).toBe(MARS_CAMP);
-    expect(planetById('saturn').comingSoon).toBe(true);
   });
 
   it('has five layers of fifty rows', () => {
@@ -64,18 +63,18 @@ describe('the star map with Mars', () => {
   const base = () => ({ plots: Array(9).fill(null), bases: { moon: { plots: [null, null, null, null] }, mars: { plots: [null, null, null, null] } }, suit: [] });
   const status = (stops) => Object.fromEntries(stops.map((s) => [s.id, s.status]));
 
-  it('the Mars Rocket opens Mars; the Saturn Rocket makes Saturn "coming soon"', () => {
+  it('the Mars Rocket opens Mars; the Saturn Rocket opens Saturn', () => {
     const s = { ...base(), plots: ['rocket'], bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: [null, null, null, null] } } };
     expect(status(starMapStops(s, 'moon')).mars).toBe('open');
     expect(status(starMapStops(s, 'moon')).saturn).toBe('locked');
     const t = { ...s, bases: { ...s.bases, mars: { plots: [null, null, null, 'saturnrocket'] } } };
-    expect(status(starMapStops(t, 'mars'))).toEqual({ earth: 'open', moon: 'open', mars: 'here', saturn: 'soon', dino: 'locked', sun: 'locked' });
+    expect(status(starMapStops(t, 'mars'))).toEqual({ earth: 'open', moon: 'open', mars: 'here', saturn: 'open', dino: 'locked', sun: 'locked' });
   });
 });
 
 describe('Mars rock, ores and tools', () => {
   it('four Mars ores join the list', () => {
-    expect(ORES.slice(12)).toEqual(['ruby', 'bolt', 'opal', 'coin']);
+    expect(ORES.slice(12, 16)).toEqual(['ruby', 'bolt', 'opal', 'coin']);
     expect(dropOf(B.RUBY)).toBe('ruby');
     expect(dropOf(B.BOLT)).toBe('bolt');
     expect(dropOf(B.OPAL)).toBe('opal');
@@ -113,7 +112,7 @@ describe('Mars rock, ores and tools', () => {
   });
 
   it('drills 9-11 and the sixth backpack and lantern cost Mars ores', () => {
-    expect(UPGRADES.pick.slice(8)).toEqual([
+    expect(UPGRADES.pick.slice(8, 11)).toEqual([
       { ruby: 35, bolt: 25 }, { opal: 35, ruby: 35 }, { coin: 40, opal: 35 },
     ]);
     expect(UPGRADES.pack[5]).toEqual({ ruby: 40, bolt: 40 });
@@ -132,7 +131,7 @@ describe('Mars creatures and trips', () => {
   });
 
   it('every Mars layer gets a banner and a badge, after the Moon ones', () => {
-    expect(BADGE_LAYERS.slice(9)).toEqual(['dunes', 'rovers', 'volcano', 'ruins', 'marscore']);
+    expect(BADGE_LAYERS.slice(9, 14)).toEqual(['dunes', 'rovers', 'volcano', 'ruins', 'marscore']);
     expect(discovery(160, [], 'mars')).toBe('ruins');
     expect(discovery(160, ['ruins'], 'mars')).toBe(null);
   });

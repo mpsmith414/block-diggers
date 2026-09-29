@@ -2,11 +2,12 @@ import Phaser from 'phaser';
 import { generateMine, carveStation } from '../world/worldgen.js';
 import { generateMoon } from '../world/moon.js';
 import { generateMars } from '../world/mars.js';
+import { generateSaturn } from '../world/saturn.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
-import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
+import { CAVE_KINDS, DINO_KINDS, yetiDig } from '../game/pets.js';
 import { planetById } from '../game/planets.js';
 import { createStorm, stepStorm, windOf } from '../game/storms.js';
 import { heartOf } from '../game/finds.js';
@@ -25,7 +26,9 @@ import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
-import { packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies } from '../game/perks.js';
+import {
+  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip,
+} from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
@@ -42,7 +45,10 @@ const GLINT_COLORS = {
   coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0, amber: 0xffc060, brick: 0xff7a6a, star: 0xfffbe0,
   moonstone: 0xc8ecff, cheese: 0xffe066, spacegem: 0xe0a0ff, gizmo: 0x9affb0,
   ruby: 0xff6a8a, bolt: 0xe8ecf4, opal: 0xffa04a, coin: 0xffe066,
+  frost: 0x9fe8ff, icecream: 0xff8ab8, pearl: 0xfff0f8, comet: 0x8ab0ff,
 };
+// the beam home from each planet
+const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff };
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
@@ -61,6 +67,7 @@ export class MineScene extends Phaser.Scene {
     this.planet = data?.planet ?? (data?.world === 'moon' ? 'moon' : 'earth');
     this.moon = this.planet === 'moon';
     this.mars = this.planet === 'mars';
+    this.saturn = this.planet === 'saturn';
     this.away = this.planet !== 'earth';
   }
 
@@ -73,6 +80,7 @@ export class MineScene extends Phaser.Scene {
     const pets = saved.pets ?? [];
     if (this.moon) this.world = generateMoon(this.seed, { pupEgg: !pets.includes('moonpup') });
     else if (this.mars) this.world = generateMars(this.seed, { roverEgg: !pets.includes('rover') });
+    else if (this.saturn) this.world = generateSaturn(this.seed, { yetiEgg: !pets.includes('yeti') });
     else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     this.gravity = planetById(this.planet).gravity;
@@ -82,6 +90,10 @@ export class MineScene extends Phaser.Scene {
     this.walkMul = walkMul(saved);
     this.stormProof = stormProof(saved);
     this.stormRubies = stormRubies(saved);
+    // the Gloves: faster digging, and no slipping on Saturn's ice; the Yeti Cub digs with you
+    this.digMul = digMul(saved);
+    this.grip = iceGrip(saved);
+    this.yeti = pets.includes('yeti');
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
@@ -104,11 +116,13 @@ export class MineScene extends Phaser.Scene {
 
     if (this.moon) this.drawSpace();
     else if (this.mars) this.drawMarsSky();
+    else if (this.saturn) this.drawSaturnSky();
     else this.drawSky();
     const top = Object.keys(planetById(this.planet).layers)[0];
     this.mapView = createMapView(this, this.grid, this.away ? { layerAt: this.world.layerAt, top } : {});
     if (this.moon) this.drawLander();
     else if (this.mars) this.drawLander({ flag: 'mars-flag', later: 'mars-moons' });
+    else if (this.saturn) this.drawLander({ flag: 'saturn-flag', later: 'saturn-rings' });
     else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
@@ -197,6 +211,25 @@ export class MineScene extends Phaser.Scene {
     for (let i = 0; i < 7; i++) d.fillEllipse(i * 130 + 30, 8, 150, 60);
     d.fillStyle(0xb85a3a, 1);
     for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 12, 120, 40);
+  }
+
+  // Saturn's sky: deep space full of stars, with giant ringed Saturn in it.
+  drawSaturnSky() {
+    const top = -SKY_ROWS * TILE;
+    const g = this.add.graphics().setDepth(-10);
+    g.fillGradientStyle(0x0a0a24, 0x0a0a24, 0x2a3a6a, 0x2a3a6a, 1);
+    g.fillRect(0, top, MINE_W * TILE, SKY_ROWS * TILE);
+    const rng = createRng(this.seed ^ 0x5a7);
+    for (let i = 0; i < 80; i++) {
+      const s = this.add.image(rng.int(0, MINE_W * TILE), top + rng.int(0, SKY_ROWS * TILE - 8), 'pixel').setDepth(-9)
+        .setTint(rng.pick([0xffffff, 0xc8f0ff])).setAlpha(0.4 + rng.next() * 0.6);
+      if (i % 4 === 0) this.tweens.add({ targets: s, alpha: 0.1, duration: 800 + (i % 5) * 300, yoyo: true, repeat: -1 });
+    }
+    this.add.image(SHAFT_X * TILE - 130, top + 44, 'saturn-big').setDepth(-8);
+    // snowy ice hills on the horizon
+    const d = this.add.graphics().setDepth(-7);
+    d.fillStyle(0xc8e0f0, 1);
+    for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 10, 130, 40);
   }
 
   // The camp's hatch you climbed down through, and (every trip) you plant a flag.
@@ -417,7 +450,7 @@ export class MineScene extends Phaser.Scene {
     this.goingHome = true;
     this.events.emit('goHome');
     if (this.away) {
-      this.beamHome(this.mars ? 0xffa050 : 0x9ff6ff);
+      this.beamHome(BEAM[this.planet]);
       return;
     }
     const top = -2 * TILE;
@@ -538,7 +571,7 @@ export class MineScene extends Phaser.Scene {
     const still = mul.drinking || a.sneezeT > 0; // drinking or sneezing: stand still
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       {
-        pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk * this.walkMul,
+        pickLevel: this.upgrades.pick, dt, digMul: mul.dig * this.digMul, walkMul: mul.walk * this.walkMul, grip: this.grip,
         gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
       });
     this.stepSilly(a, dt, floaty);
@@ -552,17 +585,17 @@ export class MineScene extends Phaser.Scene {
     if (r.jumped) this.events.emit('jump', a);
     if (r.doubleJumped) this.doubleJump(a);
     for (const m of r.mined) {
-      this.mapView.syncMined(m.x, m.y);
-      this.effects.chunks(m.x, m.y, m.id);
-      this.events.emit('blockMined', m);
-      this.hazards.mined(m.x, m.y);
-      this.decor.mined(m.x, m.y);
-      this.finds.mined(m);
-      if (m.id === B.MOONROCK) earnSticker(this, 'moon-rock');
-      if (addDust(a.sneeze, hardnessOf(m.id), this.rng) && a.sneezeT <= 0) this.startSneeze(a);
-      this.dugCount++;
-      if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
+      this.afterMined(a, m);
+      // the Yeti Cub digs the block above a sideways dig too
+      const extra = this.yeti ? yetiDig(this.grid, m, this.upgrades.pick) : null;
+      if (extra) {
+        this.afterMined(a, extra);
+        this.effects.sparkle(extra.x * TILE + 8, extra.y * TILE + 8, 0xe0f0ff, 4);
+        this.events.emit('yeti', extra);
+      }
     }
+    // sliding on Saturn's ice: whee!
+    if (a.p.sliding && Math.abs(a.p.vx) > 20) earnSticker(this, 'saturn-slide');
     const target = a.p.mining ? this.grid.get(a.p.mining.cx, a.p.mining.cy) : null;
     if (r.bounced && target === B.BOOM) this.finds.light(a.p.mining.cx, a.p.mining.cy);
     if (r.bounced && target !== B.BOOM && target !== B.BOULDER) {
@@ -587,6 +620,20 @@ export class MineScene extends Phaser.Scene {
       this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xfff2a0, 3);
       this.events.emit('oreCollected', { slot: a.slot, ore });
     }
+  }
+
+  // A cell has been dug (by you, or the Yeti): the map, the bits, the ore.
+  afterMined(a, m) {
+    this.mapView.syncMined(m.x, m.y);
+    this.effects.chunks(m.x, m.y, m.id);
+    this.events.emit('blockMined', m);
+    this.hazards.mined(m.x, m.y);
+    this.decor.mined(m.x, m.y);
+    this.finds.mined(m);
+    if (m.id === B.MOONROCK) earnSticker(this, 'moon-rock');
+    if (addDust(a.sneeze, hardnessOf(m.id), this.rng) && a.sneezeT <= 0) this.startSneeze(a);
+    this.dugCount++;
+    if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
   }
 
   // The Moon Pup's double jump: a puff of stars under your feet.
@@ -923,8 +970,14 @@ export class MineScene extends Phaser.Scene {
     a.wasGrounded = p.grounded;
     a.dustT -= dt;
     if (p.grounded && p.vx !== 0 && a.dustT <= 0) {
-      a.dustT = 0.28;
-      this.puff(x - Math.sign(p.vx) * 5, y, -Math.sign(p.vx) * 3);
+      a.dustT = p.sliding ? 0.08 : 0.28;
+      if (p.sliding) {
+        // skidding on ice: a spray of sparkly ice crystals
+        const s = this.add.image(x - Math.sign(p.vx) * 4, y - 1, 'pixel').setTint(0xe0f8ff).setDisplaySize(2, 2).setDepth(29);
+        this.tweens.add({ targets: s, x: s.x - Math.sign(p.vx) * 8, y: s.y - 4 - Math.random() * 4, alpha: 0, duration: 350, onComplete: () => s.destroy() });
+      } else {
+        this.puff(x - Math.sign(p.vx) * 5, y, -Math.sign(p.vx) * 3);
+      }
     }
   }
 
@@ -941,7 +994,13 @@ export class MineScene extends Phaser.Scene {
     g.fillStyle(0x6b4424, 1);
     for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
     g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
-    if (this.mars) {
+    if (this.saturn) {
+      // the ski lift brought you down on its chair, and waits to take you home
+      const cable = this.add.graphics().setDepth(12);
+      cable.fillStyle(0x3a3a4a, 1).fillRect(x0 - 40, y - 34, 7 * TILE + 80, 1);
+      const chair = this.add.sprite(x0 + 20, y - 34, 'ski-chair', 0).setOrigin(0.5, 0).setDepth(13);
+      this.time.addEvent({ delay: 500, loop: true, callback: () => chair.setFrame(chair.frame.name === 0 ? 1 : 0) });
+    } else if (this.mars) {
       // the rover drove you down, and waits there to take you home
       const rover = this.add.sprite(x0 + 16, y - 2, 'rover-car', 0).setOrigin(0.5, 1).setDepth(13);
       this.tweens.add({ targets: rover, y: rover.y - 1, duration: 300, yoyo: true, repeat: -1 });

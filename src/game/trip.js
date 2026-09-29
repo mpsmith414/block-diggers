@@ -1,7 +1,7 @@
 // What happened on a trip, for the summary card, and whether it set a record.
 
 import { ORES } from '../world/blocks.js';
-import { MOON_LAYERS, MARS_LAYERS } from '../tuning.js';
+import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS } from '../tuning.js';
 import { layersOf } from './planets.js';
 
 // Every layer from the top down to the deepest row reached.
@@ -13,7 +13,7 @@ export function layersReached(deepest, planet = 'earth') {
 // Earth's four deep layers and every layer of every other planet get a
 // banner (and a badge) the first time you get there. The order is the badge
 // strip's frame order.
-export const BADGE_LAYERS = ['dino', 'brick', 'meteor', 'core', ...Object.keys(MOON_LAYERS), ...Object.keys(MARS_LAYERS)];
+export const BADGE_LAYERS = ['dino', 'brick', 'meteor', 'core', ...Object.keys(MOON_LAYERS), ...Object.keys(MARS_LAYERS), ...Object.keys(SATURN_LAYERS)];
 export function discovery(row, known, planet = 'earth') {
   const layers = layersOf(planet);
   const name = BADGE_LAYERS.find((n) => layers[n] && row >= Math.max(1, layers[n].top) && row <= layers[n].bottom);

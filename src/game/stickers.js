@@ -1,4 +1,4 @@
-// The sticker book: 130 things to find, on 14 pages. A full page earns a trophy.
+// The sticker book: 160 things to find, on 17 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 
@@ -77,6 +77,22 @@ export const STICKER_PAGES = [
     ['bld-saturnrocket', 'bld-saturnrocket'], ['find-marsheart', 'marsheart-gem'], ['suit-boots', 'suit-boots'],
     ['pet-rover', 'pet-rover'], ['mars-storm', 'icon-windsock'], ['mars-flag', 'mars-flag'],
     ['mars-moons', 'mars-moons'], ['mars-windsock', 'mars-windsock'], ['trip-marsbase', 'icon-marsbase'],
+  ]),
+  page('saturn', 'planet-saturn', [
+    ['ore-frost', 'ore-frost'], ['ore-icecream', 'ore-icecream'], ['ore-pearl', 'ore-pearl'], ['ore-comet', 'ore-comet'],
+    ['creature-penguin', 'penguin'], ['creature-scoop', 'scoop'], ['creature-owl', 'owl'],
+    ['creature-cometling', 'cometling'], ['creature-snowflake', 'snowflake'],
+    ['find-snowman', 'snowman'], ['find-snowglobe', 'snowglobe'], ['find-frozencomet', 'frozencomet'],
+  ]),
+  page('ringstation', 'bld-dinorocket', [
+    ['bld-parlour', 'bld-parlour'], ['bld-lighthouse', 'bld-lighthouse'], ['bld-skilift', 'bld-skilift'],
+    ['bld-dinorocket', 'bld-dinorocket'], ['find-saturnheart', 'saturnheart-gem'], ['suit-gloves', 'suit-gloves'],
+    ['pet-yeti', 'pet-yeti'], ['saturn-slide', 'icon-slide'], ['saturn-flag', 'saturn-flag'],
+    ['saturn-rings', 'planet-saturn'], ['find-snowball', 'tiles', B.SNOWBALL], ['trip-saturnbase', 'icon-ringstation'],
+  ]),
+  page('journey2', 'icon-starmap', [
+    ['badge-rings', 'badge', 14], ['badge-icecream', 'badge', 15], ['badge-aurora', 'badge', 16],
+    ['badge-comets', 'badge', 17], ['badge-saturncore', 'badge', 18], ['saturn-aurora', 'decor-auroracrystal'],
   ]),
 ];
 

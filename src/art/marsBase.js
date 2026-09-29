@@ -134,8 +134,13 @@ function drawSaturnRocket(ctx, rect) {
     for (let k = 0; k < 6; k++) rect(ctx, '#c89a30', 76 + k * 2, y + 2 + k, 1, 1);
   }
   rect(ctx, '#8a94a8', 62, 18, 14, 3);
+  drawSaturnShip(ctx, rect);
+}
+
+// The Saturn Rocket itself (without its tower): it stands on Ring Station's pad and flies.
+export function drawSaturnShip(ctx, rect, dx = 0) {
   // boosters
-  for (const bx of [22, 50]) {
+  for (const bx of [22 + dx, 50 + dx]) {
     rect(ctx, OUT, bx - 1, 34, 12, 42);
     rect(ctx, '#f8f0dc', bx, 35, 10, 40);
     rect(ctx, '#d8a040', bx, 35, 10, 4);
@@ -145,32 +150,32 @@ function drawSaturnRocket(ctx, rect) {
     ell(ctx, bx + 5, 35, 5, 6, '#d8a040', true);
   }
   // the main body
-  rect(ctx, OUT, 29, 10, 22, 66);
-  rect(ctx, '#fffaf0', 30, 11, 20, 64);
-  rect(ctx, '#e8dcc0', 45, 11, 5, 64);
-  for (const y of [28, 56]) { rect(ctx, '#d8a040', 30, y, 20, 3); rect(ctx, '#ffe0a0', 30, y, 20, 1); }
+  rect(ctx, OUT, 29 + dx, 10, 22, 66);
+  rect(ctx, '#fffaf0', 30 + dx, 11, 20, 64);
+  rect(ctx, '#e8dcc0', 45 + dx, 11, 5, 64);
+  for (const y of [28, 56]) { rect(ctx, '#d8a040', 30 + dx, y, 20, 3); rect(ctx, '#ffe0a0', 30 + dx, y, 20, 1); }
   // nose cone
   for (let k = 0; k < 14; k++) {
     const w = Math.max(2, Math.round(22 * Math.sqrt(1 - k / 14)));
-    rect(ctx, OUT, 40 - Math.floor(w / 2) - 1, 10 - k, w + 2, 1);
-    rect(ctx, '#d8a040', 40 - Math.floor(w / 2), 10 - k, w, 1);
+    rect(ctx, OUT, 40 + dx - Math.floor(w / 2) - 1, 10 - k, w + 2, 1);
+    rect(ctx, '#d8a040', 40 + dx - Math.floor(w / 2), 10 - k, w, 1);
   }
   // window
-  ell(ctx, 40, 20, 5, 5, OUT);
-  ell(ctx, 40, 20, 4, 4, '#8ac0ff');
-  rect(ctx, '#ffffff', 38, 18, 2, 2);
+  ell(ctx, 40 + dx, 20, 5, 5, OUT);
+  ell(ctx, 40 + dx, 20, 4, 4, '#8ac0ff');
+  rect(ctx, '#ffffff', 38 + dx, 18, 2, 2);
   // the Saturn badge: a tan planet with an icy ring
-  ell(ctx, 40, 42, 6, 6, OUT);
-  ell(ctx, 40, 42, 5, 5, '#f0d8a0');
-  rect(ctx, '#d8b878', 36, 40, 8, 1);
-  for (let x = 31; x < 50; x++) rect(ctx, '#9fe0ff', x, Math.round(43 + (x - 40) * 0.2), 1, 1);
+  ell(ctx, 40 + dx, 42, 6, 6, OUT);
+  ell(ctx, 40 + dx, 42, 5, 5, '#f0d8a0');
+  rect(ctx, '#d8b878', 36 + dx, 40, 8, 1);
+  for (let x = 31; x < 50; x++) rect(ctx, '#9fe0ff', x + dx, Math.round(43 + (x - 40) * 0.2), 1, 1);
   // fins and the nozzle
-  rect(ctx, OUT, 25, 60, 5, 16);
-  rect(ctx, '#d8a040', 26, 61, 3, 14);
-  rect(ctx, OUT, 50, 60, 5, 16);
-  rect(ctx, '#d8a040', 51, 61, 3, 14);
-  rect(ctx, OUT, 33, 75, 14, 5);
-  rect(ctx, '#55505e', 34, 75, 12, 4);
+  rect(ctx, OUT, 25 + dx, 60, 5, 16);
+  rect(ctx, '#d8a040', 26 + dx, 61, 3, 14);
+  rect(ctx, OUT, 50 + dx, 60, 5, 16);
+  rect(ctx, '#d8a040', 51 + dx, 61, 3, 14);
+  rect(ctx, OUT, 33 + dx, 75, 14, 5);
+  rect(ctx, '#55505e', 34 + dx, 75, 12, 4);
 }
 
 export const MARS_BUILDINGS = { robotfactory: drawRobotFactory, weather: drawWeather, garage: drawGarage, saturnrocket: drawSaturnRocket };

@@ -64,7 +64,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   Saturn, Dino Planet, the Sun. The **star map** (A at any rocket) shows the
   path, the planets you can fly to, padlocks on the rest, and the **Sun Suit**
   piece hidden at the bottom of each planet. Collect all four pieces to land on
-  the Sun. Saturn says "coming soon" for now: one new planet per update.
+  the Sun. Dino Planet says "coming soon" for now: one new planet per update.
 - **The Moon** (planet 1) has low gravity everywhere and five layers under its
   own camp:
   - **Crater Plains:** moonstone, moon blobs, meteorites;
@@ -111,7 +111,29 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Saturn Rocket:** needs the Boots.
 - **The Rover Bot** (a tiny rover with a trailer) makes your backpack hold
   half as much again; you can see the trailer fill up.
-- **Sticker book:** 130 stickers on 14 pages, and a trophy for each full page. Open
+- **Saturn** (planet 3) is **slippery**: on its ring ice you slide, slow to
+  start and slow to stop. Its five layers:
+  - **Frozen Rings:** frost gems and space penguins. Roll two snowballs
+    together to build a **snowman**!
+  - **Ice Cream Caves:** scoops of ice cream and bouncy scoop slimes;
+  - **Aurora Caverns:** ring pearls, snow owls, **snow globes** that shake out
+    pearls, and the **Yeti Cub**'s egg;
+  - **Comet Cave:** comet chunks, little comets, and a **frozen comet** full of
+    treasure;
+  - **Saturn Core:** snowflake sprites and the **Saturn Heart**. Bring it home
+    for the **Gloves**, the third Sun Suit piece: you dig faster everywhere,
+    and you never slip on ice.
+
+  New drills: Frost Drill, Pearl Drill, Comet Drill.
+- **Ring Station** (Saturn's camp): snow, igloos, a snowman, giant Saturn in
+  the sky, and four buildings:
+  - **Ice Cream Parlour:** 3 ice cream every trip;
+  - **Ice Lighthouse:** chests show on the depth meter;
+  - **Ski Lift:** Saturn's elevator;
+  - **Dino Rocket:** needs the Gloves; Dino Planet is "coming soon".
+- **The Yeti Cub** digs with you: when you dig sideways, it digs the block
+  above too, so your tunnels come out tall.
+- **Sticker book:** 160 stickers on 17 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

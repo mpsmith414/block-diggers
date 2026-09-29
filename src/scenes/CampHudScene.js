@@ -9,7 +9,7 @@ import { layersOf } from '../game/planets.js';
 import { BADGE_LAYERS } from '../game/trip.js';
 
 // the elevator at each camp, and each Sun Suit piece's icon
-const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48] };
+const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48], saturn: ['ski-chair', 2.5, -44, 30] };
 const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack' };
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
