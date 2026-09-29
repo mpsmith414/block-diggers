@@ -408,3 +408,9 @@ export const GEYSER = { rumble: 0.45, launch: 430, rest: 1.5 };
 
 // ---- going home ----
 export const HOME_HOLD_MS = 2000;
+
+// the Moon Skate Park's half pipe (px): two quarter pipes of radius R with a
+// flat bottom F; Moon gravity; pushing, pumping, big air, tricks
+export const SKATE = {
+  R: 96, F: 80, g: 405, push: 260, pump: 150, friction: 0.12, max: 420, maxAir: 84, ollie: 210, trickTime: 0.45, gemCap: 15,
+};
