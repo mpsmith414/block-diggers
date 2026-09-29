@@ -42,9 +42,9 @@ export function drawMarsTiles(ctx, at, rng, B, rect, speckle) {
   // rusty rock: brown with orange rust streaks and an old bolt head
   const rust = (id) => {
     speckle(ctx, at(id), rng, MARS_HOSTS.rust, 5);
-    rect(ctx, '#c86a2a', at(id) + 2, 3, 1, 5);
-    rect(ctx, '#c86a2a', at(id) + 11, 8, 1, 6);
-    rect(ctx, '#e08a3a', at(id) + 11, 8, 1, 1);
+    rect(ctx, '#a8582a', at(id) + 2, 3, 1, 5);
+    rect(ctx, '#a8582a', at(id) + 11, 8, 1, 6);
+    rect(ctx, '#c87a3a', at(id) + 11, 8, 1, 1);
   };
   rust(B.RUST_ROCK);
   rect(ctx, '#5a5a6a', at(B.RUST_ROCK) + 6, 10, 3, 3);
