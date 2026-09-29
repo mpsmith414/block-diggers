@@ -191,3 +191,19 @@ describe('the Moon: five layers', () => {
     expect(generateMoon(5).grid.cells).toEqual(generateMoon(5).grid.cells);
   });
 });
+
+describe('the Moon Skate Park', () => {
+  it('has a big skate park beside the Moon Heart, open to its chamber, with nothing in it', () => {
+    for (const w of moons) {
+      const p = w.skatepark;
+      expect(p).toEqual({ x0: 30, x1: 46, top: MOON_H - 14, floor: MOON_H - 2 });
+      for (let y = p.top; y < p.floor; y++) for (let x = p.x0; x <= p.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = p.x0; x <= p.x1; x++) expect(w.grid.get(x, p.floor)).toBe(B.MOON_CORE);
+      expect(w.grid.get(29, p.floor - 1)).toBe(B.AIR); // walk in from the Heart chamber
+      const inside = (c) => c.x >= p.x0 && c.x <= p.x1 && c.y >= p.top && c.y <= p.floor;
+      expect(w.chests.some(inside)).toBe(false);
+      expect(w.decor.some(inside)).toBe(false);
+      for (let y = w.heart.y; y < w.heart.y + 3; y++) for (let x = w.heart.x; x < w.heart.x + 3; x++) expect(w.grid.get(x, y)).toBe(B.MOON_HEART);
+    }
+  });
+});
