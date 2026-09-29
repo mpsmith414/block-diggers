@@ -48,7 +48,7 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0 }) {
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0 }) {
   const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false };
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
@@ -124,6 +124,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     p.vy = Math.min(maxFall, p.vy + gravity * dt);
   }
   p.vx = knocked ? p.knock.vx : ix * PLAYER.walkSpeed * walkMul * (inWater ? PLAYER.swimSlow : 1);
+  // a Mars dust storm pushes you along (not on a ladder, in water or mid-bonk)
+  if (windX && !knocked && !p.climbing && !inLadder && !inWater) p.vx += windX;
   // Stepping sideways off a ladder: line up with the row first, so the box
   // doesn't straddle two rows and snag on the one we didn't dig.
   if (ix && inLadder && !p.climbing && p.vy === 0) p.y = (cy + 1) * T - PLAYER.h;
@@ -142,8 +144,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     }
   }
 
-  // blocked sideways: step up a 1-block ledge, or mine it
-  if (blockedX && (p.grounded || inLadder)) {
+  // blocked sideways: step up a 1-block ledge, or mine it (not when only the wind pushed you there)
+  if (blockedX && (ix || knocked) && (p.grounded || inLadder)) {
     const tc = blockedX > 0 ? Math.floor((p.x + PLAYER.w + 0.5) / T) : Math.floor((p.x - 0.5) / T);
     const row = cy;
     if (isSolid(grid.get(tc, row))) {
