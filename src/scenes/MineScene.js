@@ -3,6 +3,7 @@ import { generateMine, carveStation } from '../world/worldgen.js';
 import { generateMoon } from '../world/moon.js';
 import { generateMars } from '../world/mars.js';
 import { generateSaturn } from '../world/saturn.js';
+import { generateDino } from '../world/dinoworld.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
@@ -12,7 +13,7 @@ import { planetById } from '../game/planets.js';
 import { createStorm, stepStorm, windOf } from '../game/storms.js';
 import { heartOf } from '../game/finds.js';
 import { createSneeze, addDust, createFall, trackFall, chestSock } from '../game/silly.js';
-import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
+import { createPowerups, touchLava, stepPowerups, multipliers, startRide } from '../game/powerups.js';
 import {
   createBackpack, addOre, packFull, createPickup, stepPickups, collectPickups, chestLoot, attractPickups, scatterOres,
 } from '../game/loot.js';
@@ -27,7 +28,7 @@ import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
 import {
-  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip,
+  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip, jetpack, stepUp,
 } from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
@@ -46,9 +47,10 @@ const GLINT_COLORS = {
   moonstone: 0xc8ecff, cheese: 0xffe066, spacegem: 0xe0a0ff, gizmo: 0x9affb0,
   ruby: 0xff6a8a, bolt: 0xe8ecf4, opal: 0xffa04a, coin: 0xffe066,
   frost: 0x9fe8ff, icecream: 0xff8ab8, pearl: 0xfff0f8, comet: 0x8ab0ff,
+  jade: 0x7affa8, bone: 0xfff8e8, tooth: 0xfff4d8, obsidian: 0xc8a8ff,
 };
 // the beam home from each planet
-const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff };
+const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a };
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
@@ -68,6 +70,7 @@ export class MineScene extends Phaser.Scene {
     this.moon = this.planet === 'moon';
     this.mars = this.planet === 'mars';
     this.saturn = this.planet === 'saturn';
+    this.dino = this.planet === 'dino';
     this.away = this.planet !== 'earth';
   }
 
@@ -81,6 +84,7 @@ export class MineScene extends Phaser.Scene {
     if (this.moon) this.world = generateMoon(this.seed, { pupEgg: !pets.includes('moonpup') });
     else if (this.mars) this.world = generateMars(this.seed, { roverEgg: !pets.includes('rover') });
     else if (this.saturn) this.world = generateSaturn(this.seed, { yetiEgg: !pets.includes('yeti') });
+    else if (this.dino) this.world = generateDino(this.seed, { longneckEgg: !pets.includes('longneck') });
     else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     this.gravity = planetById(this.planet).gravity;
@@ -94,6 +98,9 @@ export class MineScene extends Phaser.Scene {
     this.digMul = digMul(saved);
     this.grip = iceGrip(saved);
     this.yeti = pets.includes('yeti');
+    // the Jetpack (hold jump in the air) and the Longneck's boost (2-block ledges)
+    this.jet = jetpack(saved);
+    this.stepUp = stepUp(saved);
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
@@ -117,12 +124,14 @@ export class MineScene extends Phaser.Scene {
     if (this.moon) this.drawSpace();
     else if (this.mars) this.drawMarsSky();
     else if (this.saturn) this.drawSaturnSky();
+    else if (this.dino) this.drawDinoSky();
     else this.drawSky();
     const top = Object.keys(planetById(this.planet).layers)[0];
     this.mapView = createMapView(this, this.grid, this.away ? { layerAt: this.world.layerAt, top } : {});
     if (this.moon) this.drawLander();
     else if (this.mars) this.drawLander({ flag: 'mars-flag', later: 'mars-moons' });
     else if (this.saturn) this.drawLander({ flag: 'saturn-flag', later: 'saturn-rings' });
+    else if (this.dino) this.drawLander({ flag: 'dino-flag', later: 'dino-volcano' });
     else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
@@ -230,6 +239,31 @@ export class MineScene extends Phaser.Scene {
     const d = this.add.graphics().setDepth(-7);
     d.fillStyle(0xc8e0f0, 1);
     for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 10, 130, 40);
+  }
+
+  // Dino Planet's sky: a warm jungle dawn, a smoking volcano, and pterodactyls
+  // gliding by.
+  drawDinoSky() {
+    const top = -SKY_ROWS * TILE;
+    const g = this.add.graphics().setDepth(-10);
+    g.fillGradientStyle(0xf08a5a, 0xf08a5a, 0xffd8a0, 0xffd8a0, 1);
+    g.fillRect(0, top, MINE_W * TILE, SKY_ROWS * TILE);
+    this.add.image(SHAFT_X * TILE + 150, 2, 'volcano-big').setOrigin(0.5, 1).setDepth(-9);
+    for (let i = 0; i < 3; i++) {
+      const smoke = this.add.image(SHAFT_X * TILE + 150, -60, 'smoke').setDepth(-9).setTint(0x8a7a70).setAlpha(0.7);
+      this.tweens.add({ targets: smoke, y: top, x: smoke.x + 30, scale: 4, alpha: 0, duration: 5000, delay: i * 1700, repeat: -1 });
+    }
+    // jungle hills and tree ferns on the horizon
+    const d = this.add.graphics().setDepth(-8);
+    d.fillStyle(0x3a8a3a, 1);
+    for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 10, 130, 44);
+    for (const x of [60, 250, 520, 690]) this.add.image(x, 2, 'treefern').setOrigin(0.5, 1).setDepth(-7).setScale(0.8);
+    // pterodactyls gliding across
+    for (let i = 0; i < 2; i++) {
+      const p = this.add.sprite(-40, top + 20 + i * 18, 'ptero', 0).setDepth(-7).setScale(0.8);
+      this.tweens.add({ targets: p, x: MINE_W * TILE + 40, duration: 16000 + i * 5000, delay: i * 6000, repeat: -1 });
+      this.time.addEvent({ delay: 200, loop: true, callback: () => p.setFrame(p.frame.name === 0 ? 1 : 0) });
+    }
   }
 
   // The camp's hatch you climbed down through, and (every trip) you plant a flag.
@@ -572,6 +606,7 @@ export class MineScene extends Phaser.Scene {
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       {
         pickLevel: this.upgrades.pick, dt, digMul: mul.dig * this.digMul, walkMul: mul.walk * this.walkMul, grip: this.grip,
+        jumpMul: mul.jump, jetpack: this.jet, stepUp: this.stepUp,
         gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
       });
     this.stepSilly(a, dt, floaty);
@@ -584,6 +619,7 @@ export class MineScene extends Phaser.Scene {
     for (const ev of stepPowerups(a.pu, dt, { inWater: a.p.inWater && !a.bubbling })) this.powerupEvent(a, ev);
     if (r.jumped) this.events.emit('jump', a);
     if (r.doubleJumped) this.doubleJump(a);
+    if (r.jetting) this.jetFlame(a, dt);
     for (const m of r.mined) {
       this.afterMined(a, m);
       // the Yeti Cub digs the block above a sideways dig too
@@ -634,6 +670,54 @@ export class MineScene extends Phaser.Scene {
     if (addDust(a.sneeze, hardnessOf(m.id), this.rng) && a.sneezeT <= 0) this.startSneeze(a);
     this.dugCount++;
     if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
+  }
+
+  // The Jetpack: flames from your back while you fly.
+  jetFlame(a, dt) {
+    a.jetT = (a.jetT ?? 0) - dt;
+    if (a.jetT > 0) return;
+    a.jetT = 0.04;
+    const x = a.sprite.x - a.p.facing * 5;
+    const f = this.add.image(x, a.sprite.y - 3, 'pixel').setTint(Math.random() < 0.5 ? 0xffb34a : 0xff5a1a).setDisplaySize(2, 3).setDepth(29);
+    this.tweens.add({ targets: f, y: f.y + 8 + Math.random() * 4, alpha: 0, duration: 260, onComplete: () => f.destroy() });
+    a.jetSoundT = (a.jetSoundT ?? 0) - 1;
+    if (a.jetSoundT <= 0) { a.jetSoundT = 12; this.events.emit('jet', a); }
+    earnSticker(this, 'dino-jetfly');
+  }
+
+  // A dino ride: you sit up on the parasaur's back while it runs.
+  drawMount(a, time) {
+    if (a.pu.ride > 0 && !a.bubbling) {
+      if (!a.mount) a.mount = this.add.sprite(0, 0, 'parasaur', 0).setOrigin(0.5, 1).setDepth(29);
+      const s = a.sprite;
+      a.mount.setVisible(true).setPosition(s.x, s.y + 1).setFlipX(a.p.facing < 0)
+        .setFrame(a.p.vx !== 0 && a.p.grounded ? Math.floor(time / 130) % 2 : 0);
+      s.y -= 12;
+    } else if (a.mount) {
+      a.mount.setVisible(false);
+    }
+  }
+
+  // Hop on a parasaur (it came from the finds view).
+  mount(a) {
+    if (!startRide(a.pu)) return false;
+    a.p.vy = -140;
+    this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0x9aff7a, 10);
+    this.events.emit('ride', a);
+    earnSticker(this, 'dino-ride');
+    earnSticker(this, 'find-parasaur');
+    return true;
+  }
+
+  // The ride is over: you hop off, and the parasaur trots away.
+  dismount(a) {
+    const s = a.sprite;
+    const dino = this.add.sprite(s.x, s.y + 1, 'parasaur', 0).setOrigin(0.5, 1).setDepth(28).setFlipX(a.p.facing > 0);
+    const away = a.p.facing > 0 ? -1 : 1;
+    this.tweens.add({ targets: dino, x: dino.x + away * 70, duration: 1400, onUpdate: () => dino.setFrame(Math.floor(this.time.now / 130) % 2) });
+    this.tweens.add({ targets: dino, alpha: 0, delay: 900, duration: 500, onComplete: () => dino.destroy() });
+    a.p.vy = -150;
+    this.effects.sparkle(s.x, s.y - 8, 0x9aff7a, 8);
   }
 
   // The Moon Pup's double jump: a puff of stars under your feet.
@@ -733,6 +817,8 @@ export class MineScene extends Phaser.Scene {
         },
       });
       earnSticker(this, 'adv-drink');
+    } else if (ev === 'rideEnd') {
+      this.dismount(a);
     } else if (ev === 'lavaEnd') {
       this.events.emit('cooldown', a);
       for (let i = 0; i < 6; i++) {
@@ -757,8 +843,8 @@ export class MineScene extends Phaser.Scene {
   // A hazard touched a player: knock back, scatter up to 3 ores, brief safety.
   bonk(a, fromX, { noKnock = false, kind = null, enemy = null } = {}) {
     if (kind && !a.bubbling && a.invuln <= 0) earnSticker(this, creatureSticker(kind));
-    // a lava monster is not bothered by anything: creatures poof away
-    if (a.pu.lava > 0) {
+    // a lava monster (or someone riding a dino) is not bothered by anything: creatures poof away
+    if (a.pu.lava > 0 || a.pu.ride > 0) {
       if (enemy) {
         this.hazards.squash(enemy);
         this.effects.sparkle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 0xff8a1f, 8);
@@ -843,6 +929,7 @@ export class MineScene extends Phaser.Scene {
   drawAvatar(a, dt, time) {
     const { p, sprite } = a;
     animateCharacter(sprite, p, a, dt, time);
+    this.drawMount(a, time);
     sprite.setAlpha(a.invuln > 0 && Math.floor(time / 90) % 2 === 0 ? 0.35 : 1);
     // lava monster: bigger, glowing, flickering, dropping embers
     if (a.pu.lava > 0) {
@@ -994,7 +1081,12 @@ export class MineScene extends Phaser.Scene {
     g.fillStyle(0x6b4424, 1);
     for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
     g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
-    if (this.saturn) {
+    if (this.dino) {
+      // the ptero taxi flew you down, and flaps there to take you home
+      const ptero = this.add.sprite(x0 + 20, y - 26, 'ptero-taxi', 0).setOrigin(0.5, 0.5).setDepth(13);
+      this.tweens.add({ targets: ptero, y: ptero.y - 4, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.time.addEvent({ delay: 220, loop: true, callback: () => ptero.setFrame(ptero.frame.name === 0 ? 1 : 0) });
+    } else if (this.saturn) {
       // the ski lift brought you down on its chair, and waits to take you home
       const cable = this.add.graphics().setDepth(12);
       cable.fillStyle(0x3a3a4a, 1).fillRect(x0 - 40, y - 34, 7 * TILE + 80, 1);

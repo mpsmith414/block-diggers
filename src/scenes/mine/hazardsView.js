@@ -16,6 +16,7 @@ const VOICE = {
   moonblob: 'blorp', mouse: 'squeak', jelly: 'blorp', drone: 'whirr', sprite: 'giggle',
   dustbunny: 'squeak', crab: 'whirr', newt: 'blorp', martian: 'giggle', ember: 'crackle',
   penguin: 'squeak', scoop: 'blorp', owl: 'caw', cometling: 'whoosh', snowflake: 'giggle',
+  dragonfly: 'whirr', raptor: 'squeak', frog: 'boing', beetle: 'crackle', moth: 'giggle',
 };
 // texture for each creature (most are named after it)
 const TEXTURE = { robot: 'toyrobot', sprite: 'starsprite' };

@@ -8,7 +8,8 @@
 
 import { ORES } from '../world/blocks.js';
 import {
-  LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, LOW_GRAVITY, CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, PERKS, PETS,
+  LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, DINO_H, LOW_GRAVITY,
+  CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, DINO_CAMP, PERKS, PETS,
 } from '../tuning.js';
 
 const tops = (layers, byOre) => Object.fromEntries(Object.entries(byOre).map(([ore, layer]) => [ore, layers[layer].top]));
@@ -37,7 +38,12 @@ export const PLANETS = [
     chests: { rings: ['frost'], icecream: ['icecream'], aurora: ['pearl'], comets: ['comet'], saturncore: ['frost', 'pearl', 'comet'] },
     oreRows: tops(SATURN_LAYERS, { frost: 'rings', icecream: 'icecream', pearl: 'aurora', comet: 'comets' }),
   },
-  { id: 'dino', comingSoon: true, suit: 'jetpack' },
+  {
+    id: 'dino', layers: DINO_LAYERS, rows: DINO_H, ores: ['jade', 'bone', 'tooth', 'obsidian'], gravity: 1, suit: 'jetpack', camp: DINO_CAMP, heart: 'dino',
+    perks: { reveal: 'treehouse', elevator: 'pteroperch', gift: { building: 'nursery', ore: 'jade', n: 3 } },
+    chests: { jungle: ['jade'], bonebeds: ['bone'], swamp: ['tooth'], lavalands: ['obsidian'], dinocore: ['bone', 'tooth', 'obsidian'] },
+    oreRows: tops(DINO_LAYERS, { jade: 'jungle', bone: 'bonebeds', tooth: 'swamp', obsidian: 'lavalands' }),
+  },
   { id: 'sun', comingSoon: true, finale: true, suit: null },
 ];
 
@@ -65,7 +71,7 @@ export function planetOfLayer(layer) {
 // What unlocks each planet: a rocket built on the planet before it.
 const ROCKET_TO = {
   moon: { at: 'earth', id: 'rocket' }, mars: { at: 'moon', id: 'marsrocket' }, saturn: { at: 'mars', id: 'saturnrocket' },
-  dino: { at: 'saturn', id: 'dinorocket' },
+  dino: { at: 'saturn', id: 'dinorocket' }, sun: { at: 'dino', id: 'sunrocket' },
 };
 export const rocketTo = (planet) => ROCKET_TO[planet] ?? null;
 const built = (state, planet, id) => (planet === 'earth' ? state.plots : state.bases?.[planet]?.plots ?? []).includes(id);

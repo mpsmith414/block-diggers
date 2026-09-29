@@ -4,10 +4,17 @@
 //  - sit in water for a moment and you DRINK it (glug glug… BURP), which
 //    gives you the ZOOMIES (faster walking and digging).
 
-import { POWERUPS } from '../tuning.js';
+import { POWERUPS, RIDE } from '../tuning.js';
 
 export function createPowerups() {
-  return { lava: 0, zoom: 0, inWaterT: 0, drinking: 0, needOut: false, outT: 0 };
+  return { lava: 0, zoom: 0, ride: 0, inWaterT: 0, drinking: 0, needOut: false, outT: 0 };
+}
+
+// Hop on a friendly parasaur. Returns true if this started a ride (you weren't riding).
+export function startRide(pu) {
+  if (pu.ride > 0) return false;
+  pu.ride = RIDE.time;
+  return true;
 }
 
 // Returns true if this touch turned you into a lava monster (it wasn't one).
@@ -27,6 +34,10 @@ export function stepPowerups(pu, dt, { inWater = false } = {}) {
   if (pu.zoom > 0) {
     pu.zoom -= dt;
     if (pu.zoom <= 0) { pu.zoom = 0; ev.push('zoomEnd'); }
+  }
+  if (pu.ride > 0) {
+    pu.ride -= dt;
+    if (pu.ride <= 0) { pu.ride = 0; ev.push('rideEnd'); }
   }
   if (pu.drinking > 0) {
     pu.drinking -= dt;
@@ -57,9 +68,12 @@ export function stepPowerups(pu, dt, { inWater = false } = {}) {
 
 export function multipliers(pu) {
   const zoom = pu.zoom > 0 ? POWERUPS.zoomSpeed : 1;
+  const riding = pu.ride > 0;
   return {
     dig: pu.lava > 0 ? 2 : zoom,
-    walk: zoom,
+    walk: zoom * (riding ? RIDE.speed : 1),
+    jump: riding ? RIDE.jump : 1,
+    riding,
     lavaSafe: pu.lava > 0,
     drinking: pu.drinking > 0,
   };

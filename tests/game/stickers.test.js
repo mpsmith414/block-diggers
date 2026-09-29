@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 160 unique stickers over 17 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(17);
-    expect(ALL_STICKERS).toHaveLength(160);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(160);
+  it('has 190 unique stickers over 19 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(19);
+    expect(ALL_STICKERS).toHaveLength(190);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(190);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -82,6 +82,17 @@ describe('the Saturn stickers', () => {
     expect(byName.saturn).toEqual(expect.arrayContaining(['ore-frost', 'ore-icecream', 'ore-pearl', 'ore-comet', 'creature-penguin', 'creature-scoop', 'creature-owl', 'creature-cometling', 'creature-snowflake', 'find-snowman', 'find-snowglobe', 'find-frozencomet']));
     expect(byName.ringstation).toHaveLength(12);
     expect(byName.ringstation).toEqual(expect.arrayContaining(['bld-parlour', 'bld-lighthouse', 'bld-skilift', 'bld-dinorocket', 'find-saturnheart', 'suit-gloves', 'pet-yeti', 'saturn-slide', 'trip-saturnbase']));
-    expect(byName.journey2).toEqual(['badge-rings', 'badge-icecream', 'badge-aurora', 'badge-comets', 'badge-saturncore', 'saturn-aurora']);
+    expect(byName.journey2.slice(0, 6)).toEqual(['badge-rings', 'badge-icecream', 'badge-aurora', 'badge-comets', 'badge-saturncore', 'saturn-aurora']);
+  });
+});
+
+describe('the Dino Planet stickers', () => {
+  it('Dino Planet has 12, Dino Camp 12, and Journey 2 fills up with the Dino badges', () => {
+    const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
+    expect(byName.dinoplanet).toHaveLength(12);
+    expect(byName.dinoplanet).toEqual(expect.arrayContaining(['ore-jade', 'ore-bone', 'ore-tooth', 'ore-obsidian', 'creature-dragonfly', 'creature-raptor', 'creature-frog', 'creature-beetle', 'creature-moth', 'find-parasaur', 'find-nest', 'find-rexskull']));
+    expect(byName.dinocamp).toHaveLength(12);
+    expect(byName.dinocamp).toEqual(expect.arrayContaining(['bld-nursery', 'bld-treehouse', 'bld-pteroperch', 'bld-sunrocket', 'find-dinoheart', 'suit-jetpack', 'pet-longneck', 'find-stego', 'dino-ride', 'trip-dinobase']));
+    expect(byName.journey2.slice(6)).toEqual(['badge-jungle', 'badge-bonebeds', 'badge-swamp', 'badge-lavalands', 'badge-dinocore', 'dino-jetfly']);
   });
 });
