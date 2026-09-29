@@ -26,7 +26,12 @@ export const hasSuit = (state, piece) => (state.suit ?? []).includes(piece);
 export const winSuitPiece = (state, piece) => (hasSuit(state, piece) ? state : { ...state, suit: [...(state.suit ?? []), piece] });
 
 // the Helmet's headlamp: 2 more blocks of light, in every mine
-export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSuit(state, 'helmet') ? PERKS.headlamp : 0);
+// (and the Baby Sun Dragon glows: 4 more)
+export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSuit(state, 'helmet') ? PERKS.headlamp : 0)
+  + ((state.pets ?? []).includes('sundragon') ? PERKS.dragonLight : 0);
+
+// The Sun's Heart came home: the finale, and a crown for everyone.
+export const winSunHeart = (state) => ({ ...winSuitPiece(state, 'crown'), sunHeart: true });
 // the Boots: faster everywhere (and dust storms can't push you)
 export const walkMul = (state) => (hasSuit(state, 'boots') ? PERKS.bootsSpeed : 1);
 export const stormProof = (state) => hasSuit(state, 'boots');

@@ -8,8 +8,8 @@
 
 import { ORES } from '../world/blocks.js';
 import {
-  LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, DINO_H, LOW_GRAVITY,
-  CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, DINO_CAMP, PERKS, PETS,
+  LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS, SUN_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, DINO_H, SUN_H, LOW_GRAVITY,
+  CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, DINO_CAMP, SUN_CAMP, PERKS, PETS,
 } from '../tuning.js';
 
 const tops = (layers, byOre) => Object.fromEntries(Object.entries(byOre).map(([ore, layer]) => [ore, layers[layer].top]));
@@ -44,7 +44,12 @@ export const PLANETS = [
     chests: { jungle: ['jade'], bonebeds: ['bone'], swamp: ['tooth'], lavalands: ['obsidian'], dinocore: ['bone', 'tooth', 'obsidian'] },
     oreRows: tops(DINO_LAYERS, { jade: 'jungle', bone: 'bonebeds', tooth: 'swamp', obsidian: 'lavalands' }),
   },
-  { id: 'sun', comingSoon: true, finale: true, suit: null },
+  {
+    id: 'sun', finale: true, layers: SUN_LAYERS, rows: SUN_H, ores: ['sunstone', 'flare', 'plasma', 'nova'], gravity: 1, suit: null, camp: SUN_CAMP, heart: 'sun',
+    perks: { reveal: 'sundial', elevator: 'sunbeam', gift: { building: 'sunflowers', ore: 'sunstone', n: 3 } },
+    chests: { corona: ['sunstone'], sunspots: ['flare'], plasmasea: ['plasma'], radiance: ['nova'], fusion: ['nova', 'plasma'], suncore: ['flare', 'plasma', 'nova'] },
+    oreRows: tops(SUN_LAYERS, { sunstone: 'corona', flare: 'sunspots', plasma: 'plasmasea', nova: 'radiance' }),
+  },
 ];
 
 const BY_ID = new Map(PLANETS.map((p) => [p.id, p]));

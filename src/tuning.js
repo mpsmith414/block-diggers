@@ -150,6 +150,41 @@ export const DINO_GEN = {
   lavaPools: 6,
 };
 
+// The Sun (the finale): six layers of forty rows, bedrock at row 241.
+export const SUN_H = 242;
+export const SUN_LAYERS = {
+  corona: { top: 1, bottom: 40 },
+  sunspots: { top: 41, bottom: 80 },
+  plasmasea: { top: 81, bottom: 120 },
+  radiance: { top: 121, bottom: 160 },
+  fusion: { top: 161, bottom: 200 },
+  suncore: { top: 201, bottom: 240 },
+};
+
+// How the Sun is made (each of the first four layers has its own ore; the
+// forge and the core have them all).
+export const SUN_GEN = {
+  ores: {
+    corona: { veins: 36, weights: { sunstone: 1 } },
+    sunspots: { veins: 40, weights: { flare: 1 } },
+    plasmasea: { veins: 36, weights: { plasma: 1 } },
+    radiance: { veins: 38, weights: { nova: 1 } },
+    fusion: { veins: 40, weights: { sunstone: 1, flare: 1, plasma: 1, nova: 1 } },
+    suncore: { veins: 40, weights: { flare: 1, plasma: 1, nova: 1 } },
+  },
+  caves: {
+    corona: { count: 7, radius: 2.4, length: [22, 36] },
+    sunspots: { count: 8, radius: 2.2, length: [22, 38] },
+    plasmasea: { count: 9, radius: 2.8, length: [24, 40] },
+    radiance: { count: 8, radius: 2.4, length: [24, 40] },
+    fusion: { count: 8, radius: 2.4, length: [24, 40] },
+    suncore: { count: 7, radius: 2.4, length: [22, 36] },
+  },
+  chests: { corona: 1, sunspots: 1, plasmasea: 1, radiance: 1, fusion: 1, suncore: 1 },
+  flowers: 3,
+  lavaPools: 9,
+};
+
 // Each layer's colour on the depth meter and the trip summary.
 export const LAYER_COLORS = {
   dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
@@ -158,6 +193,7 @@ export const LAYER_COLORS = {
   dunes: 0xe0703a, rovers: 0xa86a4a, volcano: 0x4a3a3a, ruins: 0xe0b060, marscore: 0xff5a2a,
   rings: 0xc8f0ff, icecream: 0xffb0d8, aurora: 0x3a6ab8, comets: 0x2a3a6a, saturncore: 0xffe8a0,
   jungle: 0x5ab04a, bonebeds: 0xe8dcc0, swamp: 0x4a6a3a, lavalands: 0x6a2a2a, dinocore: 0xf0c050,
+  corona: 0xffd84a, sunspots: 0x8a4a2a, plasmasea: 0xff6ab0, radiance: 0xfff4c0, fusion: 0xff8a2a, suncore: 0xffffff,
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -192,41 +228,48 @@ export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 
 // Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill,
 // 6 moon drill, 7 crystal drill, 8 laser drill, 9 ruby drill, 10 opal drill,
 // 11 mega drill, 12 frost drill, 13 pearl drill, 14 comet drill, 15 jungle drill,
-// 16 tooth drill, 17 obsidian drill.
+// 16 tooth drill, 17 obsidian drill, 18 sun drill, 19 flare drill, 20 nova drill.
 const X = Infinity;
 export const MINE_TIME = {
-  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
-  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05],
-  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05],
-  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09],
-  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18, 0.16, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08],
-  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09],
-  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11],
-  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3, 0.27, 0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12],
-  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09],
-  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1, 0.09, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05],
-  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3, 0.27, 0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12],
-  alien: [X, X, X, X, X, X, X, 0.45, 0.36, 0.32, 0.29, 0.26, 0.23, 0.21, 0.19, 0.17, 0.15, 0.14],
-  mooncore: [X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16],
+  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
+  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05],
+  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06],
+  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18, 0.16, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05],
+  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06],
+  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08],
+  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3, 0.27, 0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09],
+  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06],
+  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1, 0.09, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3, 0.27, 0.25, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09],
+  alien: [X, X, X, X, X, X, X, 0.45, 0.36, 0.32, 0.29, 0.26, 0.23, 0.21, 0.19, 0.17, 0.15, 0.14, 0.13, 0.12, 0.11],
+  mooncore: [X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12],
   // Mars: the dunes and the rover graveyard dig with the Laser Drill you arrive with
-  marsrock: [X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13],
-  rust: [X, X, X, X, X, X, X, X, 0.4, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14],
-  basalt: [X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32, 0.29, 0.26, 0.23, 0.21, 0.19, 0.17],
-  ruin: [X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.31, 0.28, 0.25, 0.23, 0.21],
-  marscore: [X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.41, 0.37, 0.33, 0.3, 0.27, 0.24],
+  marsrock: [X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1],
+  rust: [X, X, X, X, X, X, X, X, 0.4, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11],
+  basalt: [X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32, 0.29, 0.26, 0.23, 0.21, 0.19, 0.17, 0.15, 0.14, 0.13],
+  ruin: [X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.31, 0.28, 0.25, 0.23, 0.21, 0.19, 0.17, 0.15],
+  marscore: [X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.41, 0.37, 0.33, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18],
   // Saturn: the rings and the ice cream caves dig with the Mega Drill you arrive with
-  ice: [X, X, X, X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18],
-  softserve: [X, X, X, X, X, X, X, X, X, X, X, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11],
-  aurora: [X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32, 0.29, 0.26, 0.23],
-  cometrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.31, 0.28],
-  saturncore: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.41, 0.37, 0.33],
+  ice: [X, X, X, X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18, 0.16, 0.14, 0.13],
+  softserve: [X, X, X, X, X, X, X, X, X, X, X, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08],
+  aurora: [X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32, 0.29, 0.26, 0.23, 0.21, 0.19, 0.17],
+  cometrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.31, 0.28, 0.25, 0.23, 0.21],
+  saturncore: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.41, 0.37, 0.33, 0.3, 0.27, 0.24],
   // Dino Planet: the jungle and the bone beds dig with the Comet Drill you arrive with
-  jungle: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24],
-  fossilrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.38, 0.33, 0.29, 0.26],
-  swampmud: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32],
-  volcanic: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38],
-  dinocore: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45],
-  bedrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X],
+  jungle: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24, 0.22, 0.2, 0.18],
+  fossilrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.38, 0.33, 0.29, 0.26, 0.23, 0.21, 0.19],
+  swampmud: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32, 0.29, 0.26, 0.23],
+  volcanic: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.31, 0.28],
+  dinocore: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.45, 0.41, 0.37, 0.33],
+  // the Sun: the corona and the sunspots dig with the Obsidian Drill you arrive with
+  corona: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.3, 0.27, 0.24, 0.21],
+  sunspot: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24],
+  plasmarock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.4, 0.34, 0.3],
+  radiant: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.4, 0.34],
+  fusionrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.44, 0.38],
+  suncore: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0.42],
+  bedrock: [X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X],
 };
 
 // ---- the player (pixels, seconds) ----
@@ -253,14 +296,14 @@ export const PLAYER = {
 
 // ---- upgrades: value per level ----
 // Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
-export const BACKPACK = [30, 60, 120, 180, 250, 320, 400, 500, 620];
-export const LANTERN = [3, 5, 7, 9, 11, 13, 15, 17, 19]; // light radius in blocks
+export const BACKPACK = [30, 60, 120, 180, 250, 320, 400, 500, 620, 750];
+export const LANTERN = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21]; // light radius in blocks
 
 // ---- pickups ----
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
 
 // ---- building perks ----
-export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2, bootsSpeed: 1.3, roverPack: 1.5, stormRubies: 3, glovesDig: 1.25 };
+export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2, bootsSpeed: 1.3, roverPack: 1.5, stormRubies: 3, glovesDig: 1.25, dragonLight: 4 };
 
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
@@ -343,6 +386,12 @@ export const MARS_CAMP = { ...MOON_CAMP };
 export const STORM = { first: [20, 30], calm: [40, 70], warn: 3, blow: 8, push: 38 };
 // ---- Ring Station (cells): the same shape as Moon Base ----
 export const SATURN_CAMP = { ...MOON_CAMP };
+
+// ---- Solar Station (cells): the same shape as Moon Base ----
+export const SUN_CAMP = { ...MOON_CAMP };
+
+// ---- solar flares: the storm cycle, but a shower of sunstones (seconds) ----
+export const FLARE = { first: [15, 25], calm: [35, 55], warn: 2, blow: 6, every: 0.5 };
 
 // ---- Dino Camp (cells): the same shape as Moon Base ----
 export const DINO_CAMP = { ...MOON_CAMP };

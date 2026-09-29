@@ -103,9 +103,23 @@ export const B = {
   NEST: 93,
   REX_SKULL: 94,
   STEGO: 95,
+  // the Sun (M25)
+  CORONA_ROCK: 96,
+  SUNSPOT_ROCK: 97,
+  PLASMA_ROCK: 98,
+  RADIANT_ROCK: 99,
+  FUSION_ROCK: 100,
+  SUN_CORE: 101,
+  SUNSTONE: 102,
+  FLARE: 103,
+  PLASMA: 104,
+  NOVA: 105,
+  SUN_HEART: 106,
+  FIRE_FLOWER: 107,
+  FORGE: 108,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet', 'jade', 'bone', 'tooth', 'obsidian'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet', 'jade', 'bone', 'tooth', 'obsidian', 'sunstone', 'flare', 'plasma', 'nova'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -205,6 +219,19 @@ def(B.PARASAUR, 'parasaur', false, null);
 def(B.NEST, 'dino nest', false, null);
 def(B.REX_SKULL, 't-rex skull', false, null);
 def(B.STEGO, 'sleeping stegosaurus', false, null);
+def(B.CORONA_ROCK, 'corona rock', true, 'corona');
+def(B.SUNSPOT_ROCK, 'sunspot rock', true, 'sunspot');
+def(B.PLASMA_ROCK, 'plasma rock', true, 'plasmarock');
+def(B.RADIANT_ROCK, 'radiant rock', true, 'radiant');
+def(B.FUSION_ROCK, 'fusion rock', true, 'fusionrock');
+def(B.SUN_CORE, 'sun core rock', true, 'suncore');
+def(B.SUNSTONE, 'sunstone', true, 'corona', 'sunstone');
+def(B.FLARE, 'flare gem', true, 'sunspot', 'flare');
+def(B.PLASMA, 'plasma orb', true, 'plasmarock', 'plasma');
+def(B.NOVA, 'nova gem', true, 'radiant', 'nova');
+def(B.SUN_HEART, "the sun's heart", true, 'suncore');
+def(B.FIRE_FLOWER, 'fire flower', false, null);
+def(B.FORGE, 'solar forge', false, null);
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

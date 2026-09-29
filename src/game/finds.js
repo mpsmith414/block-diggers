@@ -7,7 +7,7 @@ import { LAYERS } from '../tuning.js';
 const TOUGH = new Set([
   B.BEDROCK, B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.BOULDER, B.CHEESE_WHEEL, B.EGG, B.LADDER, B.WATER, B.LAVA, B.TELEPORT, B.UFO,
   B.GEYSER, B.OLD_ROVER, B.VAULT, B.VAULT_DOOR, B.GLYPH, B.SNOWBALL, B.SNOW_GLOBE, B.FROZEN_COMET,
-  B.PARASAUR, B.NEST, B.REX_SKULL, B.STEGO,
+  B.PARASAUR, B.NEST, B.REX_SKULL, B.STEGO, B.FIRE_FLOWER, B.FORGE,
 ]);
 
 // A boom at (x, y) clears the 3×3 around it. Other boom blocks it reaches are
@@ -70,6 +70,11 @@ export const nestLoot = (rng) => [...Array.from({ length: rng.int(5, 7) }, () =>
 export const skullLoot = (rng) => Array.from({ length: rng.int(7, 9) }, () => 'tooth');
 export const stegoLoot = (rng) => Array.from({ length: rng.int(7, 9) }, () => 'obsidian');
 
+// The Sun: fire flowers bloom and pop out flare gems; the Solar Forge hammers
+// out a pile of nova gems and plasma.
+export const fireFlowerLoot = (rng) => [...Array.from({ length: rng.int(6, 8) }, () => 'flare'), 'sunstone', 'sunstone'];
+export const forgeLoot = (rng) => [...Array.from({ length: rng.int(6, 8) }, () => 'nova'), 'plasma', 'plasma', 'plasma'];
+
 export const cheesePartyLoot = (rng) => Array.from({ length: rng.int(8, 10) }, () => 'cheese');
 
 // The crashed UFO: its hatch pops open, full of alien gizmos and space gems.
@@ -113,6 +118,7 @@ export const HEARTS = {
   earth: { block: B.HEART, big: 'heart-big', loot: ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], sticker: 'find-heart', color: 0xff6a9a },
   moon: { block: B.MOON_HEART, big: 'moonheart-big', loot: ['moonstone', 'moonstone', 'spacegem', 'spacegem', 'gizmo', 'gizmo', 'cheese', 'cheese'], sticker: 'find-moonheart', color: 0x6ad0ff },
   mars: { block: B.MARS_HEART, big: 'marsheart-big', loot: ['ruby', 'ruby', 'bolt', 'bolt', 'opal', 'opal', 'coin', 'coin'], sticker: 'find-marsheart', color: 0xff5a3a },
+  sun: { block: B.SUN_HEART, big: 'sunheart-big', loot: ['sunstone', 'sunstone', 'flare', 'flare', 'plasma', 'plasma', 'nova', 'nova'], sticker: 'find-sunheart', color: 0xfff2a0 },
   dino: { block: B.DINO_HEART, big: 'dinoheart-big', loot: ['jade', 'jade', 'bone', 'bone', 'tooth', 'tooth', 'obsidian', 'obsidian'], sticker: 'find-dinoheart', color: 0xffd84a },
   saturn: { block: B.SATURN_HEART, big: 'saturnheart-big', loot: ['frost', 'frost', 'icecream', 'icecream', 'pearl', 'pearl', 'comet', 'comet'], sticker: 'find-saturnheart', color: 0xffe8a0 },
 };

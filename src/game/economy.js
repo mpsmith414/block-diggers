@@ -19,14 +19,16 @@ export const UPGRADES = {
     { frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 },
     // Dino Planet: Jungle Drill, Tooth Drill, Obsidian Drill
     { jade: 45, bone: 35 }, { tooth: 45, jade: 45 }, { obsidian: 55, tooth: 45 },
+    // the Sun: Sun Drill, Flare Drill, Nova Drill
+    { sunstone: 45, flare: 35 }, { plasma: 45, sunstone: 45 }, { nova: 55, plasma: 45 },
   ],
   pack: [
     { coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 },
-    { ruby: 40, bolt: 40 }, { frost: 50, icecream: 50 }, { jade: 55, bone: 55 },
+    { ruby: 40, bolt: 40 }, { frost: 50, icecream: 50 }, { jade: 55, bone: 55 }, { sunstone: 55, flare: 55 },
   ],
   lantern: [
     { coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 },
-    { opal: 30, ruby: 25 }, { pearl: 40, frost: 30 }, { tooth: 40, jade: 35 },
+    { opal: 30, ruby: 25 }, { pearl: 40, frost: 30 }, { tooth: 40, jade: 35 }, { plasma: 40, sunstone: 35 },
   ],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
@@ -76,7 +78,15 @@ export const DINO_BLUEPRINTS = [
   { id: 'sunrocket', cost: { obsidian: 60, tooth: 55, jade: 60 }, needs: { suit: 'jetpack' } },
 ];
 
-const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS };
+// Solar Station: four plots. The Hall of Heroes needs the Sun's Heart.
+export const SUN_BLUEPRINTS = [
+  { id: 'sunflowers', cost: { flare: 55, sunstone: 25 } },
+  { id: 'sundial', cost: { sunstone: 55, plasma: 20 } },
+  { id: 'sunbeam', cost: { nova: 40, plasma: 40 } },
+  { id: 'hall', cost: { nova: 60, plasma: 55, sunstone: 60 }, needs: { sunHeart: true } },
+];
+
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS, sun: SUN_BLUEPRINTS };
 export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 
@@ -91,7 +101,9 @@ function withPlots(state, planet, plots) {
 }
 
 // Anything else a blueprint needs besides ore (a Sun Suit piece).
-export const blueprintOk = (state, bp) => !bp.needs?.suit || (state.suit ?? []).includes(bp.needs.suit);
+// Anything else a blueprint needs besides ore: a Sun Suit piece, or the Sun's Heart.
+export const blueprintOk = (state, bp) => (!bp.needs?.suit || (state.suit ?? []).includes(bp.needs.suit))
+  && (!bp.needs?.sunHeart || !!state.sunHeart);
 
 export const canAfford = (bank, cost) => Object.entries(cost).every(([ore, n]) => (bank[ore] ?? 0) >= n);
 
