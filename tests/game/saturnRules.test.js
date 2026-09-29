@@ -19,14 +19,13 @@ const withSaturn = (plots, extra = {}) => ({ ...defaultState(), bases: { ...defa
 const rich = () => ({ ...defaultState(), bank: { ...defaultState().bank, frost: 99, icecream: 99, pearl: 99, comet: 99 } });
 
 describe('Saturn, the planet', () => {
-  it('is open now (Dino Planet is coming soon), with the Gloves at its bottom', () => {
+  it('is open, with the Gloves at its bottom', () => {
     const s = planetById('saturn');
     expect(s.comingSoon).toBeFalsy();
     expect(s.suit).toBe('gloves');
     expect(s.ores).toEqual(['frost', 'icecream', 'pearl', 'comet']);
     expect(s.camp).toBe(SATURN_CAMP);
     expect(s.heart).toBe('saturn');
-    expect(planetById('dino').comingSoon).toBe(true);
   });
 
   it('has five layers of fifty rows', () => {
@@ -37,19 +36,19 @@ describe('Saturn, the planet', () => {
     for (const id of Object.keys(SATURN_LAYERS)) expect(LAYER_COLORS[id]).toBeTypeOf('number');
   });
 
-  it('the Saturn Rocket opens Saturn; the Dino Rocket makes Dino Planet "coming soon"', () => {
+  it('the Saturn Rocket opens Saturn; the Dino Rocket opens Dino Planet', () => {
     const base = { plots: ['rocket'], suit: [], bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: [null, null, null, 'saturnrocket'] }, saturn: { plots: [null, null, null, null] } } };
     const status = (st, here) => Object.fromEntries(starMapStops(st, here).map((x) => [x.id, x.status]));
     expect(status(base, 'mars').saturn).toBe('open');
     expect(status(base, 'mars').dino).toBe('locked');
     const t = { ...base, bases: { ...base.bases, saturn: { plots: [null, null, null, 'dinorocket'] } } };
-    expect(status(t, 'saturn')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'here', dino: 'soon', sun: 'locked' });
+    expect(status(t, 'saturn')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'here', dino: 'open', sun: 'locked' });
   });
 });
 
 describe('Saturn ice, ores and tools', () => {
   it('four Saturn ores join the list', () => {
-    expect(ORES.slice(16)).toEqual(['frost', 'icecream', 'pearl', 'comet']);
+    expect(ORES.slice(16, 20)).toEqual(['frost', 'icecream', 'pearl', 'comet']);
     expect(dropOf(B.FROST)).toBe('frost');
     expect(dropOf(B.ICECREAM)).toBe('icecream');
     expect(dropOf(B.PEARL)).toBe('pearl');
@@ -86,7 +85,7 @@ describe('Saturn ice, ores and tools', () => {
   });
 
   it('drills 12-14 and the seventh backpack and lantern cost Saturn ores', () => {
-    expect(UPGRADES.pick.slice(11)).toEqual([{ frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 }]);
+    expect(UPGRADES.pick.slice(11, 14)).toEqual([{ frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 }]);
     expect(UPGRADES.pack[6]).toEqual({ frost: 50, icecream: 50 });
     expect(UPGRADES.lantern[6]).toEqual({ pearl: 40, frost: 30 });
   });
@@ -103,7 +102,7 @@ describe('Saturn creatures, trips and treasure', () => {
   });
 
   it('every Saturn layer gets a banner and a badge, after the Mars ones', () => {
-    expect(BADGE_LAYERS.slice(14)).toEqual(['rings', 'icecream', 'aurora', 'comets', 'saturncore']);
+    expect(BADGE_LAYERS.slice(14, 19)).toEqual(['rings', 'icecream', 'aurora', 'comets', 'saturncore']);
     expect(discovery(120, [], 'saturn')).toBe('aurora');
   });
 

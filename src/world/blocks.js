@@ -88,9 +88,24 @@ export const B = {
   SNOW_GLOBE: 79,
   FROZEN_COMET: 80,
   SNOW: 81, // Ring Station's snowy ground (not slippery)
+  // Dino Planet (M24)
+  JUNGLE_SOIL: 82,
+  FOSSIL_ROCK: 83,
+  SWAMP_MUD: 84,
+  VOLCANIC: 85,
+  DINO_CORE: 86,
+  JADE: 87,
+  BONE: 88,
+  TOOTH: 89,
+  OBSIDIAN: 90,
+  DINO_HEART: 91,
+  PARASAUR: 92,
+  NEST: 93,
+  REX_SKULL: 94,
+  STEGO: 95,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet', 'jade', 'bone', 'tooth', 'obsidian'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -176,6 +191,20 @@ def(B.SNOWBALL, 'snowball', true, 'bedrock');
 def(B.SNOW_GLOBE, 'snow globe', false, null);
 def(B.FROZEN_COMET, 'frozen comet', false, null);
 def(B.SNOW, 'snow', true, 'soft');
+def(B.JUNGLE_SOIL, 'jungle soil', true, 'jungle');
+def(B.FOSSIL_ROCK, 'fossil rock', true, 'fossilrock');
+def(B.SWAMP_MUD, 'swamp mud', true, 'swampmud');
+def(B.VOLCANIC, 'volcanic rock', true, 'volcanic');
+def(B.DINO_CORE, 'dino core rock', true, 'dinocore');
+def(B.JADE, 'jade', true, 'jungle', 'jade');
+def(B.BONE, 'dino bone', true, 'fossilrock', 'bone');
+def(B.TOOTH, 't-rex tooth', true, 'swampmud', 'tooth');
+def(B.OBSIDIAN, 'obsidian', true, 'volcanic', 'obsidian');
+def(B.DINO_HEART, 'dino heart', true, 'dinocore');
+def(B.PARASAUR, 'parasaur', false, null);
+def(B.NEST, 'dino nest', false, null);
+def(B.REX_SKULL, 't-rex skull', false, null);
+def(B.STEGO, 'sleeping stegosaurus', false, null);
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

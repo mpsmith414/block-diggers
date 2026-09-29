@@ -10,9 +10,10 @@ export const DINO_KINDS = ['rex', 'trike'];
 export const MOON_KINDS = ['moonpup'];
 export const MARS_KINDS = ['rover'];
 export const SATURN_KINDS = ['yeti'];
-export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS];
+export const DINO_PLANET_KINDS = ['longneck'];
+export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS, ...DINO_PLANET_KINDS];
 // pets that walk along the ground (the rest fly)
-export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti'];
+export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck'];
 
 // The Yeti Cub digs with you: a block dug sideways, and it digs the one above
 // too (if your drill can), so tunnels come out two tall. The cell it dug, or null.

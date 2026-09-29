@@ -3,7 +3,7 @@
 
 import { B, isSolid, isBoulder, isSlippery } from '../world/blocks.js';
 import { mineTime, mineCell } from '../world/grid.js';
-import { TILE, PLAYER, ICE } from '../tuning.js';
+import { TILE, PLAYER, ICE, JET } from '../tuning.js';
 
 const T = TILE;
 const EPS = 0.001;
@@ -12,7 +12,7 @@ export function createPlayer({ x, y }) {
   return {
     x, y, vx: 0, vy: 0,
     grounded: false, climbing: false, facing: 1,
-    mining: null, jumpHeld: false, knock: null, airJumpsUsed: 0,
+    mining: null, jumpHeld: false, knock: null, airJumpsUsed: 0, fuel: JET.fuel, jumpHeldT: 0,
   };
 }
 
@@ -48,8 +48,11 @@ const rowsOf = (y) => {
   return out;
 };
 
-export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false }) {
-  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false };
+export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false,
+  jumpMul = 1, jetpack = false, stepUp = 1,
+}) {
+  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false };
+  const jumpSpeed = PLAYER.jumpSpeed * jumpMul;
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
   let ix = intent.moveX || 0;
@@ -90,6 +93,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   // jump (on the press, not while held)
   const jumpPressed = intent.jump && !p.jumpHeld;
   p.jumpHeld = !!intent.jump;
+  p.jumpHeldT = intent.jump ? (p.jumpHeldT ?? 0) + dt : 0;
+  if (p.fuel === undefined) p.fuel = JET.fuel;
 
   // in water: slow sinking, swim up with up or A, hop out at the surface
   // centre or feet in water (bobbing at the surface counts)
@@ -98,7 +103,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   if (inWater && !inLadder) {
     const surface = grid.get(cx, cy - 1) !== B.WATER && !isSolid(grid.get(cx, cy - 1));
     if (jumpPressed && surface) {
-      p.vy = -PLAYER.jumpSpeed;
+      p.vy = -jumpSpeed;
       out.jumped = true;
     } else if (iy < 0 || intent.jump) {
       p.vy = Math.max(-PLAYER.swimUp, p.vy - gravity * dt);
@@ -107,7 +112,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     }
     p.climbing = false;
   } else if (jumpPressed && (p.grounded || inLadder)) {
-    p.vy = -PLAYER.jumpSpeed;
+    p.vy = -jumpSpeed;
     p.climbing = false;
     out.jumped = true;
   } else if (jumpPressed && !p.climbing && p.airJumpsUsed < airJumps) {
@@ -116,6 +121,11 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     p.airJumpsUsed++;
     out.jumped = true;
     out.doubleJumped = true;
+  } else if (jetpack && !p.grounded && !p.climbing && !knocked && intent.jump && p.jumpHeldT > JET.hold && p.fuel > 0) {
+    // the Jetpack: keep holding jump in the air and you fly up
+    p.vy = Math.max(-JET.maxUp, p.vy - JET.thrust * dt);
+    p.fuel = Math.max(0, p.fuel - dt);
+    out.jetting = true;
   } else if (p.climbing) {
     p.vy = iy * PLAYER.climbSpeed;
   } else if (inLadder && p.vy >= 0) {
@@ -160,8 +170,11 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     if (isSolid(grid.get(tc, row))) {
       const leanOn = isBoulder(grid.get(tc, row)) || grid.get(tc, row) === B.BOOM; // push or light it instead
       const canStep = !leanOn && p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
-      if (canStep) {
-        p.y = row * T - PLAYER.h;
+      // the Longneck's boost: up a ledge two blocks high
+      const canStep2 = !leanOn && !canStep && stepUp >= 2 && p.grounded && !isBoulder(grid.get(tc, row - 1))
+        && !isSolid(grid.get(tc, row - 2)) && !isSolid(grid.get(cx, row - 1)) && !isSolid(grid.get(cx, row - 2));
+      if (canStep || canStep2) {
+        p.y = (canStep ? row : row - 1) * T - PLAYER.h;
         p.x = blockedX > 0 ? tc * T + 4 - PLAYER.w : (tc + 1) * T - 4;
         p.vy = 0;
         out.stepped = true;
@@ -207,7 +220,7 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
   const underRow = Math.round(bottom / T);
   p.grounded = Math.abs(bottom - underRow * T) < 0.01 &&
     columnsOf(p.x).some((c) => isSolid(grid.get(c, underRow)) || (iy <= 0 && ladderTop(grid, c, underRow)));
-  if (p.grounded || p.climbing || inWater) p.airJumpsUsed = 0;
+  if (p.grounded || p.climbing || inWater) { p.airJumpsUsed = 0; p.fuel = JET.fuel; }
 
   // mining progress
   if (!canMine) target = null;

@@ -17,14 +17,16 @@ export const UPGRADES = {
     // Saturn: Frost Drill, Pearl Drill, Comet Drill
     // (a little dearer: by now your backpack is big)
     { frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 },
+    // Dino Planet: Jungle Drill, Tooth Drill, Obsidian Drill
+    { jade: 55, bone: 40 }, { tooth: 55, jade: 55 }, { obsidian: 65, tooth: 55 },
   ],
   pack: [
     { coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 },
-    { ruby: 40, bolt: 40 }, { frost: 50, icecream: 50 },
+    { ruby: 40, bolt: 40 }, { frost: 50, icecream: 50 }, { jade: 65, bone: 65 },
   ],
   lantern: [
     { coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 },
-    { opal: 30, ruby: 25 }, { pearl: 40, frost: 30 },
+    { opal: 30, ruby: 25 }, { pearl: 40, frost: 30 }, { tooth: 50, jade: 40 },
   ],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
@@ -66,7 +68,15 @@ export const SATURN_BLUEPRINTS = [
   { id: 'dinorocket', cost: { comet: 60, pearl: 50, frost: 60 }, needs: { suit: 'gloves' } },
 ];
 
-const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS };
+// Dino Camp: four plots. The Sun Rocket needs the Jetpack.
+export const DINO_BLUEPRINTS = [
+  { id: 'nursery', cost: { bone: 70, jade: 30 } },
+  { id: 'treehouse', cost: { jade: 70, tooth: 25 } },
+  { id: 'pteroperch', cost: { obsidian: 50, tooth: 50 } },
+  { id: 'sunrocket', cost: { obsidian: 75, tooth: 65, jade: 75 }, needs: { suit: 'jetpack' } },
+];
+
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS };
 export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 

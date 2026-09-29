@@ -33,6 +33,10 @@ export const stormProof = (state) => hasSuit(state, 'boots');
 // the Gloves: digging is faster everywhere (and you never slip on ice)
 export const digMul = (state) => (hasSuit(state, 'gloves') ? PERKS.glovesDig : 1);
 export const iceGrip = (state) => hasSuit(state, 'gloves');
+// the Jetpack: hold jump in the air to fly
+export const jetpack = (state) => hasSuit(state, 'jetpack');
+// the Longneck gives you a boost: step up ledges two blocks high
+export const stepUp = (state) => ((state.pets ?? []).includes('longneck') ? 2 : 1);
 // the Weather Station: storms on Mars carry rubies
 export const stormRubies = (state) => (hasBuilt(state, 'weather', 'mars') ? PERKS.stormRubies : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);
