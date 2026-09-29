@@ -53,6 +53,10 @@ const MINE = {
   geyser: (s) => s.play('geyser'),
   beep: (s) => s.play('beep'),
   vault: (s) => s.play('vault'),
+  snowman: (s) => s.play('party'),
+  globe: (s) => s.play('chime', 4),
+  frozenComet: (s) => s.play('crack'),
+  yeti: (s) => s.play('hammer'),
 };
 
 const CAMP = {

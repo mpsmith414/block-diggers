@@ -87,6 +87,7 @@ export const B = {
   SNOWBALL: 78,
   SNOW_GLOBE: 79,
   FROZEN_COMET: 80,
+  SNOW: 81, // Ring Station's snowy ground (not slippery)
 };
 
 export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet'];
@@ -174,6 +175,7 @@ def(B.SATURN_HEART, 'saturn heart', true, 'saturncore');
 def(B.SNOWBALL, 'snowball', true, 'bedrock');
 def(B.SNOW_GLOBE, 'snow globe', false, null);
 def(B.FROZEN_COMET, 'frozen comet', false, null);
+def(B.SNOW, 'snow', true, 'soft');
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

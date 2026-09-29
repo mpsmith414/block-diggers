@@ -75,6 +75,8 @@ export class TitleScene extends Phaser.Scene {
     // …and further off, little red Mars
     const mars = this.add.image(400, 46, 'planet-mars').setScale(0.6).setAlpha(0.9);
     this.tweens.add({ targets: mars, y: 49, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    // …and far away, ringed Saturn
+    this.add.image(446, 30, 'planet-saturn').setScale(0.5).setAlpha(0.85);
     const zoom = () => {
       const r = this.add.image(-10, 190, 'icon-rocket').setAngle(37).setDepth(2);
       this.tweens.add({

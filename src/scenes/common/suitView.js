@@ -1,5 +1,5 @@
-// The Sun Suit pieces your characters wear: the Helmet (from the Moon Heart)
-// and the Boots (from the Mars Heart). Overlays that follow each character
+// The Sun Suit pieces your characters wear: the Helmet (from the Moon Heart),
+// the Boots (from the Mars Heart) and the Gloves (from the Saturn Heart). Overlays that follow each character
 // sprite; the Boots follow the legs frame by frame, and puff little flames
 // from the heels when you run.
 
@@ -8,6 +8,7 @@ import { getState } from '../../save/store.js';
 const PIECES = [
   { id: 'helmet', key: 'suit-helmet', framed: false },
   { id: 'boots', key: 'suit-boots-worn', framed: true },
+  { id: 'gloves', key: 'suit-gloves-worn', framed: true },
 ];
 
 export function createSuitView(scene) {

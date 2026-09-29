@@ -97,6 +97,8 @@ export function createPetsView(scene, kinds) {
         else if (pet.kind === 'moonpup') target = { x: c.x - a.p.facing * 6, y: c.y + 3 + Math.abs(Math.sin(pet.t * 10)) * -4 };
         // the Rover Bot rolls along behind, pulling its trailer
         else if (pet.kind === 'rover') target = { x: c.x - a.p.facing * 22, y: c.y + 3 };
+        // the Yeti Cub stomps along right beside you, ready to dig
+        else if (pet.kind === 'yeti') target = { x: c.x - a.p.facing * 9, y: c.y + 3 + Math.abs(Math.sin(pet.t * 8)) * -2 };
         else if (pet.kind === 'rex') target = { x: c.x - a.p.facing * 18, y: c.y + 3 + Math.abs(Math.sin(pet.t * 9)) * -2 };
         else if (pet.kind === 'trike') target = { x: c.x - a.p.facing * 14, y: c.y + 3 + Math.abs(Math.sin(pet.t * 7)) * -2 };
         else if (pet.kind === 'glowbug') target = { x: c.x + Math.cos(pet.t * 2.2) * 10, y: c.y - 14 + Math.sin(pet.t * 3.1) * 3 };

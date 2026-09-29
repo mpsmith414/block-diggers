@@ -116,6 +116,11 @@ export function drawSaturnTiles(ctx, at, rng, B, rect, speckle) {
   rect(ctx, '#e0a020', at(B.SATURN_HEART) + 2, 8, 6, 1);
   rect(ctx, '#9fe0ff', at(B.SATURN_HEART) + 10, 2, 1, 6);
 
+  // snow: soft white ground with a sparkle
+  speckle(ctx, at(B.SNOW), rng, { base: '#f4faff', dark: '#d8e8f4', light: '#ffffff' }, 5);
+  rect(ctx, '#ffffff', at(B.SNOW), 0, T, 2);
+  rect(ctx, '#bfe0f4', at(B.SNOW) + 9, 7, 1, 1);
+
   // a snowball: a big round ball of snow (you push it)
   drawMap(ctx, at(B.SNOWBALL), 1, [
     '.....oooooo.....',
