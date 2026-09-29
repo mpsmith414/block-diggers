@@ -80,9 +80,9 @@ describe('Dino ores and tools', () => {
   });
 
   it('drills 15-17 and the eighth backpack and lantern cost Dino ores', () => {
-    expect(UPGRADES.pick.slice(14)).toEqual([{ jade: 55, bone: 40 }, { tooth: 55, jade: 55 }, { obsidian: 65, tooth: 55 }]);
-    expect(UPGRADES.pack[7]).toEqual({ jade: 65, bone: 65 });
-    expect(UPGRADES.lantern[7]).toEqual({ tooth: 50, jade: 40 });
+    expect(UPGRADES.pick.slice(14)).toEqual([{ jade: 45, bone: 35 }, { tooth: 45, jade: 45 }, { obsidian: 55, tooth: 45 }]);
+    expect(UPGRADES.pack[7]).toEqual({ jade: 55, bone: 55 });
+    expect(UPGRADES.lantern[7]).toEqual({ tooth: 40, jade: 35 });
   });
 });
 

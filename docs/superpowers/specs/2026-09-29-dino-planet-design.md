@@ -39,11 +39,11 @@ Each layer holds its own ore (the core has several). Chests hold their layer's o
 
 | Upgrade | New level | Cost |
 |---|---|---|
-| Pickaxe | **Jungle Drill** (15) | 55 jade + 40 bone |
-|  | **Tooth Drill** (16) | 55 tooth + 55 jade |
-|  | **Obsidian Drill** (17) | 65 obsidian + 55 tooth |
-| Backpack | 620 (level 8) | 65 jade + 65 bone |
-| Lantern | 19 (level 8) | 50 tooth + 40 jade |
+| Pickaxe | **Jungle Drill** (15) | 45 jade + 35 bone |
+|  | **Tooth Drill** (16) | 45 tooth + 45 jade |
+|  | **Obsidian Drill** (17) | 55 obsidian + 45 tooth |
+| Backpack | 620 (level 8) | 55 jade + 55 bone |
+| Lantern | 19 (level 8) | 40 tooth + 35 jade |
 
 The balance test aims for about 20 trips.
 
@@ -53,10 +53,10 @@ The balance test aims for about 20 trips.
 
 | Building | Cost | What it does |
 |---|---|---|
-| **Dino Nursery** | 70 bone + 30 jade | baby dinos dig up **+3 jade** every trip home |
-| **Treehouse** | 70 jade + 25 tooth | a lookout: shows every chest on the depth meter |
-| **Ptero Perch** | 50 obsidian + 50 tooth | the elevator: a friendly pterodactyl flies you down to any layer you've reached |
-| **Sun Rocket** | 75 obsidian + 65 tooth + 75 jade + the Jetpack | lights up the Sun on the star map with a "coming soon" sign |
+| **Dino Nursery** | 55 bone + 25 jade | baby dinos dig up **+3 jade** every trip home |
+| **Treehouse** | 55 jade + 20 tooth | a lookout: shows every chest on the depth meter |
+| **Ptero Perch** | 40 obsidian + 40 tooth | the elevator: a friendly pterodactyl flies you down to any layer you've reached |
+| **Sun Rocket** | 60 obsidian + 55 tooth + 60 jade + the Jetpack | lights up the Sun on the star map with a "coming soon" sign |
 
 ## 5. Travel
 

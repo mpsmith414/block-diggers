@@ -1,4 +1,4 @@
-// The sticker book: 160 things to find, on 17 pages. A full page earns a trophy.
+// The sticker book: 190 things to find, on 19 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 
@@ -93,6 +93,20 @@ export const STICKER_PAGES = [
   page('journey2', 'icon-starmap', [
     ['badge-rings', 'badge', 14], ['badge-icecream', 'badge', 15], ['badge-aurora', 'badge', 16],
     ['badge-comets', 'badge', 17], ['badge-saturncore', 'badge', 18], ['saturn-aurora', 'decor-auroracrystal'],
+    ['badge-jungle', 'badge', 19], ['badge-bonebeds', 'badge', 20], ['badge-swamp', 'badge', 21],
+    ['badge-lavalands', 'badge', 22], ['badge-dinocore', 'badge', 23], ['dino-jetfly', 'icon-jetfly'],
+  ]),
+  page('dinoplanet', 'planet-dino', [
+    ['ore-jade', 'ore-jade'], ['ore-bone', 'ore-bone'], ['ore-tooth', 'ore-tooth'], ['ore-obsidian', 'ore-obsidian'],
+    ['creature-dragonfly', 'dragonfly'], ['creature-raptor', 'raptor'], ['creature-frog', 'frog'],
+    ['creature-beetle', 'beetle'], ['creature-moth', 'moth'],
+    ['find-parasaur', 'parasaur'], ['find-nest', 'dinonest'], ['find-rexskull', 'rexskull'],
+  ]),
+  page('dinocamp', 'bld-sunrocket', [
+    ['bld-nursery', 'bld-nursery'], ['bld-treehouse', 'bld-treehouse'], ['bld-pteroperch', 'bld-pteroperch'],
+    ['bld-sunrocket', 'bld-sunrocket'], ['find-dinoheart', 'dinoheart-gem'], ['suit-jetpack', 'suit-jetpack'],
+    ['pet-longneck', 'pet-longneck'], ['find-stego', 'stego'], ['dino-ride', 'icon-ride'],
+    ['dino-flag', 'dino-flag'], ['dino-volcano', 'dino-volcano'], ['trip-dinobase', 'icon-dinobase'],
   ]),
 ];
 

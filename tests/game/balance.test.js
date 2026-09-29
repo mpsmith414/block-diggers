@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { generateMoon } from '../../src/world/moon.js';
 import { generateMars } from '../../src/world/mars.js';
 import { generateSaturn } from '../../src/world/saturn.js';
+import { generateDino } from '../../src/world/dinoworld.js';
 import { dropOf, isSolid } from '../../src/world/blocks.js';
-import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS } from '../../src/tuning.js';
+import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS } from '../../src/tuning.js';
 import { UPGRADE_KINDS, nextUpgrade, buyUpgrade, buildOnPlot, canAfford, blueprintsFor, plotsOf, blueprintOk } from '../../src/game/economy.js';
 import { campGift, winSuitPiece, hasSuit, packCap } from '../../src/game/perks.js';
 import { planetById, layerOfRow } from '../../src/game/planets.js';
@@ -66,6 +67,22 @@ const PLANET = {
     start: { upgrades: { pick: 11, pack: 6, lantern: 6 }, suit: ['helmet', 'boots'] },
     heartLayer: 'saturncore',
     rocket: 'dinorocket',
+  },
+  dino: {
+    generate: generateDino,
+    layers: DINO_LAYERS,
+    tier: { jungle: 14, bonebeds: 14, swamp: 15, lavalands: 16, dinocore: 17 },
+    special: {
+      jungle: {},
+      bonebeds: { bone: 6 * 2, jade: 2 * 2 }, // two nests
+      swamp: { tooth: 8 }, // the T-rex skull
+      lavalands: { obsidian: 8 }, // the sleeping stego
+      dinocore: {},
+    },
+    chest: { jungle: 'jade', bonebeds: 'bone', swamp: 'tooth', lavalands: 'obsidian', dinocore: 'tooth' },
+    start: { upgrades: { pick: 14, pack: 7, lantern: 7 }, suit: ['helmet', 'boots', 'gloves'] },
+    heartLayer: 'dinocore',
+    rocket: 'sunrocket',
   },
 };
 
@@ -187,6 +204,15 @@ describe('Saturn balance', () => {
     expect(trips).toBeGreaterThanOrEqual(12);
     expect(trips).toBeLessThanOrEqual(24);
     expect(order(log, /pick|gloves|dinorocket/)).toEqual(['pick12', 'pick13', 'pick14', 'gloves', 'dinorocket']);
+  });
+});
+
+describe('Dino Planet balance', () => {
+  it('takes a good many trips to build the Sun Rocket, with the drills in order', () => {
+    const { trips, log } = play('dino');
+    expect(trips).toBeGreaterThanOrEqual(12);
+    expect(trips).toBeLessThanOrEqual(24);
+    expect(order(log, /pick|jetpack|sunrocket/)).toEqual(['pick15', 'pick16', 'pick17', 'jetpack', 'sunrocket']);
   });
 });
 
