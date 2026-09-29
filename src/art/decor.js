@@ -2,6 +2,7 @@
 
 import { drawMap } from './pixelmap.js';
 import { MOON_DECOR, MOON_DECOR_PAL, MOON_GLOWING } from './moonWorld.js';
+import { MARS_DECOR, MARS_DECOR_PAL, MARS_GLOWING } from './marsWorld.js';
 
 const OUT = '#2a1d2e';
 
@@ -150,14 +151,21 @@ PAL.emberflower = { g: '#8a3a2a', G: '#5a2a1a', p: '#ff6a2a', b: '#ffb34a', w: '
 Object.assign(DECOR, MOON_DECOR);
 Object.assign(PAL, MOON_DECOR_PAL);
 
+// Mars's decorations (and fire crystals: the crystal shape in red and gold)
+Object.assign(DECOR, MARS_DECOR);
+Object.assign(PAL, MARS_DECOR_PAL);
+DECOR.firecrystal = DECOR.crystal;
+PAL.firecrystal = { o: '#4a0a0a', x: '#ff5a2a', X: '#ffe066' };
+
 export const GLOWING = {
   mushroom: 0xffa050, glowshroom: 0x5ad8ff, crystal: 0xb98cff, giantshroom: 0x6ff0ff, moss: 0x7aff9a, amethyst: 0xd08cff,
-  spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a,
+  spacecrystal: 0x6ff0ff, emberflower: 0xff8a3a, firecrystal: 0xff6a2a, ...MARS_GLOWING,
   ...Object.fromEntries(Object.entries(MOON_GLOWING).filter(([, c]) => c)),
 };
 
-// wood, iron, diamond, amber picks; then the brick, star, moon, crystal and laser drills
-const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066', '#9ad8ff', '#b070ff', '#ff4a8a'];
+// wood, iron, diamond, amber picks; then the brick, star, moon, crystal and laser drills;
+// then the ruby, opal and mega drills
+const PICK_HEADS = ['#b07a44', '#d4dce6', '#6ff0ff', '#f0a030', '#e0403a', '#ffe066', '#9ad8ff', '#b070ff', '#ff4a8a', '#ff2a4a', '#ff8a2a', '#3affe0'];
 
 export function drawDecor(scene, canvasTexture, rect) {
   for (const [kind, variants] of Object.entries(DECOR)) {

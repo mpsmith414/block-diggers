@@ -21,8 +21,8 @@ describe('hatch', () => {
     expect(dup.state.bank.gold).toBe(PETS.goldenEggGold);
     expect(hatch(s, 'golden').gold).toBe(PETS.goldenEggGold);
   });
-  it('knows the six pets (three cave pets, two dinosaurs and the Moon Pup)', () => {
-    expect(PET_KINDS).toEqual(['mole', 'glowbug', 'batbuddy', 'rex', 'trike', 'moonpup']);
+  it('knows the seven pets (three cave pets, two dinosaurs, the Moon Pup and the Rover Bot)', () => {
+    expect(PET_KINDS).toEqual(['mole', 'glowbug', 'batbuddy', 'rex', 'trike', 'moonpup', 'rover']);
   });
 });
 

@@ -6,6 +6,11 @@ import { shownOres } from '../game/ores.js';
 import { B } from '../world/blocks.js';
 import { LAYER_COLORS } from '../tuning.js';
 import { layersOf } from '../game/planets.js';
+import { BADGE_LAYERS } from '../game/trip.js';
+
+// the elevator at each camp, and each Sun Suit piece's icon
+const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48] };
+const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack' };
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
 // and the blueprint / upgrade picker.
@@ -49,7 +54,8 @@ export class CampHudScene extends Phaser.Scene {
     // the Heart of the World sits at the end of the bank once you have one
     if ((getState(this.registry).bank.heart ?? 0) > 0) kinds.push('heart');
     this.bankKinds = kinds.length;
-    const w = 16 + kinds.length * 28 + 50;
+    const pipsW = 12 + (UPGRADES.pick.length + 1) * 5;
+    const w = 16 + kinds.length * 28 + pipsW;
     const x = Math.round((this.scale.width - w) / 2);
     const y = 4;
     if (this.bank) this.bank.destroy();
@@ -266,11 +272,12 @@ export class CampHudScene extends Phaser.Scene {
       }
     } else if (pk.kind === 'elevator') {
       // the layer's badge (or its rock), and a padlock if you haven't been there yet
-      const deep = ['dino', 'brick', 'meteor', 'core', 'craters', 'cheesecaves', 'mooncrystal', 'alienbase', 'mooncore'].indexOf(opt.id);
+      const deep = BADGE_LAYERS.indexOf(opt.id);
       const rock = { dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL }[opt.id];
       const img = deep >= 0 ? this.add.image(midX, y + 40, 'badge', deep).setScale(3.5) : this.add.image(midX, y + 40, 'tiles', rock).setScale(3.5);
-      // the minecart at home, the friendly alien's UFO on the Moon
-      c.add(pk.planet === 'moon' ? this.add.image(midX - 44, y + 44, 'ufo', 0).setScale(0.6) : this.add.image(midX - 40, y + 50, 'cart', 0).setScale(2));
+      // the minecart at home, the friendly alien's UFO on the Moon, the rover on Mars
+      const [key, scale, dx, dy] = VEHICLE[pk.planet ?? 'earth'] ?? VEHICLE.earth;
+      c.add(this.add.image(midX + dx, y + dy, key, 0).setScale(scale));
       c.add(img);
       if (!opt.affordable) {
         img.setTint(0x6a5a4a).setAlpha(0.5);
@@ -292,7 +299,7 @@ export class CampHudScene extends Phaser.Scene {
         const have = (getState(this.registry).suit ?? []).includes(opt.needs);
         const bx = x + w - 26;
         c.add(this.add.circle(bx, y + 24, 13, have ? 0x9ae67a : 0xd8c49a));
-        const piece = this.add.image(bx, y + 24, 'suit-helmet-icon').setScale(1.8);
+        const piece = this.add.image(bx, y + 24, SUIT_ICON[opt.needs] ?? 'suit-helmet-icon').setScale(1.8);
         c.add(piece);
         if (!have) c.add(this.add.image(bx + 8, y + 32, 'icon-lock').setScale(0.9));
       }

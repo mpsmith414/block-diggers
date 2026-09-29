@@ -14,7 +14,7 @@ describe('backpack', () => {
     expect(addOre(pack, 'iron')).toBe(true);
     expect(packFull(pack)).toBe(true);
     expect(addOre(pack, 'gold')).toBe(false);
-    expect(pack.ores).toEqual({ coal: 1, iron: 1, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, moonstone: 0, cheese: 0, spacegem: 0, gizmo: 0 });
+    expect(pack.ores).toEqual({ coal: 1, iron: 1, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, moonstone: 0, cheese: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0 });
     expect(pack.count).toBe(2);
   });
 });

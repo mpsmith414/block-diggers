@@ -1,6 +1,6 @@
 // Pets at home: they wander after you around the camp. Eggs hatch in the nest.
 
-import { hatch } from '../../game/pets.js';
+import { hatch, WALKING_PETS as WALKERS } from '../../game/pets.js';
 import { follow } from '../../game/pets.js';
 import { getState, setState } from '../../save/store.js';
 import { EGG_KINDS } from '../../art/finds.js';
@@ -8,7 +8,6 @@ import { earnSticker } from '../common/stickers.js';
 import { TILE, CAMP, PLAYER, PETS } from '../../tuning.js';
 import { playTrick, trickOffset } from '../common/petTricks.js';
 
-const WALKERS = ['mole', 'rex', 'trike', 'moonpup'];
 const DINOS = ['rex', 'trike'];
 
 export function createCampPets(camp) {

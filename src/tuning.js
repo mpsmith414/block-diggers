@@ -52,11 +52,46 @@ export const MOON_GEN = {
   teleports: 3,
 };
 
+// Mars (planet 2): five layers of fifty rows, bedrock at row 251.
+export const MARS_H = 252;
+export const MARS_LAYERS = {
+  dunes: { top: 1, bottom: 50 },
+  rovers: { top: 51, bottom: 100 },
+  volcano: { top: 101, bottom: 150 },
+  ruins: { top: 151, bottom: 200 },
+  marscore: { top: 201, bottom: 250 },
+};
+
+// How Mars is made: ore veins, caves, and things to find. Each layer has its
+// own ore (the core has all of them), so a layer's rock always matches its ore.
+export const MARS_GEN = {
+  ores: {
+    dunes: { veins: 42, weights: { ruby: 1 } },
+    rovers: { veins: 50, weights: { bolt: 1 } },
+    volcano: { veins: 44, weights: { opal: 1 } },
+    ruins: { veins: 44, weights: { coin: 1 } },
+    marscore: { veins: 46, weights: { ruby: 1, opal: 1, coin: 1 } },
+  },
+  caves: {
+    dunes: { count: 7, radius: 2.2, length: [22, 36] },
+    rovers: { count: 9, radius: 2.2, length: [24, 40] },
+    volcano: { count: 10, radius: 2.8, length: [26, 42] },
+    ruins: { count: 9, radius: 2, length: [26, 44] },
+    marscore: { count: 8, radius: 2.4, length: [24, 40] },
+  },
+  chests: { dunes: 1, rovers: 1, volcano: 1, ruins: 1, marscore: 1 },
+  rovers: 2, // old rovers to open
+  geysers: 7,
+  lavaPools: 6,
+  vaults: 2,
+};
+
 // Each layer's colour on the depth meter and the trip summary.
 export const LAYER_COLORS = {
   dirt: 0x8a5a34, stone: 0x7d7d86, deep: 0x3f3d4f, crystal: 0x6a4fa8,
   dino: 0xd0a868, brick: 0xe0403a, meteor: 0x2a2860, core: 0xff7a2a,
   craters: 0xb8b8c8, cheesecaves: 0xffd84a, mooncrystal: 0x8a6ae0, alienbase: 0x5ad07a, mooncore: 0xc8f0ff,
+  dunes: 0xe0703a, rovers: 0xa86a4a, volcano: 0x4a3a3a, ruins: 0xe0b060, marscore: 0xff5a2a,
 };
 
 // Ore veins: how many veins per 1000 host cells, and which ores (weights).
@@ -89,23 +124,30 @@ export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 
 
 // ---- mining (seconds) by hardness and tool level ----
 // Tools: 0 wood, 1 iron, 2 diamond, 3 amber pick, 4 brick drill, 5 star drill,
-// 6 moon drill, 7 crystal drill, 8 laser drill.
+// 6 moon drill, 7 crystal drill, 8 laser drill, 9 ruby drill, 10 opal drill,
+// 11 mega drill.
 const X = Infinity;
 export const MINE_TIME = {
-  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05],
-  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1],
-  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14],
-  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2],
-  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18],
-  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
-  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26],
-  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3],
-  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2],
-  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1],
-  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3],
-  alien: [X, X, X, X, X, X, X, 0.45, 0.36],
-  mooncore: [X, X, X, X, X, X, X, X, 0.45],
-  bedrock: [X, X, X, X, X, X, X, X, X],
+  soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.04],
+  stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1, 0.1, 0.09, 0.08],
+  deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11],
+  crystal: [X, X, 0.6, 0.45, 0.35, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15],
+  sand: [X, X, 0.5, 0.4, 0.3, 0.25, 0.22, 0.2, 0.18, 0.16, 0.15, 0.14],
+  bricks: [X, X, X, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15],
+  meteor: [X, X, X, X, 0.5, 0.4, 0.34, 0.3, 0.26, 0.24, 0.22, 0.2],
+  core: [X, X, X, X, X, 0.5, 0.42, 0.36, 0.3, 0.27, 0.25, 0.22],
+  moon: [X, X, 0.6, 0.5, 0.4, 0.3, 0.26, 0.23, 0.2, 0.18, 0.17, 0.15],
+  cheese: [X, X, 0.3, 0.25, 0.2, 0.15, 0.13, 0.12, 0.1, 0.09, 0.09, 0.08],
+  mooncrystal: [X, X, X, X, X, X, 0.45, 0.36, 0.3, 0.27, 0.25, 0.22],
+  alien: [X, X, X, X, X, X, X, 0.45, 0.36, 0.32, 0.29, 0.26],
+  mooncore: [X, X, X, X, X, X, X, X, 0.45, 0.38, 0.34, 0.3],
+  // Mars: the dunes and the rover graveyard dig with the Laser Drill you arrive with
+  marsrock: [X, X, X, X, X, X, X, X, 0.34, 0.3, 0.27, 0.24],
+  rust: [X, X, X, X, X, X, X, X, 0.4, 0.34, 0.3, 0.27],
+  basalt: [X, X, X, X, X, X, X, X, X, 0.45, 0.38, 0.32],
+  ruin: [X, X, X, X, X, X, X, X, X, X, 0.45, 0.38],
+  marscore: [X, X, X, X, X, X, X, X, X, X, X, 0.45],
+  bedrock: [X, X, X, X, X, X, X, X, X, X, X, X],
 };
 
 // ---- the player (pixels, seconds) ----
@@ -132,14 +174,14 @@ export const PLAYER = {
 
 // ---- upgrades: value per level ----
 // Playtest (bot, 2026-09-26): 20 filled with coal in ~20 s, before reaching iron.
-export const BACKPACK = [30, 60, 120, 180, 250, 320];
-export const LANTERN = [3, 5, 7, 9, 11, 13]; // light radius in blocks
+export const BACKPACK = [30, 60, 120, 180, 250, 320, 400];
+export const LANTERN = [3, 5, 7, 9, 11, 13, 15]; // light radius in blocks
 
 // ---- pickups ----
 export const PICKUP = { size: 8, gravity: 600, scatterTtl: 10, scatterDelay: 0.6, magnetRadius: 44, magnetSpeed: 160 };
 
 // ---- building perks ----
-export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2 };
+export const PERKS = { houseBonus: 10, gardenPerTrip: 3, gardenMax: 12, penMax: 3, cartRow: 42, factoryCheese: 3, headlamp: 2, bootsSpeed: 1.3, roverPack: 1.5, stormRubies: 3 };
 
 // ---- camera ----
 export const CAMERA = { maxZoom: 1.5, minZoom: 0.5, margin: 40 };
@@ -214,6 +256,14 @@ export const MOON_CAMP = {
   plotW: 6,
   buildSeconds: 5,
 };
+
+// ---- Mars Base (cells): the same shape as Moon Base ----
+export const MARS_CAMP = { ...MOON_CAMP };
+
+// ---- Mars dust storms (seconds; push in px/s, about half a walk) ----
+export const STORM = { first: [20, 30], calm: [40, 70], warn: 3, blow: 8, push: 38 };
+// steam geysers: a rumble, then a big launch
+export const GEYSER = { rumble: 0.45, launch: 430, rest: 1.5 };
 
 // ---- going home ----
 export const HOME_HOLD_MS = 2000;

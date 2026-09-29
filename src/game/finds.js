@@ -4,7 +4,10 @@ import { B, dropOf, isBoulder } from '../world/blocks.js';
 import { LAYERS } from '../tuning.js';
 
 // Things a boom never clears.
-const TOUGH = new Set([B.BEDROCK, B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.BOULDER, B.CHEESE_WHEEL, B.EGG, B.LADDER, B.WATER, B.LAVA, B.TELEPORT, B.UFO]);
+const TOUGH = new Set([
+  B.BEDROCK, B.CHEST, B.BIGCHEST, B.BIGCHEST_R, B.BOULDER, B.CHEESE_WHEEL, B.EGG, B.LADDER, B.WATER, B.LAVA, B.TELEPORT, B.UFO,
+  B.GEYSER, B.OLD_ROVER, B.VAULT, B.VAULT_DOOR, B.GLYPH,
+]);
 
 // A boom at (x, y) clears the 3×3 around it. Other boom blocks it reaches are
 // returned to be lit, not cleared. Ores from cleared cells come back as drops.
@@ -58,6 +61,12 @@ export const ufoLoot = (rng) => [
   ...Array.from({ length: rng.int(2, 3) }, () => 'spacegem'),
 ];
 
+// An old Mars rover: it beeps, blinks and pops open, full of bolts.
+export const roverLoot = (rng) => [...Array.from({ length: rng.int(6, 8) }, () => 'bolt'), 'ruby', 'ruby'];
+
+// A Martian vault: a pile of Mars coins behind its door.
+export const vaultLoot = (rng) => Array.from({ length: rng.int(8, 10) }, () => 'coin');
+
 // On the Moon, meteorites crack open into moonstone.
 export const moonMeteoriteLoot = (rng) => Array.from({ length: rng.int(5, 7) }, () => 'moonstone');
 
@@ -81,9 +90,18 @@ export function meteoriteLoot(rng) {
   return loot;
 }
 
-// How many of the Heart of the World's 9 cells are still in the rock.
+// The 3x3 treasure at the bottom of each planet: its block, the big gem, the
+// shower of ore when it's dug free, its sticker and its glow.
+export const HEARTS = {
+  earth: { block: B.HEART, big: 'heart-big', loot: ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], sticker: 'find-heart', color: 0xff6a9a },
+  moon: { block: B.MOON_HEART, big: 'moonheart-big', loot: ['moonstone', 'moonstone', 'spacegem', 'spacegem', 'gizmo', 'gizmo', 'cheese', 'cheese'], sticker: 'find-moonheart', color: 0x6ad0ff },
+  mars: { block: B.MARS_HEART, big: 'marsheart-big', loot: ['ruby', 'ruby', 'bolt', 'bolt', 'opal', 'opal', 'coin', 'coin'], sticker: 'find-marsheart', color: 0xff5a3a },
+};
+export const heartOf = (kind) => HEARTS[kind] ?? HEARTS.earth;
+
+// How many of the Heart's 9 cells are still in the rock.
 export function heartLeft(grid, heart) {
-  const id = heart.kind === 'moon' ? B.MOON_HEART : B.HEART;
+  const id = heartOf(heart.kind).block;
   let n = 0;
   for (let y = heart.y; y < heart.y + 3; y++) for (let x = heart.x; x < heart.x + 3; x++) if (grid.get(x, y) === id) n++;
   return n;

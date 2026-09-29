@@ -23,15 +23,22 @@ import { BUYABLE, buyDecor, decorById, decorUnlocked } from '../game/decor.js';
 import { refreshRequests, presentVisitors } from '../game/visitors.js';
 import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
-import { growGarden, leavePenGift, elevatorStops, dinoParkGift, winSuitPiece, cheeseFactoryGift } from '../game/perks.js';
+import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSuit, walkMul } from '../game/perks.js';
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
+import { drawMarsBackdrop, drawMarsProps } from './camp/marsScenery.js';
+import { planetById } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
-import { TILE, CAMP, MOON_CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
+import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 
 const GROUND_Y = CAMP.ground * TILE;
 const HUD_STRIP = 40;
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false };
+// the rocket buildings (each opens the star map), and the ground of each camp
+const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket'];
+const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK] };
+// the big ship that flies a route: the Mars Rocket to and from Mars, else the Rocket Ship
+export const shipFor = (from, to) => (from === 'mars' || to === 'mars' ? 'mars-ship' : 'rocket-ship');
 
 export class CampScene extends Phaser.Scene {
   constructor() {
@@ -42,6 +49,7 @@ export class CampScene extends Phaser.Scene {
     this.arrived = data?.arrived ?? null;
     this.planetArg = data?.planet ?? data?.arrived?.planet ?? null;
     this.landing = !!data?.landing;
+    this.from = data?.from ?? null;
   }
 
   create() {
@@ -51,13 +59,15 @@ export class CampScene extends Phaser.Scene {
     const saved = getState(this.registry);
     this.planet = this.planetArg ?? saved.planet ?? 'earth';
     this.onEarth = this.planet === 'earth';
-    this.L = this.onEarth ? CAMP : MOON_CAMP;
+    this.L = planetById(this.planet)?.camp ?? CAMP;
+    this.walkMul = walkMul(saved);
     this.W = this.L.w * TILE;
     if (saved.planet !== this.planet) setState(this.registry, { ...saved, planet: this.planet });
     this.grid = createGrid(this.L.w, this.L.h);
     for (let x = 0; x < this.L.w; x++) {
-      this.grid.set(x, this.L.ground, this.onEarth ? B.GRASS : B.MOONROCK);
-      for (let y = this.L.ground + 1; y < this.L.h; y++) this.grid.set(x, y, this.onEarth ? B.DIRT : B.MOONROCK);
+      const [top, under] = GROUND[this.planet] ?? GROUND.earth;
+      this.grid.set(x, this.L.ground, top);
+      for (let y = this.L.ground + 1; y < this.L.h; y++) this.grid.set(x, y, under);
     }
     this.effects = createEffects(this);
     this.avatars = [];
@@ -71,10 +81,13 @@ export class CampScene extends Phaser.Scene {
     const trips = (getState(this.registry).trips ?? 0) + (this.arrived ? 1 : 0);
     this.phase = phaseForTrips(trips);
 
+    const sky = { W: this.W, top: -SKY_ROWS * TILE, groundY: GROUND_Y };
     if (this.onEarth) this.drawBackdrop();
-    else drawMoonBackdrop(this, { W: this.W, top: -SKY_ROWS * TILE, groundY: GROUND_Y });
+    else if (this.planet === 'mars') drawMarsBackdrop(this, sky);
+    else drawMoonBackdrop(this, sky);
     this.drawGround();
     if (this.onEarth) this.drawProps();
+    else if (this.planet === 'mars') drawMarsProps(this, { L: this.L, groundY: GROUND_Y });
     else drawMoonProps(this, { L: this.L, groundY: GROUND_Y });
     this.drawCommonProps();
     this.placeBuildings();
@@ -95,12 +108,12 @@ export class CampScene extends Phaser.Scene {
     this.perks?.refresh();
     // older saves: back-fill stickers for buildings already standing
     for (const id of plotsOf(getState(this.registry), this.planet)) if (id) earnSticker(this, `bld-${id}`, { quiet: true });
-    if (!this.onEarth) earnSticker(this, 'trip-moonbase');
+    if (!this.onEarth) earnSticker(this, `trip-${this.planet}base`);
 
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, this.W, (this.L.h + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
-    const startX = this.landing ? this.rocketX() : this.L.shaftX * TILE;
+    const startX = this.landing ? this.rocketX(this.from) : this.L.shaftX * TILE;
     this.cam = { zoom: 1.5, x: startX, y: GROUND_Y - 40 };
     cam.setZoom(this.cam.zoom).centerOn(this.cam.x, this.cam.y);
     cam.fadeIn(400, 20, 12, 30);
@@ -365,6 +378,45 @@ export class CampScene extends Phaser.Scene {
         },
       });
     }
+    // Mars Base
+    if (id === 'robotfactory') {
+      // little robots toddle about, and bolts pop out of the chimney
+      for (let i = 0; i < 2; i++) {
+        const s = this.add.sprite(x + 14 + i * 50, GROUND_Y, 'toyrobot', 0).setOrigin(0.5, 1).setDepth(4);
+        this.critters.push({ s, minX: x - 10, maxX: x + BUILDING_SIZE.w + 10, vx: 0, t: i * 0.7 });
+      }
+      this.time.addEvent({
+        delay: 1400,
+        loop: true,
+        callback: () => {
+          const b = this.add.image(x + 77, GROUND_Y - 74, 'ore-bolt').setDepth(2).setScale(0.8);
+          this.tweens.add({ targets: b, y: b.y - 20, x: b.x + Phaser.Math.Between(-10, 10), angle: 360, alpha: 0, duration: 1100, ease: 'Quad.easeOut', onComplete: () => b.destroy() });
+        },
+      });
+    }
+    if (id === 'weather') {
+      // the anemometer spins, and the station's dish blinks
+      const cups = this.add.sprite(x + 72, GROUND_Y - 72, 'anemometer', 0).setOrigin(0.5, 1).setDepth(4);
+      this.time.addEvent({ delay: 120, loop: true, callback: () => cups.setFrame(cups.frame.name === 0 ? 1 : 0) });
+      this.time.addEvent({ delay: 1100, loop: true, callback: () => this.effects.sparkle(x + 28, GROUND_Y - 60, 0xff5a5a, 2) });
+    }
+    if (id === 'garage') {
+      // the rover drives out and back
+      const rover = this.add.sprite(x + 48, GROUND_Y, 'rover-car', 0).setOrigin(0.5, 1).setDepth(4);
+      this.critters.push({ s: rover, minX: x - 20, maxX: x + BUILDING_SIZE.w + 20, vx: 0, t: 0.3, fast: true });
+    }
+    if (id === 'saturnrocket') {
+      this.time.addEvent({
+        delay: 900,
+        loop: true,
+        callback: () => {
+          for (const dx of [-12, 0, 12]) {
+            const s = this.add.image(x + 40 + dx, GROUND_Y - 2, 'smoke').setDepth(4).setAlpha(0.7);
+            this.tweens.add({ targets: s, x: s.x + dx, y: s.y - 6, scale: 2, alpha: 0, duration: 1400, onComplete: () => s.destroy() });
+          }
+        },
+      });
+    }
     if (id === 'garden') {
       for (let i = 0; i < 2; i++) {
         const bf = this.add.image(x + 30 + i * 30, GROUND_Y - 36, 'pixel').setTint(i ? 0xffd1e6 : 0xffffff).setDisplaySize(2, 2).setDepth(4);
@@ -382,7 +434,7 @@ export class CampScene extends Phaser.Scene {
     const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
     const char = chars[slot] ?? CHARACTERS[slot];
     // arriving by rocket: you start inside it (hidden until the door opens)
-    const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX() - PLAYER.w / 2 } : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
+    const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX(this.from) - PLAYER.w / 2 } : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
     const a = {
       slot,
       char,
@@ -412,9 +464,9 @@ export class CampScene extends Phaser.Scene {
     const here = plot >= 0 ? plotsOf(getState(this.registry), this.planet)[plot] : undefined;
     const ready = plot >= 0 && this.buildings[plot] && !this.buildings[plot].building;
     if (plot >= 0 && !here) return { kind: 'plot', plot };
-    // the minecart (the UFO on the Moon) is the elevator; rockets open the star map
-    if ((here === 'minecart' || here === 'hangar') && ready) return { kind: 'cart', plot };
-    if ((here === 'rocket' || here === 'marsrocket') && ready) return { kind: 'rocket', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
+    // the elevator (the minecart, the Moon's UFO, the Mars rover); rockets open the star map
+    if (here && here === planetById(this.planet)?.perks?.elevator && ready) return { kind: 'cart', plot };
+    if (ROCKETS.includes(here) && ready) return { kind: 'rocket', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     return null;
   }
 
@@ -490,7 +542,7 @@ export class CampScene extends Phaser.Scene {
         }
         if (action) move = { ...i, jump: false }; // A acts here instead of jumping
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
-        if (stepPlayer(a.p, move, this.grid, { dt, canMine: false }).jumped) this.events.emit('jump', a);
+        if (stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: this.walkMul }).jumped) this.events.emit('jump', a);
         if (action && action.key && !hud.picker) prompt = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
@@ -589,7 +641,7 @@ export class CampScene extends Phaser.Scene {
         c.vx = [-12, 0, 0, 12][Math.floor(Math.random() * 4)];
         c.t = 1 + Math.random() * 2;
       }
-      c.s.x = Phaser.Math.Clamp(c.s.x + c.vx * dt, c.minX, c.maxX);
+      c.s.x = Phaser.Math.Clamp(c.s.x + c.vx * (c.fast ? 3 : 1) * dt, c.minX, c.maxX);
       if (c.s.x === c.minX || c.s.x === c.maxX) c.vx = -c.vx;
       if (c.vx) c.s.setFlipX(c.vx < 0).setFrame(Math.floor(time / 200) % 2);
       else c.s.setFrame(0);
@@ -597,7 +649,7 @@ export class CampScene extends Phaser.Scene {
   }
 
   updateCamera(dt) {
-    const pts = this.landingNow ? [{ x: this.rocketX(), y: GROUND_Y - 30 }] : this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
+    const pts = this.landingNow ? [{ x: this.rocketX(this.from), y: GROUND_Y - 30 }] : this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
     if (!pts.length) pts.push({ x: this.L.shaftX * TILE, y: GROUND_Y - 20 });
     const f = frameCamera(pts, { w: this.scale.width, h: this.scale.height - HUD_STRIP }, { minZoom: 0.9, maxZoom: 1.5, margin: 60 });
     f.y = GROUND_Y - 44 - HUD_STRIP / 2 / f.zoom;
@@ -723,24 +775,28 @@ export class CampScene extends Phaser.Scene {
     const packs = this.arrived.packs;
     const hud = this.scene.get('CampHud');
     const hearts = this.arrived.hearts ?? 0;
-    const helmet = !!this.arrived.moonHearts && !(getState(this.registry).suit ?? []).includes('helmet');
+    // a planet's heart brings that planet's Sun Suit piece
+    const piece = planetById(this.arrived.planet ?? this.planet)?.suit;
+    const suitHearts = this.arrived.suitHearts ?? this.arrived.moonHearts ?? 0;
+    const newPiece = suitHearts > 0 && piece && !hasSuit(getState(this.registry), piece) ? piece : null;
     let banked = depositPacks(getState(this.registry), packs, { hearts });
-    if (this.arrived.moonHearts) banked = winSuitPiece(banked, 'helmet');
-    // each camp's own gift: dinosaurs dig up amber at home, space mice make cheese on the Moon
-    const park = this.onEarth ? dinoParkGift(banked) : cheeseFactoryGift(banked);
+    if (newPiece) banked = winSuitPiece(banked, newPiece);
+    // each camp's own gift: dinosaurs dig up amber at home, space mice make
+    // cheese on the Moon, robots build bolts on Mars
+    const park = campGift(banked, this.planet);
     const state = setState(this.registry, { ...park.state, trips: (getState(this.registry).trips ?? 0) + 1 });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
     // the Heart of the World and the dino park's amber arrive after the packs
     const a0 = this.avatars.find(Boolean);
     if (hearts) this.time.delayedCall(flyTime, () => hud.flyList(a0 ? a0.sprite.x : this.L.shaftX * TILE, GROUND_Y - 20, Array(hearts).fill('heart'), state.bank));
     if (park.ores.length) {
-      const giver = this.onEarth ? 'dinopark' : 'cheesefactory';
+      const giver = planetById(this.planet).perks.gift.building;
       const px = this.L.plots[plotsOf(state, this.planet).indexOf(giver)] * TILE + 48;
       this.time.delayedCall(flyTime + 300, () => hud.flyList(px, GROUND_Y - 30, park.ores, state.bank));
     }
     const eggs = this.arrived.eggs ?? [];
     this.time.delayedCall(flyTime + 400, () => {
-      if (helmet) this.helmetParty(() => { this.arriving = false; if (eggs.length) this.campPets.hatchAll(eggs); });
+      if (newPiece) this.suitParty(newPiece, () => { this.arriving = false; if (eggs.length) this.campPets.hatchAll(eggs); });
       else {
         this.arriving = false;
         if (eggs.length) this.campPets.hatchAll(eggs);
@@ -749,11 +805,20 @@ export class CampScene extends Phaser.Scene {
     this.arrived = null;
   }
 
-  // Where this camp's rocket stands: Moon Base's landing pad, or Earth's Rocket Ship.
-  rocketX() {
-    if (!this.onEarth) return this.L.padX * TILE + TILE / 2;
-    const plot = getState(this.registry).plots.indexOf('rocket');
-    return plot >= 0 ? this.L.plots[plot] * TILE + 48 : this.L.shaftX * TILE;
+  // Where the ship for a trip to (or from) `other` stands: the rocket building
+  // that flies there (Earth's Rocket Ship, the Moon's Mars Rocket), or the pad.
+  rocketBuilding(other) {
+    if (this.onEarth) return 'rocket';
+    if (this.planet === 'moon' && other === 'mars') return 'marsrocket';
+    return null;
+  }
+
+  rocketX(other = null) {
+    const id = this.rocketBuilding(other);
+    if (!id) return this.L.padX * TILE + TILE / 2;
+    const plot = plotsOf(getState(this.registry), this.planet).indexOf(id);
+    // (the Mars Rocket stands a little right of its plot's middle, by its tower)
+    return plot >= 0 ? this.L.plots[plot] * TILE + (id === 'marsrocket' ? 52 : 48) : this.L.shaftX * TILE;
   }
 
   // Press A at a rocket: the star map opens over the camp.
@@ -780,14 +845,14 @@ export class CampScene extends Phaser.Scene {
     this.campPets.flush();
     this.leaving = true;
     this.events.emit('tripStart');
-    const door = this.rocketX();
+    const door = this.rocketX(to);
     for (const a of this.avatars.filter(Boolean)) {
       this.tweens.add({ targets: a.p, x: door - PLAYER.w / 2, duration: 500 });
       this.tweens.add({ targets: a.sprite, alpha: 0, delay: 450, duration: 250 });
     }
     this.time.delayedCall(800, () => this.cameras.main.fadeOut(400, 20, 12, 30));
     this.cameras.main.once('camerafadeoutcomplete', () => {
-      this.scene.start('Launch', { from: this.planet, to });
+      this.scene.start('Launch', { from: this.planet, to, ship: shipFor(this.planet, to) });
     });
   }
 
@@ -796,12 +861,13 @@ export class CampScene extends Phaser.Scene {
   playLanding() {
     this.arriving = true;
     this.landingNow = true;
-    const x = this.rocketX();
-    const ship = this.add.image(x, GROUND_Y - 4 - 260, 'rocket-ship').setOrigin(0.5, 1).setDepth(8);
+    const x = this.rocketX(this.from);
+    const ship = this.add.image(x, GROUND_Y - 4 - 260, shipFor(this.from, this.planet)).setOrigin(0.5, 1).setDepth(8);
     const flame = this.add.sprite(x, ship.y, 'rocket-flame', 0).setOrigin(0.5, 0).setDepth(7);
     const flicker = this.time.addEvent({ delay: 80, loop: true, callback: () => flame.setFrame((Number(flame.frame.name) + 1) % 3) });
     // hide what stands there now (it is the rocket coming in)
-    const standing = this.onEarth ? this.buildings.find((b) => b && b.id === 'rocket')?.sprite : this.padRocket;
+    const building = this.rocketBuilding(this.from);
+    const standing = building ? this.buildings.find((b) => b && b.id === building)?.sprite : this.padRocket;
     if (standing) standing.setVisible(false);
     this.tweens.add({
       targets: ship,
@@ -814,7 +880,7 @@ export class CampScene extends Phaser.Scene {
         flame.destroy();
         this.cameras.main.shake(200, 0.006);
         for (let i = 0; i < 10; i++) {
-          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint(this.onEarth ? 0xd8c8b0 : 0xc8c8d8);
+          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint({ earth: 0xd8c8b0, moon: 0xc8c8d8, mars: 0xe0886a }[this.planet] ?? 0xc8c8d8);
           this.tweens.add({ targets: d, x: d.x + (i - 4.5) * 5, y: d.y - 8, scale: 2.5, alpha: 0, duration: 900, onComplete: () => d.destroy() });
         }
         this.events.emit('built');
@@ -834,14 +900,15 @@ export class CampScene extends Phaser.Scene {
     });
   }
 
-  // The Moon Heart came home: the Helmet! Confetti, a fanfare, and a helmet
-  // drops onto everyone.
-  helmetParty(done) {
-    earnSticker(this, 'suit-helmet');
+  // A planet's Heart came home: its Sun Suit piece! Confetti, a fanfare, and
+  // the piece drops onto everyone (the Helmet onto heads, the Boots onto feet).
+  suitParty(piece, done) {
+    earnSticker(this, `suit-${piece}`);
     this.events.emit('fanfare');
     this.cameras.main.flash(300, 200, 240, 255);
+    const key = piece === 'helmet' ? 'suit-helmet' : `suit-${piece}`;
     for (const a of this.avatars.filter(Boolean)) {
-      const h = this.add.image(a.sprite.x, a.sprite.y - 90, 'suit-helmet').setOrigin(0.5, 1).setDepth(40).setScale(2);
+      const h = this.add.image(a.sprite.x, a.sprite.y - 90, key).setOrigin(0.5, 1).setDepth(40).setScale(piece === 'helmet' ? 2 : 3);
       for (let i = 0; i < 3; i++) this.time.delayedCall(i * 250, () => this.effects.confetti(a.sprite.x + (i - 1) * 16, a.sprite.y - 30));
       this.tweens.add({
         targets: h, y: a.sprite.y, scale: 1, duration: 1100, ease: 'Bounce.easeOut',
@@ -849,7 +916,7 @@ export class CampScene extends Phaser.Scene {
           h.destroy();
           this.suits.refresh();
           a.p.vy = -170;
-          this.effects.sparkle(a.sprite.x, a.sprite.y - 12, 0x9ff6ff, 12);
+          this.effects.sparkle(a.sprite.x, a.sprite.y - 12, piece === 'helmet' ? 0x9ff6ff : 0xffa050, 12);
         },
       });
     }

@@ -46,6 +46,13 @@ const MINE = {
   teleport: (s) => s.play('zap'),
   ufo: (s) => s.play('ufo'),
   cheeseParty: (s) => s.play('party'),
+  stormWarn: (s) => s.play('whistle'),
+  stormStart: (s) => s.play('wind'),
+  stormRubies: (s) => s.play('sticker'),
+  rumble: (s) => s.play('rumble'),
+  geyser: (s) => s.play('geyser'),
+  beep: (s) => s.play('beep'),
+  vault: (s) => s.play('vault'),
 };
 
 const CAMP = {

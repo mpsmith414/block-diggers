@@ -448,7 +448,7 @@ function drawIcons(scene, canvasTexture, rect) {
     '.ooo.....ooo',
     '............',
   ], { o: '#5a3a10', y: '#ffd84a', Y: '#fff2a0', r: '#e0503a', R: '#a8322a' }));
-  const TROPHY_GEMS = ['#4de3f0', '#7ad65a', '#b98cff', '#ffd84a', '#e0503a', '#ff8fa3', '#ffe066', '#ff8a3a', '#9ff6ff', '#ff5a9a', '#a07aff', '#c8f0ff'];
+  const TROPHY_GEMS = ['#4de3f0', '#7ad65a', '#b98cff', '#ffd84a', '#e0503a', '#ff8fa3', '#ffe066', '#ff8a3a', '#9ff6ff', '#ff5a9a', '#a07aff', '#c8f0ff', '#ff5a3a', '#ffb04a'];
   TROPHY_GEMS.forEach((gem, i) => one(`trophy-${i}`, 12, 14, (ctx) => drawMap(ctx, 0, 0, [
     'oooooooooooo',
     'oyyyyyyyyyyo',

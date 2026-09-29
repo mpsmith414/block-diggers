@@ -64,7 +64,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   Saturn, Dino Planet, the Sun. The **star map** (A at any rocket) shows the
   path, the planets you can fly to, padlocks on the rest, and the **Sun Suit**
   piece hidden at the bottom of each planet. Collect all four pieces to land on
-  the Sun. Mars says "coming soon" for now: one new planet per update.
+  the Sun. Saturn says "coming soon" for now: one new planet per update.
 - **The Moon** (planet 1) has low gravity everywhere and five layers under its
   own camp:
   - **Crater Plains:** moonstone, moon blobs, meteorites;
@@ -85,10 +85,33 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Cheese Factory:** space mice make 3 cheese every trip;
   - **Telescope:** chests show on the depth meter;
   - **UFO Hangar:** the Moon's elevator;
-  - **Mars Rocket:** needs the Helmet.
+  - **Mars Rocket:** needs the Helmet; it flies to Mars.
 - **The Moon Pup** (a puppy in a bubble helmet) gives everyone a **double
   jump**. Pets are smaller now and trail close behind you.
-- **Sticker book:** 101 stickers on 12 pages, and a trophy for each full page. Open
+- **Mars** (planet 2) has **dust storms**: a whistle and a wobbling windsock
+  warn you, then red dust blows across for a few seconds and gently pushes
+  everyone sideways. Its five layers:
+  - **Red Dunes:** rubies and dust bunnies;
+  - **Rover Graveyard:** bolts, scrap crabs, old rovers that pop open full of
+    bolts, and the **Rover Bot**'s egg;
+  - **Volcano Caves:** fire opals, lava newts, lava, and **steam geysers**
+    that shoot you up high;
+  - **Martian City:** Mars coins, little Martians, and sealed **vaults**: step
+    on the glowing glyph button outside and the door rumbles open;
+  - **Mars Core:** embers and the **Mars Heart**. Bring it home for the
+    **Boots**, the second Sun Suit piece: you run faster everywhere, and
+    storms can't push you.
+
+  New drills: Ruby Drill, Opal Drill, Mega Drill.
+- **Mars Base** (Mars's camp): greenhouses, a windsock, the Mars Rocket on its
+  pad, and four buildings:
+  - **Robot Factory:** robots build 3 bolts every trip;
+  - **Weather Station:** storms carry rubies, and chests show on the depth meter;
+  - **Rover Garage:** Mars's elevator;
+  - **Saturn Rocket:** needs the Boots.
+- **The Rover Bot** (a tiny rover with a trailer) makes your backpack hold
+  half as much again; you can see the trailer fill up.
+- **Sticker book:** 130 stickers on 14 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

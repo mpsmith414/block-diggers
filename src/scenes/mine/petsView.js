@@ -3,7 +3,7 @@
 // by player 2 (or 1), fetching loose ore. The baby T-rex roars creatures away;
 // the baby Triceratops helps push boulders and headbutts boom blocks.
 
-import { sniff, follow, nearestPickup, roarTargets } from '../../game/pets.js';
+import { sniff, follow, nearestPickup, roarTargets, WALKING_PETS } from '../../game/pets.js';
 import { addOre } from '../../game/loot.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
@@ -21,7 +21,6 @@ export function createPetsView(scene, kinds) {
     roarT: 0,
     carrying: null,
   }));
-  const WALKERS = ['mole', 'rex', 'trike', 'moonpup'];
 
   const ownerOf = (kind) => {
     const ps = scene.avatars.filter(Boolean);
@@ -96,6 +95,8 @@ export function createPetsView(scene, kinds) {
         // (pets are small, so they trail close behind; the walkers each keep their own spot)
         if (pet.kind === 'mole') target = { x: c.x - a.p.facing * 10, y: c.y + 3 + Math.abs(Math.sin(pet.t * 8)) * -3 };
         else if (pet.kind === 'moonpup') target = { x: c.x - a.p.facing * 6, y: c.y + 3 + Math.abs(Math.sin(pet.t * 10)) * -4 };
+        // the Rover Bot rolls along behind, pulling its trailer
+        else if (pet.kind === 'rover') target = { x: c.x - a.p.facing * 22, y: c.y + 3 };
         else if (pet.kind === 'rex') target = { x: c.x - a.p.facing * 18, y: c.y + 3 + Math.abs(Math.sin(pet.t * 9)) * -2 };
         else if (pet.kind === 'trike') target = { x: c.x - a.p.facing * 14, y: c.y + 3 + Math.abs(Math.sin(pet.t * 7)) * -2 };
         else if (pet.kind === 'glowbug') target = { x: c.x + Math.cos(pet.t * 2.2) * 10, y: c.y - 14 + Math.sin(pet.t * 3.1) * 3 };
@@ -137,8 +138,15 @@ export function createPetsView(scene, kinds) {
         follow(pet.pos, target, dt, pet.carrying ? PETS.speed * 1.4 : PETS.speed);
         const tr = trickOffset(pet, dt);
         pet.sprite.setAngle(tr.angle);
+        const walker = WALKING_PETS.includes(pet.kind);
+        let frame = Math.floor(time / (walker ? 180 : 110)) % 2;
+        // the Rover Bot's trailer fills up as the backpack does
+        if (pet.kind === 'rover') {
+          const full = a.pack.count / a.pack.cap;
+          frame = (full >= 0.66 ? 2 : full >= 0.25 ? 1 : 0) * 2 + (Math.abs(pet.pos.x - target.x) > 1 ? frame : 0);
+        }
         pet.sprite.setPosition(Math.round(pet.pos.x), Math.round(pet.pos.y + tr.y))
-          .setFrame(Math.floor(time / (WALKERS.includes(pet.kind) ? 180 : 110)) % 2)
+          .setFrame(frame)
           .setFlipX(target.x < pet.pos.x - 1);
         pet.sprite.setVisible(!a.bubbling && !scene.goingHome);
 
