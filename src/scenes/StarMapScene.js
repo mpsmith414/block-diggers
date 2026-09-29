@@ -40,6 +40,7 @@ export class StarMapScene extends Phaser.Scene {
     }
     this.openedAt = this.time.now;
     this.closing = false;
+    this.flying = false;
     attachAudio(this);
     this.events.emit('pickerOpen');
     const state = getState(this.registry);
@@ -156,7 +157,7 @@ export class StarMapScene extends Phaser.Scene {
     const p = this.planets[this.index];
     if (p.stop.status === 'open') {
       this.events.emit('ready');
-      this.close(p.stop.id);
+      this.flyAlongPath(p.stop.id);
       return;
     }
     if (p.stop.status === 'here') {
@@ -167,6 +168,35 @@ export class StarMapScene extends Phaser.Scene {
     // locked, or still being built
     this.events.emit('nope');
     this.tweens.add({ targets: [p.img, ...p.extras], x: '+=3', duration: 50, yoyo: true, repeat: 3 });
+  }
+
+  // A little rocket zooms along the dotted path to the planet you picked, then lift-off.
+  flyAlongPath(to) {
+    if (this.closing || this.flying) return;
+    this.flying = true;
+    const from = this.stops.findIndex((s) => s.status === 'here');
+    const dest = this.stops.findIndex((s) => s.id === to);
+    const step = dest > from ? 1 : -1;
+    const rocket = this.add.image(SPOTS[from].x, SPOTS[from].y, 'icon-rocket').setScale(1.4).setDepth(10);
+    this.btnA.setVisible(false);
+    const hop = (i) => {
+      if (i === dest) {
+        this.tweens.add({ targets: rocket, scale: 0, duration: 250, onComplete: () => this.close(to) });
+        return;
+      }
+      const a = SPOTS[i];
+      const b = SPOTS[i + step];
+      rocket.setAngle((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI + 90);
+      this.tweens.add({ targets: rocket, x: b.x, y: b.y, duration: 450, ease: 'Sine.easeInOut', onComplete: () => hop(i + step) });
+      // a trail of little puffs
+      for (let k = 1; k < 4; k++) {
+        this.time.delayedCall(k * 110, () => {
+          const puff = this.add.image(rocket.x, rocket.y, 'pixel').setDisplaySize(2, 2).setTint(0xffb34a).setDepth(9);
+          this.tweens.add({ targets: puff, alpha: 0, duration: 500, onComplete: () => puff.destroy() });
+        });
+      }
+    };
+    hop(from);
   }
 
   close(to = null) {
@@ -181,7 +211,7 @@ export class StarMapScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.closing) return;
+    if (this.closing || this.flying) return;
     for (const { slot, intent } of this.session.slots) {
       if (!intent) continue;
       const e = this.edges[slot];

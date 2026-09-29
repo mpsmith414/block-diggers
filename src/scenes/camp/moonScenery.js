@@ -47,6 +47,18 @@ export function drawMoonProps(scene, { L, groundY }) {
   const padX = L.padX * TILE + TILE / 2;
   scene.add.image(padX, groundY + 2, 'moon-pad').setOrigin(0.5, 1).setDepth(2);
   scene.padRocket = scene.add.image(padX, groundY - 4, 'rocket-ship').setOrigin(0.5, 1).setDepth(3);
+  // the diggers' flag, planted by the pad
+  scene.add.image(padX + 44, groundY + 1, 'moon-flag').setOrigin(0.15, 1).setDepth(4);
+  // moon rocks in the gaps between the plots, and past the last one
+  const g = scene.add.graphics().setDepth(4);
+  const rock = (x, w, h) => {
+    g.fillStyle(0x6a6a7e, 1).fillRect(x - w / 2, groundY - h, w, h);
+    g.fillStyle(0xb8b8c8, 1).fillRect(x - w / 2 + 1, groundY - h + 1, w - 2, h - 2);
+    g.fillStyle(0xdcdcea, 1).fillRect(x - w / 2 + 1, groundY - h + 1, w - 3, 1);
+  };
+  for (const px of L.plots.slice(1)) rock(px * TILE - TILE / 2, 8, 5);
+  rock((L.plots[L.plots.length - 1] + 7) * TILE, 12, 7);
+  rock((L.plots[L.plots.length - 1] + 8) * TILE + 4, 6, 4);
   // little rocks and craters on the dust
   for (let i = 0; i < 40; i++) {
     const x = 12 + ((i * 131) % (L.w * TILE - 24));

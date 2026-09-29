@@ -867,7 +867,15 @@ export class MineScene extends Phaser.Scene {
     g.fillStyle(0x6b4424, 1);
     for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
     g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
-    this.add.image(x0 + 12, y - 2, 'cart', 0).setOrigin(0.5, 1).setDepth(13);
+    if (this.moon) {
+      // the friendly alien's UFO dropped you off, and hovers there to take you home
+      const ufo = this.add.sprite(x0 + 20, y - 18, 'ufo', 0).setOrigin(0.5, 1).setDepth(13).setScale(0.6);
+      this.tweens.add({ targets: ufo, y: ufo.y - 4, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      const beam = this.add.rectangle(x0 + 20, y - 18, 12, 16, 0x9affb0, 0.25).setOrigin(0.5, 0).setDepth(12).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: beam, alpha: 0.08, duration: 700, yoyo: true, repeat: -1 });
+    } else {
+      this.add.image(x0 + 12, y - 2, 'cart', 0).setOrigin(0.5, 1).setDepth(13);
+    }
     this.stationLight = { x: SHAFT_X * TILE + 8, y: y - 20 };
   }
 

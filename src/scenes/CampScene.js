@@ -25,6 +25,7 @@ import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
 import { growGarden, leavePenGift, elevatorStops, dinoParkGift, winSuitPiece, cheeseFactoryGift } from '../game/perks.js';
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
+import { planetById } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, MOON_CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
@@ -506,7 +507,9 @@ export class CampScene extends Phaser.Scene {
     } else {
       this.prompt.setVisible(false);
     }
-    this.downPrompt.setVisible(!!downPrompt).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
+    // first time on a new planet (none of its ore yet): the way down always shows
+    this.newPlanet = !this.onEarth && !(planetById(this.planet)?.ores ?? []).some((o) => (getState(this.registry).bank[o] ?? 0) > 0);
+    this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
 
     this.updateStars(time, prompt);
     this.perks?.update(time);
@@ -565,7 +568,7 @@ export class CampScene extends Phaser.Scene {
     // a star you can't see gets an arrow at the edge of the screen
     const view = this.cameras.main.worldView;
     let side = 0;
-    for (const s of [this.benchStar, this.plotStar]) {
+    for (const s of [this.benchStar, this.plotStar, this.downPrompt]) {
       if (!s.visible) continue;
       if (s.x > view.right) side = side || 1;
       else if (s.x < view.x) side = side || -1;
