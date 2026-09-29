@@ -115,8 +115,13 @@ function drawMarsRocket(ctx, rect) {
     for (let k = 0; k < 6; k++) rect(ctx, '#a83a2a', 10 + k * 2, y + 2 + k, 1, 1);
   }
   rect(ctx, '#8a94a8', 20, 20, 14, 3);
+  drawMarsShip(ctx, rect);
+}
+
+// The Mars Rocket itself (without its tower): it stands on Mars Base's pad and flies.
+export function drawMarsShip(ctx, rect, dx = 0) {
   // boosters
-  for (const bx of [34, 62]) {
+  for (const bx of [34 + dx, 62 + dx]) {
     rect(ctx, OUT, bx - 1, 36, 12, 40);
     rect(ctx, '#f0f0f8', bx, 37, 10, 38);
     rect(ctx, '#e0503a', bx, 37, 10, 5);
@@ -126,31 +131,31 @@ function drawMarsRocket(ctx, rect) {
     ell(ctx, bx + 5, 37, 5, 6, '#e0503a', true);
   }
   // the main body
-  rect(ctx, OUT, 41, 14, 22, 62);
-  rect(ctx, '#f8f8ff', 42, 15, 20, 60);
-  rect(ctx, '#d0d4e0', 57, 15, 5, 60);
-  for (const y of [30, 52]) { rect(ctx, '#e0503a', 42, y, 20, 4); rect(ctx, '#ff8a6a', 42, y, 20, 1); }
+  rect(ctx, OUT, 41 + dx, 14, 22, 62);
+  rect(ctx, '#f8f8ff', 42 + dx, 15, 20, 60);
+  rect(ctx, '#d0d4e0', 57 + dx, 15, 5, 60);
+  for (const y of [30, 52]) { rect(ctx, '#e0503a', 42 + dx, y, 20, 4); rect(ctx, '#ff8a6a', 42 + dx, y, 20, 1); }
   // nose cone
   for (let k = 0; k < 14; k++) {
     const w = Math.max(2, Math.round(22 * Math.sqrt(1 - k / 14)));
-    rect(ctx, OUT, 52 - Math.floor(w / 2) - 1, 14 - k, w + 2, 1);
-    rect(ctx, '#e0503a', 52 - Math.floor(w / 2), 14 - k, w, 1);
+    rect(ctx, OUT, 52 + dx - Math.floor(w / 2) - 1, 14 - k, w + 2, 1);
+    rect(ctx, '#e0503a', 52 + dx - Math.floor(w / 2), 14 - k, w, 1);
   }
   // round window, with a planet-red Mars sticker below it
-  ell(ctx, 52, 23, 5, 5, OUT);
-  ell(ctx, 52, 23, 4, 4, '#8ac0ff');
-  rect(ctx, '#ffffff', 50, 21, 2, 2);
-  ell(ctx, 52, 43, 5, 5, '#a83a2a');
-  ell(ctx, 52, 43, 4, 4, '#e07a4a');
-  rect(ctx, '#c8583a', 50, 42, 2, 1);
-  rect(ctx, '#c8583a', 53, 45, 2, 1);
+  ell(ctx, 52 + dx, 23, 5, 5, OUT);
+  ell(ctx, 52 + dx, 23, 4, 4, '#8ac0ff');
+  rect(ctx, '#ffffff', 50 + dx, 21, 2, 2);
+  ell(ctx, 52 + dx, 43, 5, 5, '#a83a2a');
+  ell(ctx, 52 + dx, 43, 4, 4, '#e07a4a');
+  rect(ctx, '#c8583a', 50 + dx, 42, 2, 1);
+  rect(ctx, '#c8583a', 53 + dx, 45, 2, 1);
   // fins and the nozzle
-  rect(ctx, OUT, 37, 62, 5, 14);
-  rect(ctx, '#e0503a', 38, 63, 3, 12);
-  rect(ctx, OUT, 62, 62, 5, 14);
-  rect(ctx, '#e0503a', 63, 63, 3, 12);
-  rect(ctx, OUT, 45, 75, 14, 5);
-  rect(ctx, '#55505e', 46, 75, 12, 4);
+  rect(ctx, OUT, 37 + dx, 62, 5, 14);
+  rect(ctx, '#e0503a', 38 + dx, 63, 3, 12);
+  rect(ctx, OUT, 62 + dx, 62, 5, 14);
+  rect(ctx, '#e0503a', 63 + dx, 63, 3, 12);
+  rect(ctx, OUT, 45 + dx, 75, 14, 5);
+  rect(ctx, '#55505e', 46 + dx, 75, 12, 4);
 }
 
 export const MOON_BUILDINGS = { cheesefactory: drawCheeseFactory, telescope: drawTelescope, hangar: drawHangar, marsrocket: drawMarsRocket };
