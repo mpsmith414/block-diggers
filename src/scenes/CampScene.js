@@ -25,7 +25,6 @@ import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
 import { growGarden, leavePenGift, elevatorStops, dinoParkGift, winSuitPiece, cheeseFactoryGift } from '../game/perks.js';
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
-import { planetById } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, MOON_CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
@@ -507,8 +506,8 @@ export class CampScene extends Phaser.Scene {
     } else {
       this.prompt.setVisible(false);
     }
-    // first time on a new planet (none of its ore yet): the way down always shows
-    this.newPlanet = !this.onEarth && !(planetById(this.planet)?.ores ?? []).some((o) => (getState(this.registry).bank[o] ?? 0) > 0);
+    // a planet whose mine you've never been down: the way down always shows
+    this.newPlanet = !this.onEarth && !(getState(this.registry).records?.planetDeepest?.[this.planet] > 0);
     this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
 
     this.updateStars(time, prompt);
