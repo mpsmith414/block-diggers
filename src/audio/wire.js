@@ -57,6 +57,11 @@ const MINE = {
   globe: (s) => s.play('chime', 4),
   frozenComet: (s) => s.play('crack'),
   yeti: (s) => s.play('hammer'),
+  ride: (s) => s.play('rawr'),
+  nest: (s) => s.play('hatch'),
+  skull: (s) => s.play('roar'),
+  stego: (s) => s.play('rumble'),
+  jet: (s) => s.play('whoosh'),
 };
 
 const CAMP = {

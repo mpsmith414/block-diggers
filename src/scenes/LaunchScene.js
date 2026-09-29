@@ -51,8 +51,8 @@ export class LaunchScene extends Phaser.Scene {
       const t = i / (bands - 1); // 0 = top of the world, 1 = the ground
       // (the Moon has no air: its sky is space all the way down)
       // (Mars's thin air is butterscotch pink near the ground)
-      const low = this.from === 'mars' ? 0xf0b890 : 0x8ec5ff;
-      const color = t < 0.45 || !(earth || this.from === 'mars') ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, low, (t - 0.45) / 0.55);
+      const low = { mars: 0xf0b890, dino: 0xffc890 }[this.from] ?? 0x8ec5ff;
+      const color = t < 0.45 || !(earth || this.from === 'mars' || this.from === 'dino') ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, low, (t - 0.45) / 0.55);
       g.fillStyle(color, 1).fillRect(0, TOP + (span * i) / bands, W, span / bands + 1);
     }
     // stars up in space, twinkling
@@ -75,12 +75,15 @@ export class LaunchScene extends Phaser.Scene {
   drawGround() {
     const g = this.add.graphics().setDepth(5);
     const earth = this.from === 'earth';
-    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a], saturn: [0xc8e0f0, 0xf4faff, 0xffffff] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
+    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a], saturn: [0xc8e0f0, 0xf4faff, 0xffffff], dino: [0x3a8a3a, 0x5aa63c, 0x7cc95a] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
     g.fillStyle(look[0], 1);
     for (let i = 0; i < 7; i++) g.fillCircle(i * 90 - 20, GROUND + 6, 44);
     g.fillStyle(look[1], 1).fillRect(0, GROUND, W, H - GROUND);
     g.fillStyle(look[2], 1).fillRect(0, GROUND, W, 3);
-    if (this.from === 'saturn') {
+    if (this.from === 'dino') {
+      // the volcano smokes behind the jungle
+      this.add.image(W - 110, GROUND - 6, 'volcano-big').setOrigin(0.5, 1).setScale(1.3).setDepth(-5);
+    } else if (this.from === 'saturn') {
       // giant Saturn fills the sky over the snow
       this.add.image(W - 120, 70, 'saturn-big').setScale(1.2).setDepth(-5);
     } else if (this.from === 'mars') {

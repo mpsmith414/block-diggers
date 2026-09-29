@@ -6,7 +6,7 @@
 import { B, isBoulder } from '../../world/blocks.js';
 import {
   explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft,
-  boulderPairMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot, snowmanLoot, globeLoot, cometLoot,
+  boulderPairMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot, snowmanLoot, globeLoot, cometLoot, nestLoot, skullLoot, stegoLoot,
 } from '../../game/finds.js';
 import { cushionPressed } from '../../game/silly.js';
 import { knockback, playerCell, standAt } from '../../game/player.js';
@@ -69,6 +69,20 @@ export function createFindsView(scene) {
     s: scene.add.sprite((r.x + 1.5) * TILE, (r.y + 1) * TILE + 3, 'oldrover', 0).setOrigin(0.5, 1).setDepth(9),
   }));
   const vaults = (world.vaults ?? []).map((v) => ({ ...v, open: false }));
+  // Dino Planet: parasaurs to ride, nests, the T-rex skull and the sleeping stego
+  const parasaurs = (world.parasaurs ?? []).map((p, i) => ({
+    ...p, used: false, home: (p.x + 1.5) * TILE, dir: i % 2 ? -1 : 1, t: Math.random() * 3,
+    s: scene.add.sprite((p.x + 1.5) * TILE, (p.y + 1) * TILE, 'parasaur', 0).setOrigin(0.5, 1).setDepth(9).setScale(0.8),
+  }));
+  const nests = (world.nests ?? []).map((n) => ({
+    ...n, open: false, s: scene.add.sprite((n.x + 1.5) * TILE, (n.y + 1) * TILE, 'dinonest', 0).setOrigin(0.5, 1).setDepth(9),
+  }));
+  const skull = world.skull ? {
+    ...world.skull, open: false, s: scene.add.sprite((world.skull.x + 1.5) * TILE, (world.skull.y + 1) * TILE + 2, 'rexskull', 0).setOrigin(0.5, 1).setDepth(9),
+  } : null;
+  const stego = world.stego ? {
+    ...world.stego, open: false, s: scene.add.sprite((world.stego.x + 1.5) * TILE, (world.stego.y + 1) * TILE + 1, 'stego', 0).setOrigin(0.5, 1).setDepth(9),
+  } : null;
   // Saturn: snow globes and the frozen comet
   const globes = (world.globes ?? []).map((g) => ({
     ...g, open: false,
@@ -245,6 +259,73 @@ export function createFindsView(scene) {
       earnSticker(scene, 'find-snowglobe');
       scene.trip.chests++;
     }
+  }
+
+  // Parasaurs wander about their spot; walk into one and you hop on for a ride.
+  function updateParasaurs(dt, time) {
+    for (const p of parasaurs) {
+      if (p.used) continue;
+      p.t -= dt;
+      if (p.t <= 0) { p.t = 1.5 + Math.random() * 2; p.dir = Math.random() < 0.3 ? 0 : (Math.random() < 0.5 ? -1 : 1); }
+      const nx = p.s.x + p.dir * 12 * dt;
+      if (Math.abs(nx - p.home) < 18) p.s.x = nx; else p.dir = -p.dir;
+      p.s.setFlipX(p.dir < 0).setFrame(p.dir ? Math.floor(time / 180) % 2 : 0);
+      const box = { x: p.s.x - 10, y: p.s.y - 18, w: 20, h: 18 };
+      const rider = players().find((a) => !a.bubbling && a.pu.ride <= 0 && overlaps(boxOf(a), box));
+      if (rider && scene.mount(rider)) {
+        p.used = true;
+        grid.set(p.x + 1, p.y, B.AIR);
+        p.s.destroy();
+      }
+    }
+  }
+
+  // A dino nest: walk up and the eggs hatch; the babies toss out treasure.
+  function updateNests() {
+    for (const n of nests) {
+      if (n.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(n.x, n.y, 3)))) continue;
+      n.open = true;
+      grid.set(n.x + 1, n.y, B.AIR);
+      scene.tweens.add({ targets: n.s, angle: { from: -6, to: 6 }, duration: 100, yoyo: true, repeat: 3, onComplete: () => { n.s.setAngle(0); n.s.setFrame(1); } });
+      scene.time.delayedCall(500, () => {
+        burst(n.s.x, n.s.y - 10, nestLoot(scene.rng), 160);
+        scene.effects.confetti(n.s.x, n.s.y - 10);
+        scene.events.emit('nest', n);
+      });
+      earnSticker(scene, 'find-nest');
+      scene.trip.chests++;
+    }
+  }
+
+  // The giant T-rex skull: walk in and its jaw drops open; teeth tumble out.
+  function updateSkull() {
+    if (!skull || skull.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(skull.x, skull.y, 3)))) return;
+    skull.open = true;
+    grid.set(skull.x + 1, skull.y, B.AIR);
+    skull.s.setFrame(1);
+    scene.cameras.main.shake(300, 0.006);
+    burst(skull.s.x + 6, skull.s.y - 8, skullLoot(scene.rng), 200);
+    scene.effects.confetti(skull.s.x, skull.s.y - 16);
+    earnSticker(scene, 'find-rexskull');
+    scene.trip.chests++;
+    scene.events.emit('skull', skull);
+  }
+
+  // The sleeping stegosaurus: walk up and it wakes, stretches and shakes
+  // obsidian off its back plates.
+  function updateStego() {
+    if (!stego || stego.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(stego.x, stego.y, 3)))) return;
+    stego.open = true;
+    grid.set(stego.x + 1, stego.y, B.AIR);
+    stego.s.setFrame(1);
+    scene.events.emit('stego', stego);
+    scene.tweens.add({ targets: stego.s, scaleX: { from: 1.1, to: 1 }, x: { from: stego.s.x - 2, to: stego.s.x + 2 }, duration: 80, yoyo: true, repeat: 5 });
+    scene.time.delayedCall(500, () => {
+      burst(stego.s.x, stego.s.y - 20, stegoLoot(scene.rng), 200);
+      scene.effects.sparkle(stego.s.x, stego.s.y - 16, 0xb89aff, 12);
+    });
+    earnSticker(scene, 'find-stego');
+    scene.trip.chests++;
   }
 
   // The frozen comet: walk up to it and its ice cracks open, full of treasure.
@@ -636,6 +717,10 @@ export function createFindsView(scene) {
       updateRovers();
       updateGlobes();
       updateComet();
+      updateParasaurs(dt, time);
+      updateNests();
+      updateSkull();
+      updateStego();
       updateVaults();
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);

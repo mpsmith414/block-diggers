@@ -27,6 +27,7 @@ import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSui
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
 import { drawMarsBackdrop, drawMarsProps } from './camp/marsScenery.js';
 import { drawSaturnBackdrop, drawSaturnProps } from './camp/saturnScenery.js';
+import { drawDinoBackdrop, drawDinoProps } from './camp/dinoScenery.js';
 import { planetById, rocketTo, PLANETS } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -36,19 +37,20 @@ const GROUND_Y = CAMP.ground * TILE;
 const HUD_STRIP = 40;
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false };
 // the rocket buildings (each opens the star map), and the ground of each camp
-const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket'];
-const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW] };
+const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket', 'sunrocket'];
+const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW], dino: [B.GRASS, B.DIRT] };
 // each camp's sky and scenery (Earth's are drawn here in the scene)
 const SCENERY = {
   moon: [drawMoonBackdrop, drawMoonProps], mars: [drawMarsBackdrop, drawMarsProps], saturn: [drawSaturnBackdrop, drawSaturnProps],
+  dino: [drawDinoBackdrop, drawDinoProps],
 };
 // the big ship that flies a route: the rocket of the farther planet (the
 // Rocket Ship to the Moon, the Mars Rocket to Mars, the Saturn Rocket to Saturn)
-const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship' };
+const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship' };
 const order = (id) => PLANETS.findIndex((p) => p.id === id);
 export const shipFor = (from, to) => SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship';
 // where each rocket building's ship stands, from the left of its plot
-const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52 };
+const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52, sunrocket: 40 };
 
 export class CampScene extends Phaser.Scene {
   constructor() {
@@ -421,6 +423,36 @@ export class CampScene extends Phaser.Scene {
         callback: () => {
           for (const dx of [-12, 0, 12]) {
             const s = this.add.image(x + 40 + dx, GROUND_Y - 2, 'smoke').setDepth(4).setAlpha(0.7);
+            this.tweens.add({ targets: s, x: s.x + dx, y: s.y - 6, scale: 2, alpha: 0, duration: 1400, onComplete: () => s.destroy() });
+          }
+        },
+      });
+    }
+    // Dino Camp
+    if (id === 'nursery') {
+      // baby dinos toddle about outside
+      for (let i = 0; i < 2; i++) {
+        const s = this.add.sprite(x + 10 + i * 30, GROUND_Y, 'raptor', 0).setOrigin(0.5, 1).setDepth(4).setScale(0.7);
+        this.critters.push({ s, minX: x - 10, maxX: x + 50, vx: 0, t: i * 0.6 });
+      }
+    }
+    if (id === 'treehouse') {
+      // the lookout flag waves, and a firefly or two drifts in the leaves
+      this.time.addEvent({ delay: 900, loop: true, callback: () => this.effects.sparkle(x + 48 + Phaser.Math.Between(-24, 24), GROUND_Y - 66 + Phaser.Math.Between(-8, 8), 0xfff27a, 2) });
+    }
+    if (id === 'pteroperch') {
+      // the ptero taxi circles over its perch
+      const ptero = this.add.sprite(x + 48, GROUND_Y - 70, 'ptero-taxi', 0).setDepth(4);
+      this.tweens.add({ targets: ptero, x: x + 70, y: GROUND_Y - 80, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', onYoyo: () => ptero.setFlipX(true), onRepeat: () => ptero.setFlipX(false) });
+      this.time.addEvent({ delay: 220, loop: true, callback: () => ptero.setFrame(ptero.frame.name === 0 ? 1 : 0) });
+    }
+    if (id === 'sunrocket') {
+      this.time.addEvent({
+        delay: 900,
+        loop: true,
+        callback: () => {
+          for (const dx of [-12, 0, 12]) {
+            const s = this.add.image(x + 40 + dx, GROUND_Y - 2, 'smoke').setDepth(4).setAlpha(0.7).setTint(0xffe0a0);
             this.tweens.add({ targets: s, x: s.x + dx, y: s.y - 6, scale: 2, alpha: 0, duration: 1400, onComplete: () => s.destroy() });
           }
         },
@@ -929,7 +961,7 @@ export class CampScene extends Phaser.Scene {
         flame.destroy();
         this.cameras.main.shake(200, 0.006);
         for (let i = 0; i < 10; i++) {
-          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint({ earth: 0xd8c8b0, moon: 0xc8c8d8, mars: 0xe0886a, saturn: 0xf0f8ff }[this.planet] ?? 0xc8c8d8);
+          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint({ earth: 0xd8c8b0, moon: 0xc8c8d8, mars: 0xe0886a, saturn: 0xf0f8ff, dino: 0xd8c8b0 }[this.planet] ?? 0xc8c8d8);
           this.tweens.add({ targets: d, x: d.x + (i - 4.5) * 5, y: d.y - 8, scale: 2.5, alpha: 0, duration: 900, onComplete: () => d.destroy() });
         }
         this.events.emit('built');
@@ -965,7 +997,7 @@ export class CampScene extends Phaser.Scene {
           h.destroy();
           this.suits.refresh();
           a.p.vy = -170;
-          this.effects.sparkle(a.sprite.x, a.sprite.y - 12, { helmet: 0x9ff6ff, boots: 0xffa050, gloves: 0xffd84a }[piece] ?? 0xffffff, 12);
+          this.effects.sparkle(a.sprite.x, a.sprite.y - 12, { helmet: 0x9ff6ff, boots: 0xffa050, gloves: 0xffd84a, jetpack: 0xff8a2a }[piece] ?? 0xffffff, 12);
         },
       });
     }

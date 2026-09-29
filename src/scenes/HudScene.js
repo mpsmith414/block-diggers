@@ -193,6 +193,11 @@ export class HudScene extends Phaser.Scene {
       aurora: { rock: B.AURORA_ROCK, ore: B.PEARL, creature: 'owl', color: 0x3ae0a0 },
       comets: { rock: B.COMET_ROCK, ore: B.COMET, creature: 'cometling', color: 0x4a8aff },
       saturncore: { rock: B.SATURN_CORE, ore: B.SATURN_HEART, creature: 'snowflake', color: 0xffd84a },
+      jungle: { rock: B.JUNGLE_SOIL, ore: B.JADE, creature: 'dragonfly', color: 0x5ab04a },
+      bonebeds: { rock: B.FOSSIL_ROCK, ore: B.BONE, creature: 'raptor', color: 0xe8dcc0 },
+      swamp: { rock: B.SWAMP_MUD, ore: B.TOOTH, creature: 'frog', color: 0x6a8a3a },
+      lavalands: { rock: B.VOLCANIC, ore: B.OBSIDIAN, creature: 'beetle', color: 0xe04a2a },
+      dinocore: { rock: B.DINO_CORE, ore: B.DINO_HEART, creature: 'moth', color: 0xffd84a },
     }[layer];
     if (!LOOK) return;
     const w = 190;
