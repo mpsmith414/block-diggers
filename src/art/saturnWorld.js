@@ -11,8 +11,8 @@ const T = 16;
 const fit = (rows, w = 16) => rows.map((r) => (r + '.'.repeat(w)).slice(0, w));
 
 export const SATURN_HOSTS = {
-  ice: { base: '#b8e4f8', dark: '#8ac8e8', light: '#e8f8ff' },
-  softserve: { base: '#f8e0c8', dark: '#e8c0a8', light: '#fff4e8' },
+  ice: { base: '#9ed0ec', dark: '#7ab4dc', light: '#d8f0ff' },
+  softserve: { base: '#ecc4a8', dark: '#d8a88c', light: '#f8dcc4' },
   aurora: { base: '#1e3a6a', dark: '#162e56', light: '#2e4e88' },
   comet: { base: '#1a2240', dark: '#121830', light: '#2a3458' },
   core: { base: '#f0d890', dark: '#d8b868', light: '#fff4c8' },
@@ -45,7 +45,7 @@ export function drawSaturnTiles(ctx, at, rng, B, rect, speckle) {
   const softserve = (id) => {
     const ox = at(id);
     rect(ctx, SATURN_HOSTS.softserve.base, ox, 0, T, T);
-    for (const y of [3, 9, 14]) {
+    for (const y of [5, 13]) {
       rect(ctx, SATURN_HOSTS.softserve.dark, ox, y, T, 1);
       rect(ctx, SATURN_HOSTS.softserve.light, ox, y - 1, T, 1);
     }
@@ -69,8 +69,8 @@ export function drawSaturnTiles(ctx, at, rng, B, rect, speckle) {
   const aurora = (id) => {
     speckle(ctx, at(id), rng, SATURN_HOSTS.aurora, 5);
     const ox = at(id);
-    for (let k = 0; k < 6; k++) rect(ctx, '#3ae0a0', ox + 2 + k * 2, 4 + (k % 2), 2, 1);
-    for (let k = 0; k < 5; k++) rect(ctx, '#a06aff', ox + 3 + k * 2, 11 - (k % 2), 2, 1);
+    for (let k = 0; k < 3; k++) rect(ctx, '#2a8a8a', ox + 3 + k * 2, 4 + (k % 2), 2, 1);
+    for (let k = 0; k < 2; k++) rect(ctx, '#5a4aa8', ox + 9 + k * 2, 11 - (k % 2), 2, 1);
   };
   aurora(B.AURORA_ROCK);
   // ring pearls: three shiny pink-white pearls
@@ -448,7 +448,7 @@ export function drawSaturnWorld(scene, canvasTexture, rect) {
     big.tex.refresh();
   }
 
-  // the Gloves (Sun Suit piece 3), worn: puffy gold mittens on the hands,
+  // the Gloves (Sun Suit piece 3), worn: puffy red mittens with gold cuffs,
   // one frame per character frame (idle, step A, step B, climb: arms up)
   one('suit-gloves-worn', 64, 16, (ctx, tex) => {
     for (let f = 0; f < 4; f++) {
@@ -456,8 +456,9 @@ export function drawSaturnWorld(scene, canvasTexture, rect) {
       const hands = f === 3 ? [[1, 5], [13, 5]] : [[2, 11], [12, 11]];
       for (const [x, y] of hands) {
         rect(ctx, OUT, ox + x, y, 3, 3);
-        rect(ctx, '#ffd84a', ox + x, y, 2, 2);
-        rect(ctx, '#fff2a0', ox + x, y, 1, 1);
+        rect(ctx, '#e0503a', ox + x, y, 2, 2);
+        rect(ctx, '#ff8a6a', ox + x, y, 1, 1);
+        rect(ctx, '#ffd84a', ox + x, y + 2, 2, 1);
       }
       tex.add(f, 0, ox, 0, 16, 16);
     }

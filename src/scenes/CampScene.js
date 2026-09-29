@@ -442,7 +442,7 @@ export class CampScene extends Phaser.Scene {
     }
     if (id === 'lighthouse') {
       // the lamp's beam sweeps back and forth
-      const beam = this.add.triangle(x + 48, GROUND_Y - 66, 0, 0, 140, -14, 140, 14, 0xfff6a0, 0.28).setOrigin(0, 0.5).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      const beam = this.add.triangle(x + 48, GROUND_Y - 66, 0, 0, 80, -9, 80, 9, 0xfff6a0, 0.35).setOrigin(0, 0.5).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
       this.tweens.add({ targets: beam, angle: { from: -160, to: -20 }, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.time.addEvent({ delay: 800, loop: true, callback: () => this.effects.sparkle(x + 48, GROUND_Y - 66, 0xfff6a0, 2) });
     }

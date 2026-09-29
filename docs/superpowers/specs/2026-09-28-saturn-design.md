@@ -66,8 +66,8 @@ Costs are about 30% above Mars's, since the backpack is bigger by now. The balan
 
 ## 6. The Gloves (Sun Suit piece 3)
 
-- **Winning them:** bringing the Saturn Heart home to Ring Station makes the celebration, and puffy gold gloves drop onto every character.
-- **The look:** gold mittens on the characters' hands, drawn for every animation frame.
+- **Winning them:** bringing the Saturn Heart home to Ring Station makes the celebration, and puffy red gloves with gold cuffs drop onto every character.
+- **The look:** red mittens with gold cuffs on the characters' hands, drawn for every animation frame.
 - **The power:** you dig **25% faster on every planet**, and you never slip on ice.
 - **The Dino Rocket** needs the Gloves.
 

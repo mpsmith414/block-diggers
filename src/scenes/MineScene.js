@@ -225,7 +225,7 @@ export class MineScene extends Phaser.Scene {
         .setTint(rng.pick([0xffffff, 0xc8f0ff])).setAlpha(0.4 + rng.next() * 0.6);
       if (i % 4 === 0) this.tweens.add({ targets: s, alpha: 0.1, duration: 800 + (i % 5) * 300, yoyo: true, repeat: -1 });
     }
-    this.add.image(SHAFT_X * TILE + 200, top + 40, 'saturn-big').setDepth(-8);
+    this.add.image(SHAFT_X * TILE - 130, top + 44, 'saturn-big').setDepth(-8);
     // snowy ice hills on the horizon
     const d = this.add.graphics().setDepth(-7);
     d.fillStyle(0xc8e0f0, 1);
