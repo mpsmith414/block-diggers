@@ -32,11 +32,11 @@ export const MOON_LAYERS = {
 // How the Moon is made: ore veins (per layer), caves, and things to find.
 export const MOON_GEN = {
   ores: {
-    craters: { veins: 30, weights: { moonstone: 1 } },
-    cheesecaves: { veins: 38, weights: { cheese: 5, moonstone: 1 } },
-    mooncrystal: { veins: 32, weights: { spacegem: 5, moonstone: 1 } },
-    alienbase: { veins: 32, weights: { gizmo: 5, spacegem: 1 } },
-    mooncore: { veins: 34, weights: { moonstone: 1, spacegem: 1, gizmo: 1 } },
+    craters: { veins: 42, weights: { moonstone: 1 } },
+    cheesecaves: { veins: 50, weights: { cheese: 5, moonstone: 1 } },
+    mooncrystal: { veins: 44, weights: { spacegem: 5, moonstone: 1 } },
+    alienbase: { veins: 44, weights: { gizmo: 5, spacegem: 1 } },
+    mooncore: { veins: 46, weights: { moonstone: 1, spacegem: 1, gizmo: 1 } },
   },
   caves: {
     craters: { count: 7, radius: 2, length: [22, 36] },

@@ -64,13 +64,15 @@ Row 251 is bedrock. Chests hold the best ore of their layer. Reaching a layer fo
 
 | Upgrade | New level | Cost |
 |---|---|---|
-| Pickaxe | **Moon Drill** (6) | 15 moonstone + 10 cheese |
-|  | **Crystal Drill** (7) | 15 space gem + 15 moonstone |
-|  | **Laser Drill** (8) | 15 gizmo + 15 space gem |
-| Backpack | 320 (level 5) | 12 moonstone + 12 cheese |
-| Lantern | 13 (level 5) | 10 space gem + 8 moonstone |
+| Pickaxe | **Moon Drill** (6) | 35 moonstone + 25 cheese |
+|  | **Crystal Drill** (7) | 35 space gem + 35 moonstone |
+|  | **Laser Drill** (8) | 40 gizmo + 35 space gem |
+| Backpack | 320 (level 5) | 40 moonstone + 40 cheese |
+| Lantern | 13 (level 5) | 30 space gem + 25 moonstone |
 
 Each drill has its own look.
+
+**Balance (changed while building):** the costs here are about 2.5 times the first draft, and the Moon's ore veins are richer. The deeper world was meant to last several sessions but lasted one. A progression bot (`tests/game/balance.test.js`) plays the Moon trip by trip. It gets the first new drill on trip 2, one about every 4 trips after that, the Helmet around trip 11, and the Mars Rocket after about 18 trips, which is two or three sessions. The backpack costs more than the Moon Drill, so a new layer always comes first.
 
 ## 5. Moon Base (the Moon's camp)
 
@@ -86,10 +88,10 @@ The Earth rocket now lands at **Moon Base**, not in the mine. Moon Base is 64 ce
 
 | Building | Cost | What it does |
 |---|---|---|
-| **Cheese Factory** | 20 cheese + 10 moonstone | space mice run it: **+3 cheese** every trip home to Moon Base |
-| **Telescope** | 20 moonstone + 5 space gem | shows every chest on the Moon's depth meter, like Earth's tower |
-| **UFO Hangar** | 12 gizmo + 10 space gem | the friendly alien's UFO is the Moon's elevator, to the top of any Moon layer you've reached |
-| **Mars Rocket** | 25 gizmo + 20 space gem + 20 moonstone + the Helmet | a bigger rocket with boosters. Building it lights up Mars on the star map with a "coming soon" sign (Mars comes in the next update) |
+| **Cheese Factory** | 45 cheese + 20 moonstone | space mice run it: **+3 cheese** every trip home to Moon Base |
+| **Telescope** | 45 moonstone + 15 space gem | shows every chest on the Moon's depth meter, like Earth's tower |
+| **UFO Hangar** | 30 gizmo + 30 space gem | the friendly alien's UFO is the Moon's elevator, to the top of any Moon layer you've reached |
+| **Mars Rocket** | 45 gizmo + 40 space gem + 45 moonstone + the Helmet | a bigger rocket with boosters. Building it lights up Mars on the star map with a "coming soon" sign (Mars comes in the next update) |
 
 **Stars and arrows:** gold stars and the edge arrow point at what you can afford, as they do on Earth.
 

@@ -7,7 +7,8 @@ a keyboard, or (single-player) a phone.
 **Play:** https://mpsmith414.github.io/block-diggers/
 **Controller check:** https://mpsmith414.github.io/block-diggers/diag.html
 
-Design: `docs/superpowers/specs/2026-09-25-block-diggers-design.md`
+Design: `docs/superpowers/specs/2026-09-25-block-diggers-design.md` (and the
+later specs next to it; the newest is the planets, `2026-09-28-planets-design.md`)
 
 ## How to play
 
@@ -57,10 +58,37 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - statue: more rare finds;
   - Dino Park: the baby dinosaurs play there and dig up amber;
   - Toy Workshop: toy-brick decorations (castle, car, rainbow arch, robot);
-  - **Rocket Ship** (needs the Heart of the World): press A for a countdown and
-    lift-off to **the Moon**: low gravity, moon blobs, space crystals and moon
-    cheese. Hold B to be beamed home.
-- **Sticker book:** 69 stickers on 9 pages, and a trophy for each full page. Open
+  - **Rocket Ship** (needs the Heart of the World): press A to open the **star
+    map** and fly to **the Moon**.
+- **The planets:** a journey from Earth to **the Sun**: Earth, the Moon, Mars,
+  Saturn, Dino Planet, the Sun. The **star map** (A at any rocket) shows the
+  path, the planets you can fly to, padlocks on the rest, and the **Sun Suit**
+  piece hidden at the bottom of each planet. Collect all four pieces to land on
+  the Sun. Mars says "coming soon" for now: one new planet per update.
+- **The Moon** (planet 1) has low gravity everywhere and five layers under its
+  own camp:
+  - **Crater Plains:** moonstone, moon blobs, meteorites;
+  - **Cheese Caves:** cheese and space mice. Roll two cheese wheels together
+    for a cheese party!
+  - **Crystal Caves:** space gems, jellyfish, singing crystals, and the
+    **Moon Pup**'s egg;
+  - **Alien Base:** gizmos, UFO drones, teleport pads, and a crashed UFO full
+    of treasure;
+  - **Moon Core:** star sprites and the **Moon Heart**. Bring it home for the
+    **Helmet**, the first Sun Suit piece: a headlamp (2 more blocks of light)
+    that your characters wear everywhere.
+
+  New drills open the deeper Moon layers: Moon Drill, Crystal Drill, Laser
+  Drill. Hold B in the mine to be beamed back to Moon Base.
+- **Moon Base** (the Moon's camp): the hatch into the Moon, a bench, the
+  sticker lectern, the landing pad (star map), and four buildings:
+  - **Cheese Factory:** space mice make 3 cheese every trip;
+  - **Telescope:** chests show on the depth meter;
+  - **UFO Hangar:** the Moon's elevator;
+  - **Mars Rocket:** needs the Helmet.
+- **The Moon Pup** (a puppy in a bubble helmet) gives everyone a **double
+  jump**. Pets are smaller now and trail close behind you.
+- **Sticker book:** 101 stickers on 12 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.
@@ -142,7 +170,9 @@ Pushing to `main` runs the tests, builds, and deploys to GitHub Pages.
 In dev mode, `window.h` is a test harness for the browser console: `h.advance(ms)`
 steps the game frame by frame, `h.hold('ArrowDown', 1000)` holds a key,
 `h.pad(0, { a: true })` plugs in a virtual controller, and `h.shot('name')`
-saves a 3× screenshot to `.shots/name.png`.
+saves a 3× screenshot to `.shots/name.png` (call `h.advance(20)` just before it).
+`h.quick('Mine', { planet: 'moon' }, { pets: [...] })` joins from the title,
+patches the save and starts a scene; `h.goCell(x, y)` puts player 1 in a cell.
 
 ## Fire TV Silk (best-effort)
 

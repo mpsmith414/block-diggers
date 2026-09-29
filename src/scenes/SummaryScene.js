@@ -54,7 +54,7 @@ export class SummaryScene extends Phaser.Scene {
     this.packs.forEach((pack, slot) => {
       if (!pack) return;
       c.add(this.add.image(x + 18, ry + 6, `char-${this.chars[slot]}`, 0));
-      const kinds = shownOres(getState(this.registry));
+      const kinds = shownOres(getState(this.registry), this.summary.planet ?? 'earth');
       const gap = Math.min(50, 250 / kinds.length);
       kinds.forEach((ore, i) => {
         const ox = x + 42 + i * gap;

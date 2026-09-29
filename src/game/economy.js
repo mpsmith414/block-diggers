@@ -9,10 +9,12 @@ export const UPGRADES = {
     { iron: 10, coal: 5 }, { diamond: 5, gold: 10 },
     { amber: 10, diamond: 5 }, { brick: 20, amber: 10 }, { star: 10, brick: 20 },
     // the Moon: Moon Drill, Crystal Drill, Laser Drill
-    { moonstone: 15, cheese: 10 }, { spacegem: 15, moonstone: 15 }, { gizmo: 15, spacegem: 15 },
+    // (playtest 2026-09-28: the deeper world lasted one 45-minute session, so
+    // the Moon asks for about 2.5x as much, to last two or three)
+    { moonstone: 35, cheese: 25 }, { spacegem: 35, moonstone: 35 }, { gizmo: 40, spacegem: 35 },
   ],
-  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 12, cheese: 12 }],
-  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 10, moonstone: 8 }],
+  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 }],
+  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 }],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
 
@@ -31,10 +33,10 @@ export const BLUEPRINTS = [
 // Moon Base: four plots of its own. The Mars Rocket needs the Helmet.
 export const MOON_PLOTS = 4;
 export const MOON_BLUEPRINTS = [
-  { id: 'cheesefactory', cost: { cheese: 20, moonstone: 10 } },
-  { id: 'telescope', cost: { moonstone: 20, spacegem: 5 } },
-  { id: 'hangar', cost: { gizmo: 12, spacegem: 10 } },
-  { id: 'marsrocket', cost: { gizmo: 25, spacegem: 20, moonstone: 20 }, needs: { suit: 'helmet' } },
+  { id: 'cheesefactory', cost: { cheese: 45, moonstone: 20 } },
+  { id: 'telescope', cost: { moonstone: 45, spacegem: 15 } },
+  { id: 'hangar', cost: { gizmo: 30, spacegem: 30 } },
+  { id: 'marsrocket', cost: { gizmo: 45, spacegem: 40, moonstone: 45 }, needs: { suit: 'helmet' } },
 ];
 
 export const blueprintsFor = (planet = 'earth') => (planet === 'moon' ? MOON_BLUEPRINTS : BLUEPRINTS);

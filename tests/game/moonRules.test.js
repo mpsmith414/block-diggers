@@ -149,10 +149,10 @@ describe('Moon treasure', () => {
 describe('Moon upgrades and buildings', () => {
   it('drills 6-8 and the fifth backpack and lantern cost Moon ores', () => {
     expect(UPGRADES.pick.slice(5)).toEqual([
-      { moonstone: 15, cheese: 10 }, { spacegem: 15, moonstone: 15 }, { gizmo: 15, spacegem: 15 },
+      { moonstone: 35, cheese: 25 }, { spacegem: 35, moonstone: 35 }, { gizmo: 40, spacegem: 35 },
     ]);
-    expect(UPGRADES.pack[4]).toEqual({ moonstone: 12, cheese: 12 });
-    expect(UPGRADES.lantern[4]).toEqual({ spacegem: 10, moonstone: 8 });
+    expect(UPGRADES.pack[4]).toEqual({ moonstone: 40, cheese: 40 });
+    expect(UPGRADES.lantern[4]).toEqual({ spacegem: 30, moonstone: 25 });
   });
 
   it('Moon Base has four buildings', () => {
@@ -167,8 +167,8 @@ describe('Moon upgrades and buildings', () => {
     const t = buildOnPlot(s, 1, 'telescope', 'moon');
     expect(plotsOf(t, 'moon')).toEqual([null, 'telescope', null, null]);
     expect(t.plots).toEqual(s.plots);
-    expect(t.bank.moonstone).toBe(79);
-    expect(t.bank.spacegem).toBe(94);
+    expect(t.bank.moonstone).toBe(54);
+    expect(t.bank.spacegem).toBe(84);
     // an Earth building can't go on the Moon
     expect(buildOnPlot(s, 0, 'garden', 'moon')).toBe(null);
   });
