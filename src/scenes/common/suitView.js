@@ -1,6 +1,6 @@
 // The Sun Suit pieces your characters wear: the Helmet (from the Moon Heart),
 // the Boots (from the Mars Heart), the Gloves (from the Saturn Heart) and the
-// Jetpack (from the Dino Heart). Overlays that follow each character
+// Jetpack (from the Dino Heart), and the crown from the Sun's Heart. Overlays that follow each character
 // sprite; the Boots follow the legs frame by frame, and puff little flames
 // from the heels when you run.
 
@@ -11,6 +11,8 @@ const PIECES = [
   { id: 'boots', key: 'suit-boots-worn', framed: true },
   { id: 'gloves', key: 'suit-gloves-worn', framed: true },
   { id: 'jetpack', key: 'suit-jetpack-worn', framed: true },
+  // the crown (from the Sun's Heart), for everyone
+  { id: 'crown', key: 'suit-crown-worn', framed: false },
 ];
 
 export function createSuitView(scene) {

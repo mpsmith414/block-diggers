@@ -4,6 +4,7 @@ import { generateMoon } from '../world/moon.js';
 import { generateMars } from '../world/mars.js';
 import { generateSaturn } from '../world/saturn.js';
 import { generateDino } from '../world/dinoworld.js';
+import { generateSun } from '../world/sunworld.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
@@ -39,7 +40,7 @@ import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
-  LAYERS, LOW_GRAVITY, SILLY,
+  LAYERS, LOW_GRAVITY, SILLY, FLARE,
 } from '../tuning.js';
 
 const GLINT_COLORS = {
@@ -48,9 +49,10 @@ const GLINT_COLORS = {
   ruby: 0xff6a8a, bolt: 0xe8ecf4, opal: 0xffa04a, coin: 0xffe066,
   frost: 0x9fe8ff, icecream: 0xff8ab8, pearl: 0xfff0f8, comet: 0x8ab0ff,
   jade: 0x7affa8, bone: 0xfff8e8, tooth: 0xfff4d8, obsidian: 0xc8a8ff,
+  sunstone: 0xffa04a, flare: 0xffffff, plasma: 0xffa0d8, nova: 0xb8d8ff,
 };
 // the beam home from each planet
-const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a };
+const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a, sun: 0xffe066 };
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
@@ -71,6 +73,7 @@ export class MineScene extends Phaser.Scene {
     this.mars = this.planet === 'mars';
     this.saturn = this.planet === 'saturn';
     this.dino = this.planet === 'dino';
+    this.sun = this.planet === 'sun';
     this.away = this.planet !== 'earth';
   }
 
@@ -85,6 +88,7 @@ export class MineScene extends Phaser.Scene {
     else if (this.mars) this.world = generateMars(this.seed, { roverEgg: !pets.includes('rover') });
     else if (this.saturn) this.world = generateSaturn(this.seed, { yetiEgg: !pets.includes('yeti') });
     else if (this.dino) this.world = generateDino(this.seed, { longneckEgg: !pets.includes('longneck') });
+    else if (this.sun) this.world = generateSun(this.seed, { dragonEgg: !pets.includes('sundragon') });
     else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     this.gravity = planetById(this.planet).gravity;
@@ -104,6 +108,9 @@ export class MineScene extends Phaser.Scene {
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
+    // solar flares: the same cycle as a storm, but they rain sunstones
+    this.flare = this.sun ? createStorm(this.rng, FLARE) : null;
+    this.flareT = 0;
     // Phaser reuses this object across trips: reset all per-trip state here.
     this.avatars = [];
     this.pickups = [];
@@ -125,6 +132,7 @@ export class MineScene extends Phaser.Scene {
     else if (this.mars) this.drawMarsSky();
     else if (this.saturn) this.drawSaturnSky();
     else if (this.dino) this.drawDinoSky();
+    else if (this.sun) this.drawSunSky();
     else this.drawSky();
     const top = Object.keys(planetById(this.planet).layers)[0];
     this.mapView = createMapView(this, this.grid, this.away ? { layerAt: this.world.layerAt, top } : {});
@@ -132,6 +140,7 @@ export class MineScene extends Phaser.Scene {
     else if (this.mars) this.drawLander({ flag: 'mars-flag', later: 'mars-moons' });
     else if (this.saturn) this.drawLander({ flag: 'saturn-flag', later: 'saturn-rings' });
     else if (this.dino) this.drawLander({ flag: 'dino-flag', later: 'dino-volcano' });
+    else if (this.sun) this.drawLander({ flag: 'sun-flag', later: 'sun-goldmonster' });
     else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
@@ -264,6 +273,36 @@ export class MineScene extends Phaser.Scene {
       this.tweens.add({ targets: p, x: MINE_W * TILE + 40, duration: 16000 + i * 5000, delay: i * 6000, repeat: -1 });
       this.time.addEvent({ delay: 200, loop: true, callback: () => p.setFrame(p.frame.name === 0 ? 1 : 0) });
     }
+  }
+
+  // The Sun's sky: blazing gold and orange, with swirling flares arcing up
+  // over the horizon and sparkles drifting.
+  drawSunSky() {
+    const top = -SKY_ROWS * TILE;
+    const g = this.add.graphics().setDepth(-10);
+    g.fillGradientStyle(0xff7a2a, 0xff7a2a, 0xffe08a, 0xffe08a, 1);
+    g.fillRect(0, top, MINE_W * TILE, SKY_ROWS * TILE);
+    // flares: glowing arcs looping up from the surface
+    const arcs = this.add.graphics().setDepth(-9);
+    for (const [x, r] of [[90, 30], [330, 44], [560, 26], [700, 36]]) {
+      arcs.lineStyle(6, 0xffb040, 0.8).beginPath().arc(x, 4, r, Math.PI, 0, false).strokePath();
+      arcs.lineStyle(2, 0xfff2a0, 0.9).beginPath().arc(x, 4, r, Math.PI, 0, false).strokePath();
+    }
+    this.tweens.add({ targets: arcs, alpha: 0.55, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    // drifting sparkles
+    const rng = createRng(this.seed ^ 0x5a11);
+    for (let i = 0; i < 40; i++) {
+      const s = this.add.image(rng.int(0, MINE_W * TILE), top + rng.int(0, SKY_ROWS * TILE - 8), 'pixel').setDepth(-8)
+        .setTint(rng.pick([0xffffff, 0xfff2a0, 0xffd84a])).setAlpha(0.5 + rng.next() * 0.5);
+      this.tweens.add({ targets: s, y: s.y - 20, alpha: 0, duration: 2000 + (i % 5) * 400, delay: i * 90, repeat: -1 });
+    }
+    // golden sun-rock hills on the horizon
+    const d = this.add.graphics().setDepth(-7);
+    d.fillStyle(0xe8a030, 1);
+    for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 10, 130, 44);
+    d.fillStyle(0xd88a20, 1);
+    for (let i = 0; i < 7; i++) d.fillEllipse(i * 130 + 30, 14, 110, 30);
+    for (const x of [70, 280, 500, 680]) this.add.image(x, 2, 'decor-suncrystal', 0).setOrigin(0.5, 1).setDepth(-6);
   }
 
   // The camp's hatch you climbed down through, and (every trip) you plant a flag.
@@ -422,6 +461,7 @@ export class MineScene extends Phaser.Scene {
       this.drawAvatar(a, dt, time);
     }
     this.stepStorm(dt);
+    this.stepFlare(dt);
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
     this.pets.update(dt, time);
@@ -450,6 +490,32 @@ export class MineScene extends Phaser.Scene {
         if (this.stormRubies) this.rainRubies();
       }
     }
+  }
+
+  // Solar flares: a warning, then the sky glows gold and sunstones rain down
+  // around everyone (the HUD draws the glow and the sparkles).
+  stepFlare(dt) {
+    if (!this.flare) return;
+    for (const ev of stepStorm(this.flare, dt, this.rng, FLARE)) {
+      if (ev === 'warn') this.events.emit('flareWarn');
+      if (ev === 'start') {
+        this.events.emit('flareStart');
+        this.cameras.main.flash(250, 255, 230, 140);
+        earnSticker(this, 'sun-flare');
+      }
+      if (ev === 'end') this.events.emit('flareEnd');
+    }
+    if (this.flare.phase !== 'blow') return;
+    this.flareT -= dt;
+    if (this.flareT > 0) return;
+    this.flareT = FLARE.every;
+    for (const a of this.avatars.filter(Boolean)) {
+      if (a.bubbling) continue;
+      const x = a.p.x + PLAYER.w / 2 + (this.rng.next() - 0.5) * 70;
+      this.pickups.push(createPickup({ x, y: a.p.y - 30, ore: 'sunstone', delay: 0.2, vy: 30, vx: (this.rng.next() - 0.5) * 30 }));
+      this.effects.sparkle(x, a.p.y - 30, 0xffd84a, 4);
+    }
+    this.events.emit('flareGem');
   }
 
   rainRubies() {
@@ -598,6 +664,8 @@ export class MineScene extends Phaser.Scene {
   }
 
   stepAvatar(a, intent, dt) {
+    // on the Sun everyone is always a golden lava monster
+    if (this.sun) a.pu.lava = Math.max(a.pu.lava, 5);
     const mul = multipliers(a.pu);
     // drinking: stand still and glug
     const row = (a.p.y + PLAYER.h / 2) / TILE;
@@ -883,7 +951,7 @@ export class MineScene extends Phaser.Scene {
     this.hazards.squash(e);
     a.p.vy = -200;
     this.effects.sparkle(e.x + e.w / 2, e.y + e.h / 2, 0x9ae67a, 8);
-    this.effects.chunks(Math.floor((e.x + 6) / TILE), Math.floor(e.y / TILE), 99);
+    this.effects.chunks(Math.floor((e.x + 6) / TILE), Math.floor(e.y / TILE), 'goo');
     this.events.emit('squash', a);
   }
 
@@ -934,12 +1002,13 @@ export class MineScene extends Phaser.Scene {
     // lava monster: bigger, glowing, flickering, dropping embers
     if (a.pu.lava > 0) {
       sprite.setScale(sprite.scaleX * 1.3, sprite.scaleY * 1.3);
-      sprite.setTint(Math.floor(time / 110) % 2 ? 0xff6a2a : 0xffa040);
+      if (this.sun) sprite.setTint(Math.floor(time / 110) % 2 ? 0xffc020 : 0xff9a10);
+      else sprite.setTint(Math.floor(time / 110) % 2 ? 0xff6a2a : 0xffa040);
       a.emberT -= dt;
       if (a.emberT <= 0) {
         a.emberT = 0.08;
         const e = this.add.image(sprite.x + (Math.random() - 0.5) * 12, sprite.y - Math.random() * 16, 'pixel')
-          .setTint(Math.random() < 0.5 ? 0xffb34a : 0xff5a1a).setDisplaySize(2, 2).setDepth(40);
+          .setTint(this.sun ? (Math.random() < 0.5 ? 0xfff2a0 : 0xffd84a) : (Math.random() < 0.5 ? 0xffb34a : 0xff5a1a)).setDisplaySize(2, 2).setDepth(40);
         this.tweens.add({ targets: e, y: e.y - 12, alpha: 0, duration: 600, onComplete: () => e.destroy() });
       }
     } else if (a.pu.zoom > 0) {
@@ -1081,7 +1150,14 @@ export class MineScene extends Phaser.Scene {
     g.fillStyle(0x6b4424, 1);
     for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
     g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
-    if (this.dino) {
+    if (this.sun) {
+      // the sunbeam lift car floated you down, and glows there to take you home
+      const car = this.add.sprite(x0 + 20, y - 22, 'sun-lift', 0).setOrigin(0.5, 0.5).setDepth(13);
+      this.tweens.add({ targets: car, y: car.y - 3, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.time.addEvent({ delay: 300, loop: true, callback: () => car.setFrame(car.frame.name === 0 ? 1 : 0) });
+      const beam = this.add.rectangle(x0 + 20, y - 400, 14, 380, 0xfff2a0, 0.2).setOrigin(0.5, 0).setDepth(12).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: beam, alpha: 0.08, duration: 800, yoyo: true, repeat: -1 });
+    } else if (this.dino) {
       // the ptero taxi flew you down, and flaps there to take you home
       const ptero = this.add.sprite(x0 + 20, y - 26, 'ptero-taxi', 0).setOrigin(0.5, 0.5).setDepth(13);
       this.tweens.add({ targets: ptero, y: ptero.y - 4, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -1148,7 +1224,7 @@ export class MineScene extends Phaser.Scene {
     const flicker = 1 + Math.sin(time / 130) * 0.03 + Math.sin(time / 57) * 0.02;
     for (const a of this.avatars) {
       if (!a) continue;
-      if (a.pu.lava > 0) lights.push({ x: a.sprite.x, y: a.sprite.y - 8, r: 3 * flicker, glow: 0.3, color: 0xff7a2a });
+      if (a.pu.lava > 0) lights.push({ x: a.sprite.x, y: a.sprite.y - 8, r: 3 * flicker, glow: this.sun ? 0.05 : 0.3, color: this.sun ? 0xffd84a : 0xff7a2a });
       lights.push({
         x: a.sprite.x, y: a.sprite.y - 8, r: this.light * flicker, glow: 0.16,
       });

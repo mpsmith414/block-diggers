@@ -217,6 +217,20 @@ export function createSfx(audio) {
       ['C5', 'E5', 'G5', 'E5', 'C6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.1, gain: 0.07, at: i * 0.09 }));
       noise({ dur: 0.3, gain: 0.1, freq: 6000, q: 0.7, type: 'highpass', at: 0.45 });
     },
+    // the Sun: a solar flare's rising hum and shimmer, and fireworks
+    hum() {
+      tone({ type: 'sine', freq: 220, to: 660, dur: 1.8, gain: 0.07, attack: 0.3 });
+      tone({ type: 'triangle', freq: 330, to: 990, dur: 1.8, gain: 0.03, attack: 0.3 });
+    },
+    shimmer() {
+      ['C6', 'E6', 'G6', 'C7', 'G6', 'E6', 'C7'].forEach((n, i) => tone({ type: 'sine', freq: noteFreq(n), dur: 0.35, gain: 0.05, at: i * 0.07 }));
+      noise({ dur: 1.2, gain: 0.05, freq: 5000, q: 0.7, type: 'highpass' });
+    },
+    firework() {
+      tone({ type: 'sine', freq: 300, to: 1200, dur: 0.35, gain: 0.04 });
+      noise({ dur: 0.5, gain: 0.16, freq: 2500, to: 500, q: 0.6, type: 'lowpass', at: 0.35 });
+      noise({ dur: 0.8, gain: 0.05, freq: 7000, q: 0.7, type: 'highpass', at: 0.4 });
+    },
     // Mars: the storm's whistle and wind, a geyser, an old rover waking up, a vault door
     whistle() {
       tone({ type: 'sine', freq: 700, to: 1300, dur: 0.6, gain: 0.05 });

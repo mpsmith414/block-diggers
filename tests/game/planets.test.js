@@ -10,7 +10,7 @@ describe('the planets', () => {
     expect(planetById('moon').suit).toBe('helmet');
     expect(planetById('earth').comingSoon).toBeFalsy();
     expect(planetById('moon').comingSoon).toBeFalsy();
-    expect(planetById('sun').comingSoon).toBe(true);
+    expect(planetById('sun').comingSoon).toBeFalsy();
     expect(planetById('dino').comingSoon).toBeFalsy();
     expect(planetById('saturn').comingSoon).toBeFalsy();
     expect(planetById('mars').comingSoon).toBeFalsy();

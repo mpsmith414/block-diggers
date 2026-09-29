@@ -6,7 +6,7 @@ import { layersReached } from '../game/trip.js';
 import { MOON_PLOTS } from '../game/economy.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 8;
+export const VERSION = 9;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -30,7 +30,8 @@ export function defaultState() {
     visitors: { met: [], requests: {}, seen: [] },
     // the planets: where you are, each planet's camp, and the Sun Suit pieces you have
     planet: 'earth',
-    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) } },
+    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(MOON_PLOTS).fill(null) } },
+    sunHeart: false, // the finale: the Sun's Heart came home (a mini-sun over Earth camp)
     suit: [],
   };
 }
@@ -67,6 +68,10 @@ export function migrate(raw) {
     // Dino Planet: the same
     s = { ...s, version: 8 };
   }
+  if (s.version === 8) {
+    // the Sun: the same (and sunHeart starts false)
+    s = { ...s, version: 9 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -88,6 +93,7 @@ export function migrate(raw) {
       mars: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.mars?.plots?.[i] || null) },
       saturn: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.saturn?.plots?.[i] || null) },
       dino: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.dino?.plots?.[i] || null) },
+      sun: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.sun?.plots?.[i] || null) },
     },
     suit: [...new Set(s.suit || [])],
   };

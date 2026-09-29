@@ -80,8 +80,8 @@ export function createPetsView(scene, kinds) {
     },
     // extra light from the glow-bug
     lights() {
-      return pets.filter((p) => p.kind === 'glowbug' && p.placed)
-        .map((p) => ({ x: p.pos.x, y: p.pos.y, r: PETS.bugLight, glow: 0.22, color: 0xffe066 }));
+      return pets.filter((p) => (p.kind === 'glowbug' || p.kind === 'sundragon') && p.placed)
+        .map((p) => ({ x: p.pos.x, y: p.pos.y, r: p.kind === 'sundragon' ? 2.5 : PETS.bugLight, glow: p.kind === 'sundragon' ? 0.08 : 0.22, color: p.kind === 'sundragon' ? 0xffb040 : 0xffe066 }));
     },
     magnet: () => (kinds.includes('batbuddy') ? 2 : 1),
 

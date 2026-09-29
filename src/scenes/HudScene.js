@@ -30,6 +30,7 @@ export class HudScene extends Phaser.Scene {
   create() {
     this.panels = [];
     if (this.source.storm) this.buildStorm();
+    if (this.source.flare) this.buildFlare();
     this.buildDepthMeter();
   }
 
@@ -70,6 +71,40 @@ export class HudScene extends Phaser.Scene {
       this.sock.setScale(dir * (2.2 + (warn ? Math.abs(Math.sin(time / 120)) * 0.5 : 0)), 2.2)
         .setAngle(warn ? Math.sin(time / 70) * 14 : Math.sin(time / 50) * 4)
         .setAlpha(warn && Math.floor(time / 250) % 2 ? 0.6 : 1);
+    }
+  }
+
+  // Solar flares: the screen glows gold, sparkles fall, and a pulsing sun
+  // by the depth meter warns you one is coming.
+  buildFlare() {
+    const W = this.scale.width;
+    const H = this.scale.height;
+    this.glow = this.add.rectangle(0, 0, W, H, 0xffc040, 0).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD);
+    this.sparks = Array.from({ length: 70 }, (_, i) => this.add.image(Math.random() * W, Math.random() * H, 'pixel')
+      .setTint([0xffffff, 0xfff2a0, 0xffd84a, 0xffb040][i % 4]).setDisplaySize(i % 3 ? 2 : 3, i % 3 ? 2 : 3).setAlpha(0));
+    this.flareIcon = this.add.image(W - 40, 62, 'icon-flare').setScale(2.4).setVisible(false);
+    this.flareLevel = 0;
+  }
+
+  updateFlare(dt, time) {
+    const s = this.source.flare;
+    if (!s || !this.sparks) return;
+    const target = s.phase === 'blow' ? 1 : s.phase === 'warn' ? 0.25 : 0;
+    this.flareLevel += (target - this.flareLevel) * Math.min(1, dt * 2);
+    const level = this.flareLevel;
+    const H = this.scale.height;
+    this.glow.setAlpha(level * (0.3 + Math.sin(time / 180) * 0.05));
+    this.sparks.forEach((p, i) => {
+      p.y += (40 + (i % 5) * 25) * dt;
+      p.x += Math.sin(time / 300 + i) * 0.3;
+      if (p.y > H + 4) p.y = -4;
+      p.setAlpha(Math.min(1, level * (0.5 + (i % 3) * 0.25)));
+    });
+    const show = s.phase !== 'calm';
+    this.flareIcon.setVisible(show);
+    if (show) {
+      const warn = s.phase === 'warn';
+      this.flareIcon.setScale(2.4 + (warn ? Math.abs(Math.sin(time / 120)) * 0.8 : Math.sin(time / 200) * 0.2)).setAngle(time / 20);
     }
   }
 
@@ -198,6 +233,12 @@ export class HudScene extends Phaser.Scene {
       swamp: { rock: B.SWAMP_MUD, ore: B.TOOTH, creature: 'frog', color: 0x6a8a3a },
       lavalands: { rock: B.VOLCANIC, ore: B.OBSIDIAN, creature: 'beetle', color: 0xe04a2a },
       dinocore: { rock: B.DINO_CORE, ore: B.DINO_HEART, creature: 'moth', color: 0xffd84a },
+      corona: { rock: B.CORONA_ROCK, ore: B.SUNSTONE, creature: 'fairy', color: 0xf0a830 },
+      sunspots: { rock: B.SUNSPOT_ROCK, ore: B.FLARE, creature: 'shadow', color: 0x8a4a2a },
+      plasmasea: { rock: B.PLASMA_ROCK, ore: B.PLASMA, creature: 'plasmajelly', color: 0xd85a90 },
+      radiance: { rock: B.RADIANT_ROCK, ore: B.NOVA, creature: 'sunbunny', color: 0xe8d090 },
+      fusion: { rock: B.FUSION_ROCK, ore: B.NOVA, creature: 'sparky', color: 0xe87028 },
+      suncore: { rock: B.SUN_CORE, ore: B.SUN_HEART, creature: 'sparky', color: 0xffd84a },
     }[layer];
     if (!LOOK) return;
     const w = 190;
@@ -293,6 +334,7 @@ export class HudScene extends Phaser.Scene {
 
   update(time, delta) {
     this.updateStorm(delta / 1000, time);
+    this.updateFlare(delta / 1000, time);
     this.updateDepthMeter(time);
     this.updateGoal(delta / 1000, time);
     for (const a of this.source.avatars) {

@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 190 unique stickers over 19 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(19);
-    expect(ALL_STICKERS).toHaveLength(190);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(190);
+  it('has 221 unique stickers over 22 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(22);
+    expect(ALL_STICKERS).toHaveLength(221);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(221);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -94,5 +94,16 @@ describe('the Dino Planet stickers', () => {
     expect(byName.dinocamp).toHaveLength(12);
     expect(byName.dinocamp).toEqual(expect.arrayContaining(['bld-nursery', 'bld-treehouse', 'bld-pteroperch', 'bld-sunrocket', 'find-dinoheart', 'suit-jetpack', 'pet-longneck', 'find-stego', 'dino-ride', 'trip-dinobase']));
     expect(byName.journey2.slice(6)).toEqual(['badge-jungle', 'badge-bonebeds', 'badge-swamp', 'badge-lavalands', 'badge-dinocore', 'dino-jetfly']);
+  });
+});
+
+describe('the Sun stickers', () => {
+  it('the Sun has 12, Solar Station 12, and Journey 3 the Sun badges and the whole suit', () => {
+    const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
+    expect(byName.sun).toHaveLength(12);
+    expect(byName.sun).toEqual(expect.arrayContaining(['ore-sunstone', 'ore-flare', 'ore-plasma', 'ore-nova', 'creature-fairy', 'creature-shadow', 'creature-plasmajelly', 'creature-sunbunny', 'creature-sparky', 'find-fireflower', 'find-forge', 'sun-flare']));
+    expect(byName.solarstation).toHaveLength(12);
+    expect(byName.solarstation).toEqual(expect.arrayContaining(['bld-sunflowers', 'bld-sundial', 'bld-sunbeam', 'bld-hall', 'find-sunheart', 'pet-sundragon', 'sun-finale', 'sun-crown', 'sun-minisun', 'trip-sunbase']));
+    expect(byName.journey3).toEqual(['badge-corona', 'badge-sunspots', 'badge-plasmasea', 'badge-radiance', 'badge-fusion', 'badge-suncore', 'sun-fullsuit']);
   });
 });

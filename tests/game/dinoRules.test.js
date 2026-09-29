@@ -20,14 +20,13 @@ const withDino = (plots, extra = {}) => ({ ...defaultState(), bases: { ...defaul
 const rich = () => ({ ...defaultState(), bank: { ...defaultState().bank, jade: 99, bone: 99, tooth: 99, obsidian: 99 } });
 
 describe('Dino Planet', () => {
-  it('is open now (the Sun is coming soon), with the Jetpack at its bottom', () => {
+  it('is open, with the Jetpack at its bottom', () => {
     const d = planetById('dino');
     expect(d.comingSoon).toBeFalsy();
     expect(d.suit).toBe('jetpack');
     expect(d.ores).toEqual(['jade', 'bone', 'tooth', 'obsidian']);
     expect(d.camp).toBe(DINO_CAMP);
     expect(d.heart).toBe('dino');
-    expect(planetById('sun').comingSoon).toBe(true);
   });
 
   it('has five layers of fifty rows (no clash with Earth’s dino layer)', () => {
@@ -39,19 +38,19 @@ describe('Dino Planet', () => {
     for (const id of Object.keys(DINO_LAYERS)) expect(LAYER_COLORS[id]).toBeTypeOf('number');
   });
 
-  it('the Dino Rocket opens Dino Planet; the Sun Rocket makes the Sun "coming soon"', () => {
+  it('the Dino Rocket opens Dino Planet; the Sun Rocket opens the Sun', () => {
     const base = { plots: ['rocket'], suit: [], bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: [null, null, null, 'saturnrocket'] }, saturn: { plots: [null, null, null, 'dinorocket'] }, dino: { plots: [null, null, null, null] } } };
     const status = (st, here) => Object.fromEntries(starMapStops(st, here).map((x) => [x.id, x.status]));
     expect(status(base, 'saturn').dino).toBe('open');
     expect(status(base, 'saturn').sun).toBe('locked');
     const t = { ...base, bases: { ...base.bases, dino: { plots: [null, null, null, 'sunrocket'] } } };
-    expect(status(t, 'dino')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'open', dino: 'here', sun: 'soon' });
+    expect(status(t, 'dino')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'open', dino: 'here', sun: 'open' });
   });
 });
 
 describe('Dino ores and tools', () => {
   it('four Dino ores join the list', () => {
-    expect(ORES.slice(20)).toEqual(['jade', 'bone', 'tooth', 'obsidian']);
+    expect(ORES.slice(20, 24)).toEqual(['jade', 'bone', 'tooth', 'obsidian']);
     expect(dropOf(B.JADE)).toBe('jade');
     expect(dropOf(B.BONE)).toBe('bone');
     expect(dropOf(B.TOOTH)).toBe('tooth');
@@ -80,7 +79,7 @@ describe('Dino ores and tools', () => {
   });
 
   it('drills 15-17 and the eighth backpack and lantern cost Dino ores', () => {
-    expect(UPGRADES.pick.slice(14)).toEqual([{ jade: 45, bone: 35 }, { tooth: 45, jade: 45 }, { obsidian: 55, tooth: 45 }]);
+    expect(UPGRADES.pick.slice(14, 17)).toEqual([{ jade: 45, bone: 35 }, { tooth: 45, jade: 45 }, { obsidian: 55, tooth: 45 }]);
     expect(UPGRADES.pack[7]).toEqual({ jade: 55, bone: 55 });
     expect(UPGRADES.lantern[7]).toEqual({ tooth: 40, jade: 35 });
   });
@@ -97,7 +96,7 @@ describe('Dino creatures, trips and treasure', () => {
   });
 
   it('every Dino layer gets a banner and a badge, after the Saturn ones', () => {
-    expect(BADGE_LAYERS.slice(19)).toEqual(['jungle', 'bonebeds', 'swamp', 'lavalands', 'dinocore']);
+    expect(BADGE_LAYERS.slice(19, 24)).toEqual(['jungle', 'bonebeds', 'swamp', 'lavalands', 'dinocore']);
     expect(discovery(160, [], 'dino')).toBe('lavalands');
   });
 

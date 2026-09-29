@@ -79,6 +79,9 @@ export class TitleScene extends Phaser.Scene {
     this.add.image(446, 30, 'planet-saturn').setScale(0.5).setAlpha(0.85);
     // …and the little green Dino Planet
     this.add.image(468, 58, 'planet-dino').setScale(0.4).setAlpha(0.85);
+    // …and the Sun, glowing at the end of the journey
+    const sun = this.add.image(372, 22, 'planet-sun').setScale(0.45).setAlpha(0.9);
+    this.tweens.add({ targets: sun, scale: 0.5, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     const zoom = () => {
       const r = this.add.image(-10, 190, 'icon-rocket').setAngle(37).setDepth(2);
       this.tweens.add({

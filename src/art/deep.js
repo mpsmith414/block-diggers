@@ -7,6 +7,7 @@ import { drawMoonBadges } from './moonWorld.js';
 import { drawMarsBadges } from './marsWorld.js';
 import { drawSaturnBadges } from './saturnWorld.js';
 import { drawDinoBadges } from './dinoWorld.js';
+import { drawSunBadges } from './sunWorld.js';
 
 const OUT = '#2a1d2e';
 const BONE = '#efe4c8';
@@ -236,7 +237,7 @@ export function drawDeep(scene, canvasTexture, rect) {
 
   // layer badges: dino, brick, meteor, core
   {
-    const { tex, ctx } = canvasTexture(scene, 'badge', 384, 16);
+    const { tex, ctx } = canvasTexture(scene, 'badge', 480, 16);
     const ring = (ox, c, dark) => {
       ctx.fillStyle = '#ffd84a';
       ctx.beginPath(); ctx.arc(ox + 8, 8, 7.5, 0, Math.PI * 2); ctx.fill();
@@ -260,7 +261,8 @@ export function drawDeep(scene, canvasTexture, rect) {
     drawMarsBadges(ctx, rect, ring);
     drawSaturnBadges(ctx, rect, ring);
     drawDinoBadges(ctx, rect, ring);
-    for (let i = 0; i < 24; i++) tex.add(i, 0, i * 16, 0, 16, 16);
+    drawSunBadges(ctx, rect, ring);
+    for (let i = 0; i < 30; i++) tex.add(i, 0, i * 16, 0, 16, 16);
     tex.refresh();
   }
 }

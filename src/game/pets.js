@@ -11,7 +11,8 @@ export const MOON_KINDS = ['moonpup'];
 export const MARS_KINDS = ['rover'];
 export const SATURN_KINDS = ['yeti'];
 export const DINO_PLANET_KINDS = ['longneck'];
-export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS, ...DINO_PLANET_KINDS];
+export const SUN_KINDS = ['sundragon'];
+export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS, ...DINO_PLANET_KINDS, ...SUN_KINDS];
 // pets that walk along the ground (the rest fly)
 export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck'];
 

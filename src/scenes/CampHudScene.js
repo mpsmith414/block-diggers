@@ -9,8 +9,8 @@ import { layersOf } from '../game/planets.js';
 import { BADGE_LAYERS } from '../game/trip.js';
 
 // the elevator at each camp, and each Sun Suit piece's icon
-const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48], saturn: ['ski-chair', 2.5, -44, 30], dino: ['ptero-taxi', 1.8, -44, 36] };
-const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack' };
+const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48], saturn: ['ski-chair', 2.5, -44, 30], dino: ['ptero-taxi', 1.8, -44, 36], sun: ['sun-lift', 1.8, -44, 36] };
+const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack', sunHeart: 'sunheart-gem' };
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
 // and the blueprint / upgrade picker.
@@ -294,9 +294,10 @@ export class CampHudScene extends Phaser.Scene {
       const img = this.add.image(midX, y + 8, `bld-${opt.id}`).setOrigin(0.5, 0).setScale(0.8);
       if (!opt.affordable) img.setTint(0xb0a090).setAlpha(0.7);
       c.add(img);
-      // it also needs a Sun Suit piece: shown next to it, lit once you have it
+      // it also needs a Sun Suit piece (or the Sun's Heart): shown next to it, lit once you have it
       if (opt.needs) {
-        const have = (getState(this.registry).suit ?? []).includes(opt.needs);
+        const st = getState(this.registry);
+        const have = opt.needs === 'sunHeart' ? !!st.sunHeart : (st.suit ?? []).includes(opt.needs);
         const bx = x + w - 26;
         c.add(this.add.circle(bx, y + 24, 13, have ? 0x9ae67a : 0xd8c49a));
         const piece = this.add.image(bx, y + 24, SUIT_ICON[opt.needs] ?? 'suit-helmet-icon').setScale(1.8);
