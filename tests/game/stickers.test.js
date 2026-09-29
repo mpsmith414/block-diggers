@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 101 unique stickers over 12 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(12);
-    expect(ALL_STICKERS).toHaveLength(101);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(101);
+  it('has 130 unique stickers over 14 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(14);
+    expect(ALL_STICKERS).toHaveLength(130);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(130);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -55,11 +55,22 @@ describe('the Silly page', () => {
 });
 
 describe('the Moon stickers', () => {
-  it('Space has 12, Moon Base 12 and Journey 7', () => {
+  it('Space has 12, Moon Base 12, and Journey starts with the Moon’s 7', () => {
     const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
     expect(byName.space).toHaveLength(12);
     expect(byName.space).toContain('ore-cheese'); // cheese is an ore now: its sticker shows it in the HUD
     expect(byName.moonbase).toEqual(expect.arrayContaining(['bld-marsrocket', 'suit-helmet', 'pet-moonpup', 'find-moonheart']));
-    expect(byName.journey).toEqual(['badge-craters', 'badge-cheesecaves', 'badge-mooncrystal', 'badge-alienbase', 'badge-mooncore', 'trip-moonbase', 'trip-starmap']);
+    expect(byName.journey.slice(0, 7)).toEqual(['badge-craters', 'badge-cheesecaves', 'badge-mooncrystal', 'badge-alienbase', 'badge-mooncore', 'trip-moonbase', 'trip-starmap']);
+  });
+});
+
+describe('the Mars stickers', () => {
+  it('Mars has 12, Mars Base 12, and Journey grows to 12 with the Mars badges', () => {
+    const byName = Object.fromEntries(STICKER_PAGES.map((p) => [p.name, p.stickers.map((st) => st.id)]));
+    expect(byName.mars).toHaveLength(12);
+    expect(byName.mars).toEqual(expect.arrayContaining(['ore-ruby', 'ore-bolt', 'ore-opal', 'ore-coin', 'creature-dustbunny', 'creature-crab', 'creature-newt', 'creature-martian', 'creature-ember', 'find-rover', 'find-geyser', 'find-vault']));
+    expect(byName.marsbase).toHaveLength(12);
+    expect(byName.marsbase).toEqual(expect.arrayContaining(['bld-robotfactory', 'bld-weather', 'bld-garage', 'bld-saturnrocket', 'find-marsheart', 'suit-boots', 'pet-rover', 'mars-storm', 'trip-marsbase']));
+    expect(byName.journey.slice(7)).toEqual(['badge-dunes', 'badge-rovers', 'badge-volcano', 'badge-ruins', 'badge-marscore']);
   });
 });

@@ -1,4 +1,4 @@
-// The sticker book: 101 things to find, on 12 pages. A full page earns a trophy.
+// The sticker book: 130 things to find, on 14 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 
@@ -63,6 +63,20 @@ export const STICKER_PAGES = [
     ['badge-craters', 'badge', 4], ['badge-cheesecaves', 'badge', 5], ['badge-mooncrystal', 'badge', 6],
     ['badge-alienbase', 'badge', 7], ['badge-mooncore', 'badge', 8],
     ['trip-moonbase', 'icon-moonbase'], ['trip-starmap', 'icon-starmap'],
+    ['badge-dunes', 'badge', 9], ['badge-rovers', 'badge', 10], ['badge-volcano', 'badge', 11],
+    ['badge-ruins', 'badge', 12], ['badge-marscore', 'badge', 13],
+  ]),
+  page('mars', 'planet-mars', [
+    ['ore-ruby', 'ore-ruby'], ['ore-bolt', 'ore-bolt'], ['ore-opal', 'ore-opal'], ['ore-coin', 'ore-coin'],
+    ['creature-dustbunny', 'dustbunny'], ['creature-crab', 'crab'], ['creature-newt', 'newt'],
+    ['creature-martian', 'martian'], ['creature-ember', 'ember'],
+    ['find-rover', 'oldrover'], ['find-geyser', 'tiles', B.GEYSER], ['find-vault', 'tiles', B.GLYPH],
+  ]),
+  page('marsbase', 'bld-saturnrocket', [
+    ['bld-robotfactory', 'bld-robotfactory'], ['bld-weather', 'bld-weather'], ['bld-garage', 'bld-garage'],
+    ['bld-saturnrocket', 'bld-saturnrocket'], ['find-marsheart', 'marsheart-gem'], ['suit-boots', 'suit-boots'],
+    ['pet-rover', 'pet-rover'], ['mars-storm', 'icon-windsock'], ['mars-flag', 'mars-flag'],
+    ['mars-moons', 'mars-moons'], ['mars-windsock', 'mars-windsock'], ['trip-marsbase', 'icon-marsbase'],
   ]),
 ];
 
