@@ -20,6 +20,8 @@ import { drawMoonWorld, drawMoonTiles, drawMoonBacks, drawMoonOreIcon } from './
 import { drawMoonBase } from './moonBase.js';
 import { drawMarsWorld, drawMarsTiles, drawMarsBacks, drawMarsOreIcon } from './marsWorld.js';
 import { drawMarsBase } from './marsBase.js';
+import { drawSaturnWorld, drawSaturnTiles, drawSaturnBacks, drawSaturnOreIcon } from './saturnWorld.js';
+import { drawSaturnBase } from './saturnBase.js';
 
 const T = 16;
 
@@ -40,6 +42,10 @@ export const ORE_COLORS = {
   bolt: ['#c0c8d8', '#e8ecf4'],
   opal: ['#ff8a2a', '#5ae0d0'],
   coin: ['#ffd84a', '#fff2a0'],
+  frost: ['#5ae0ff', '#ffffff'],
+  icecream: ['#ff8ab8', '#ffd0e4'],
+  pearl: ['#ffe8f4', '#ffffff'],
+  comet: ['#4a8aff', '#c8e0ff'],
 };
 
 // Background (back wall) tiles live after the block tiles in the tileset.
@@ -48,8 +54,9 @@ export const BACK = {
   dino: BLOCK_COUNT + 4, brick: BLOCK_COUNT + 5, meteor: BLOCK_COUNT + 6, core: BLOCK_COUNT + 7, moon: BLOCK_COUNT + 8,
   craters: BLOCK_COUNT + 9, cheesecaves: BLOCK_COUNT + 10, mooncrystal: BLOCK_COUNT + 11, alienbase: BLOCK_COUNT + 12, mooncore: BLOCK_COUNT + 13,
   dunes: BLOCK_COUNT + 14, rovers: BLOCK_COUNT + 15, volcano: BLOCK_COUNT + 16, ruins: BLOCK_COUNT + 17, marscore: BLOCK_COUNT + 18,
+  rings: BLOCK_COUNT + 19, icecream: BLOCK_COUNT + 20, aurora: BLOCK_COUNT + 21, comets: BLOCK_COUNT + 22, saturncore: BLOCK_COUNT + 23,
 };
-const TILE_FRAMES = BLOCK_COUNT + 19;
+const TILE_FRAMES = BLOCK_COUNT + 24;
 
 const HOSTS = {
   [B.DIRT]: { base: '#8a5a34', dark: '#6b4424', light: '#a3703f' },
@@ -236,6 +243,8 @@ function drawTiles(scene) {
   drawMoonTiles(ctx, at, createRng(777), B, rect, speckle);
   // and Mars's (its own stream too)
   drawMarsTiles(ctx, at, createRng(888), B, rect, speckle);
+  // and Saturn's
+  drawSaturnTiles(ctx, at, createRng(999), B, rect, speckle);
 
   // back walls: darker, low-contrast versions of each host rock
   const back = (frame, pal) => {
@@ -262,6 +271,7 @@ function drawTiles(scene) {
   back(BACK.moon, { base: '#44445a', dark: '#383848', light: '#50506a' });
   drawMoonBacks(ctx, rect, back, BACK);
   drawMarsBacks(ctx, rect, back, BACK);
+  drawSaturnBacks(ctx, rect, back, BACK);
 
   const P = T + TILE_SPACING;
   const { tex, ctx: out } = canvasTexture(scene, 'tiles', TILE_MARGIN * 2 + P * TILE_FRAMES - TILE_SPACING, T + TILE_MARGIN * 2);
@@ -433,7 +443,7 @@ function drawOreIcons(scene) {
     const { tex, ctx } = canvasTexture(scene, `ore-${ore}`, S, S);
     const [c, hi] = ORE_COLORS[ore];
     const shade = 'rgba(0,0,0,0.35)';
-    if (drawMoonOreIcon(ctx, rect, ore) || drawMarsOreIcon(ctx, rect, ore)) {
+    if (drawMoonOreIcon(ctx, rect, ore) || drawMarsOreIcon(ctx, rect, ore) || drawSaturnOreIcon(ctx, rect, ore)) {
       // drawn
     } else if (ore === 'amber') {
       // a honey-coloured drop with a tiny bug inside
@@ -682,4 +692,6 @@ export function drawTextures(scene) {
   drawMoonBase(scene, canvasTexture, rect);
   drawMarsWorld(scene, canvasTexture, rect);
   drawMarsBase(scene, canvasTexture, rect);
+  drawSaturnWorld(scene, canvasTexture, rect);
+  drawSaturnBase(scene, canvasTexture, rect);
 }
