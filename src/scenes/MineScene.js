@@ -688,11 +688,11 @@ export class MineScene extends Phaser.Scene {
   // A dino ride: you sit up on the parasaur's back while it runs.
   drawMount(a, time) {
     if (a.pu.ride > 0 && !a.bubbling) {
-      if (!a.mount) a.mount = this.add.sprite(0, 0, 'parasaur', 0).setOrigin(0.5, 1).setDepth(29).setScale(0.8);
+      if (!a.mount) a.mount = this.add.sprite(0, 0, 'parasaur', 0).setOrigin(0.5, 1).setDepth(29);
       const s = a.sprite;
       a.mount.setVisible(true).setPosition(s.x, s.y + 1).setFlipX(a.p.facing < 0)
         .setFrame(a.p.vx !== 0 && a.p.grounded ? Math.floor(time / 130) % 2 : 0);
-      s.y -= 10;
+      s.y -= 12;
     } else if (a.mount) {
       a.mount.setVisible(false);
     }
@@ -712,7 +712,7 @@ export class MineScene extends Phaser.Scene {
   // The ride is over: you hop off, and the parasaur trots away.
   dismount(a) {
     const s = a.sprite;
-    const dino = this.add.sprite(s.x, s.y + 1, 'parasaur', 0).setOrigin(0.5, 1).setDepth(28).setScale(0.8).setFlipX(a.p.facing > 0);
+    const dino = this.add.sprite(s.x, s.y + 1, 'parasaur', 0).setOrigin(0.5, 1).setDepth(28).setFlipX(a.p.facing > 0);
     const away = a.p.facing > 0 ? -1 : 1;
     this.tweens.add({ targets: dino, x: dino.x + away * 70, duration: 1400, onUpdate: () => dino.setFrame(Math.floor(this.time.now / 130) % 2) });
     this.tweens.add({ targets: dino, alpha: 0, delay: 900, duration: 500, onComplete: () => dino.destroy() });

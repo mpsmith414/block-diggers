@@ -85,9 +85,8 @@ export function drawDinoTiles(ctx, at, rng, B, rect, speckle) {
   const volcanic = (id) => {
     speckle(ctx, at(id), rng, DINO_HOSTS.volcanic, 5);
     const ox = at(id);
-    rect(ctx, '#c83a1a', ox + 3, 5, 3, 1);
-    rect(ctx, '#c83a1a', ox + 5, 6, 1, 2);
-    rect(ctx, '#ff8a2a', ox + 5, 6, 1, 1);
+    rect(ctx, '#6a2418', ox + 3, 5, 3, 1);
+    rect(ctx, '#6a2418', ox + 5, 6, 1, 2);
   };
   volcanic(B.VOLCANIC);
   // obsidian: glossy black-purple shards
@@ -155,7 +154,7 @@ export function drawDinoOreIcon(ctx, rect, ore) {
       '.owwwwwwo.',
       'owwo..owwo',
       '.oo....oo.',
-    ], { o: '#6a5a40', w: '#fff8e8' });
+    ], { o: '#5a4a30', w: '#f0e0c0' });
     return true;
   }
   if (ore === 'tooth') {
@@ -169,7 +168,7 @@ export function drawDinoOreIcon(ctx, rect, ore) {
       '..owwso...',
       '...owo....',
       '....o.....',
-    ], { o: OUT, w: '#fff4d8', s: '#e0d0a8' });
+    ], { o: OUT, w: '#f0dca0', s: '#c8a868' });
     return true;
   }
   if (ore === 'obsidian') {
@@ -450,6 +449,18 @@ export function drawDinoWorld(scene, canvasTexture, rect) {
       rect(ctx, '#ffd84a', ox + 3, 10, 1, 2);
       tex.add(f, 0, ox, 0, 16, 16);
     }
+  });
+
+  // the Jetpack's icon (12x12, for the star map, pickers and stickers): a red
+  // tank with gold straps and a flame, the same as the one the characters wear
+  one('suit-jetpack', 12, 12, (ctx) => {
+    rect(ctx, OUT, 3, 0, 6, 8);
+    rect(ctx, '#e0503a', 4, 1, 4, 6);
+    rect(ctx, '#ff8a6a', 4, 1, 1, 2);
+    rect(ctx, '#ffd84a', 4, 3, 4, 1);
+    rect(ctx, '#c0c8d8', 4, 7, 4, 1);
+    rect(ctx, '#ffb34a', 4, 8, 4, 2);
+    rect(ctx, '#ffe066', 5, 10, 2, 2);
   });
 
   // icons: riding a dino, flying with the Jetpack, Dino Camp, the flag, the volcano

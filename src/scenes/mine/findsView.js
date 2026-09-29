@@ -72,7 +72,7 @@ export function createFindsView(scene) {
   // Dino Planet: parasaurs to ride, nests, the T-rex skull and the sleeping stego
   const parasaurs = (world.parasaurs ?? []).map((p, i) => ({
     ...p, used: false, home: (p.x + 1.5) * TILE, dir: i % 2 ? -1 : 1, t: Math.random() * 3,
-    s: scene.add.sprite((p.x + 1.5) * TILE, (p.y + 1) * TILE, 'parasaur', 0).setOrigin(0.5, 1).setDepth(9).setScale(0.8),
+    s: scene.add.sprite((p.x + 1.5) * TILE, (p.y + 1) * TILE, 'parasaur', 0).setOrigin(0.5, 1).setDepth(9),
   }));
   const nests = (world.nests ?? []).map((n) => ({
     ...n, open: false, s: scene.add.sprite((n.x + 1.5) * TILE, (n.y + 1) * TILE, 'dinonest', 0).setOrigin(0.5, 1).setDepth(9),
@@ -268,9 +268,9 @@ export function createFindsView(scene) {
       p.t -= dt;
       if (p.t <= 0) { p.t = 1.5 + Math.random() * 2; p.dir = Math.random() < 0.3 ? 0 : (Math.random() < 0.5 ? -1 : 1); }
       const nx = p.s.x + p.dir * 12 * dt;
-      if (Math.abs(nx - p.home) < 18) p.s.x = nx; else p.dir = -p.dir;
+      if (Math.abs(nx - p.home) < 20) p.s.x = nx; else p.dir = -p.dir;
       p.s.setFlipX(p.dir < 0).setFrame(p.dir ? Math.floor(time / 180) % 2 : 0);
-      const box = { x: p.s.x - 10, y: p.s.y - 18, w: 20, h: 18 };
+      const box = { x: p.s.x - 12, y: p.s.y - 22, w: 24, h: 22 };
       const rider = players().find((a) => !a.bubbling && a.pu.ride <= 0 && overlaps(boxOf(a), box));
       if (rider && scene.mount(rider)) {
         p.used = true;

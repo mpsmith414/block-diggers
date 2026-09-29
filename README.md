@@ -64,7 +64,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   Saturn, Dino Planet, the Sun. The **star map** (A at any rocket) shows the
   path, the planets you can fly to, padlocks on the rest, and the **Sun Suit**
   piece hidden at the bottom of each planet. Collect all four pieces to land on
-  the Sun. Dino Planet says "coming soon" for now: one new planet per update.
+  the Sun. The Sun says "coming soon" for now: it is the finale, next update.
 - **The Moon** (planet 1) has low gravity everywhere and five layers under its
   own camp:
   - **Crater Plains:** moonstone, moon blobs, meteorites;
@@ -133,7 +133,26 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Dino Rocket:** needs the Gloves; Dino Planet is "coming soon".
 - **The Yeti Cub** digs with you: when you dig sideways, it digs the block
   above too, so your tunnels come out tall.
-- **Sticker book:** 160 stickers on 17 pages, and a trophy for each full page. Open
+- **Dino Planet** (planet 4) has **living dinosaurs**. Its five layers:
+  - **Fern Jungle:** jade, dragonflies, and friendly **parasaurs**: walk into
+    one to hop on and **ride** it (faster, higher jumps, and creatures scatter);
+  - **Bone Beds:** dino bones, baby raptors, **nests** whose eggs hatch into
+    babies that toss you treasure, and the **Longneck**'s egg;
+  - **Swamp:** T-rex teeth, frogs, pools, and a **giant T-rex skull** whose jaw
+    drops open full of teeth;
+  - **Lava Lands:** obsidian, fire beetles, lava, and a **sleeping
+    Stegosaurus** that wakes up and shakes obsidian off its back;
+  - **Dino Core:** glow moths and the **Dino Heart**. Bring it home for the
+    **Jetpack**, the last Sun Suit piece: hold jump in the air to fly.
+
+  New drills: Jungle Drill, Tooth Drill, Obsidian Drill.
+- **Dino Camp**: jungle, tree ferns, a smoking volcano, and four buildings:
+  - **Dino Nursery:** 3 jade every trip;
+  - **Treehouse:** chests show on the depth meter;
+  - **Ptero Perch:** a pterodactyl flies you down (the elevator);
+  - **Sun Rocket:** needs the Jetpack; the Sun is "coming soon".
+- **The Longneck** gives you a boost: step up ledges two blocks high.
+- **Sticker book:** 190 stickers on 19 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.
