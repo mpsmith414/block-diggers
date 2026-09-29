@@ -151,3 +151,18 @@ describe('spawnSpot', () => {
     }
   });
 });
+
+describe('the skate park keeps creatures out', () => {
+  it('never spawns a creature inside a keep-out room', async () => {
+    const { spawnSpot } = await import('../../src/game/hazards.js');
+    const { generateMoon } = await import('../../src/world/moon.js');
+    const { createRng } = await import('../../src/world/rng.js');
+    const w = generateMoon(5);
+    const p = w.skatepark;
+    const rng = createRng(9);
+    for (let i = 0; i < 200; i++) {
+      const spot = spawnSpot(w.grid, rng, { walker: i % 2 === 0, near: { cx: 38, cy: p.floor - 3 }, planet: 'moon', keepOut: p });
+      if (spot) expect(spot.cx >= p.x0 && spot.cx <= p.x1 && spot.cy >= p.top && spot.cy <= p.floor).toBe(false);
+    }
+  });
+});

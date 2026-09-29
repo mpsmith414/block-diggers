@@ -196,7 +196,7 @@ describe('the Moon Skate Park', () => {
   it('has a big skate park beside the Moon Heart, open to its chamber, with nothing in it', () => {
     for (const w of moons) {
       const p = w.skatepark;
-      expect(p).toEqual({ x0: 30, x1: 46, top: MOON_H - 14, floor: MOON_H - 2 });
+      expect(p).toEqual({ x0: 30, x1: 46, top: MOON_H - 17, floor: MOON_H - 2 });
       for (let y = p.top; y < p.floor; y++) for (let x = p.x0; x <= p.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
       for (let x = p.x0; x <= p.x1; x++) expect(w.grid.get(x, p.floor)).toBe(B.MOON_CORE);
       expect(w.grid.get(29, p.floor - 1)).toBe(B.AIR); // walk in from the Heart chamber

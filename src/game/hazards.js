@@ -164,7 +164,8 @@ export function creatureFor(row, planet = 'earth') {
 }
 
 // A spawn cell near `near`, in the same layer, for a walker (on a floor) or a flyer.
-export function spawnSpot(grid, rng, { walker, near, avoid, planet = 'earth' }) {
+// (`keepOut`: a room creatures never spawn in, like the Moon Skate Park)
+export function spawnSpot(grid, rng, { walker, near, avoid, planet = 'earth', keepOut = null }) {
   const layers = layersOf(planet);
   const layer = layers[layerOfRow(near.cy, planet)];
   const top = Math.max(layer.top, Object.values(layers)[0].top + 2);
@@ -174,6 +175,7 @@ export function spawnSpot(grid, rng, { walker, near, avoid, planet = 'earth' }) 
     const cy = near.cy + rng.int(-12, 12);
     if (cy < top || cy > bottom || !grid.inside(cx, cy)) continue;
     if (avoid && cx >= avoid.x0 && cx <= avoid.x1 && cy >= avoid.y0 && cy <= avoid.y1) continue;
+    if (keepOut && cx >= keepOut.x0 && cx <= keepOut.x1 && cy >= keepOut.top && cy <= keepOut.floor) continue;
     if (grid.get(cx, cy) !== B.AIR) continue;
     if (walker && !isSolid(grid.get(cx, cy + 1))) continue;
     if (!walker && (grid.get(cx, cy + 1) === B.LAVA || grid.get(cx, cy + 1) === B.WATER)) continue;

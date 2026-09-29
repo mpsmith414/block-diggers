@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { DECOR_ITEMS, buyDecor, takeFromStock, canPlace, placeDecor, pickUpDecor, decorById, decorUnlocked } from '../../src/game/decor.js';
+import { DECOR_ITEMS, buyDecor, takeFromStock, canPlace, placeDecor, pickUpDecor, decorById, TROPHY_COUNT, decorUnlocked } from '../../src/game/decor.js';
+import { STICKER_PAGES } from '../../src/game/stickers.js';
 import { defaultState } from '../../src/save/save.js';
 import { TILE, CAMP } from '../../src/tuning.js';
 
@@ -77,6 +78,7 @@ describe('brick decorations', () => {
     expect(decorUnlocked(s, 'lamp')).toBe(true);
   });
   it('a trophy for every sticker page', () => {
-    for (let i = 0; i < 10; i++) expect(decorById(`trophy-${i}`)).toBeTruthy();
+    for (let i = 0; i < STICKER_PAGES.length; i++) expect(decorById(`trophy-${i}`)).toBeTruthy();
+    expect(TROPHY_COUNT).toBe(STICKER_PAGES.length);
   });
 });

@@ -125,6 +125,12 @@ export const STICKER_PAGES = [
     ['badge-radiance', 'badge', 27], ['badge-fusion', 'badge', 28], ['badge-suncore', 'badge', 29],
     ['sun-fullsuit', 'icon-fullsuit'],
   ]),
+  // the Moon Skate Park: the park, your board, and every trick
+  page('skatepark', 'skateboard', [
+    ['skate-park', 'icon-skatepark'], ['skate-board', 'skateboard'],
+    ['trick-kickflip', 'trick-kickflip'], ['trick-spin360', 'trick-spin360'], ['trick-superman', 'trick-superman'],
+    ['trick-grab', 'trick-grab'], ['trick-handstand', 'trick-handstand'], ['trick-backflip', 'trick-backflip'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);
