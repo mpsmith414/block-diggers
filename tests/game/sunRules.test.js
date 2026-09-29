@@ -70,9 +70,9 @@ describe('Sun ores and tools', () => {
   it('a tenth backpack and lantern level, and drills 18-20', () => {
     expect(BACKPACK[9]).toBe(750);
     expect(LANTERN[9]).toBe(21);
-    expect(UPGRADES.pick.slice(17)).toEqual([{ sunstone: 45, flare: 35 }, { plasma: 45, sunstone: 45 }, { nova: 55, plasma: 45 }]);
-    expect(UPGRADES.pack[8]).toEqual({ sunstone: 55, flare: 55 });
-    expect(UPGRADES.lantern[8]).toEqual({ plasma: 40, sunstone: 35 });
+    expect(UPGRADES.pick.slice(17)).toEqual([{ sunstone: 45, flare: 35 }, { plasma: 40, sunstone: 40 }, { nova: 45, plasma: 40 }]);
+    expect(UPGRADES.pack[8]).toEqual({ sunstone: 45, flare: 45 });
+    expect(UPGRADES.lantern[8]).toEqual({ plasma: 30, sunstone: 25 });
   });
 });
 

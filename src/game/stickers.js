@@ -1,4 +1,4 @@
-// The sticker book: 190 things to find, on 19 pages. A full page earns a trophy.
+// The sticker book: 221 things to find, on 22 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 
@@ -107,6 +107,23 @@ export const STICKER_PAGES = [
     ['bld-sunrocket', 'bld-sunrocket'], ['find-dinoheart', 'dinoheart-gem'], ['suit-jetpack', 'suit-jetpack'],
     ['pet-longneck', 'pet-longneck'], ['find-stego', 'stego'], ['dino-ride', 'icon-ride'],
     ['dino-flag', 'dino-flag'], ['dino-volcano', 'dino-volcano'], ['trip-dinobase', 'icon-dinobase'],
+  ]),
+  page('sun', 'planet-sun', [
+    ['ore-sunstone', 'ore-sunstone'], ['ore-flare', 'ore-flare'], ['ore-plasma', 'ore-plasma'], ['ore-nova', 'ore-nova'],
+    ['creature-fairy', 'fairy'], ['creature-shadow', 'shadow'], ['creature-plasmajelly', 'plasmajelly'],
+    ['creature-sunbunny', 'sunbunny'], ['creature-sparky', 'sparky'],
+    ['find-fireflower', 'fireflower'], ['find-forge', 'forge'], ['sun-flare', 'icon-flare'],
+  ]),
+  page('solarstation', 'bld-hall', [
+    ['bld-sunflowers', 'bld-sunflowers'], ['bld-sundial', 'bld-sundial'], ['bld-sunbeam', 'bld-sunbeam'],
+    ['bld-hall', 'bld-hall'], ['find-sunheart', 'sunheart-gem'], ['pet-sundragon', 'pet-sundragon'],
+    ['sun-finale', 'trophy-big'], ['sun-crown', 'crown-icon'], ['sun-minisun', 'mini-sun'],
+    ['sun-flag', 'sun-flag'], ['sun-goldmonster', 'icon-goldmonster'], ['trip-sunbase', 'icon-sunbase'],
+  ]),
+  page('journey3', 'planet-sun', [
+    ['badge-corona', 'badge', 24], ['badge-sunspots', 'badge', 25], ['badge-plasmasea', 'badge', 26],
+    ['badge-radiance', 'badge', 27], ['badge-fusion', 'badge', 28], ['badge-suncore', 'badge', 29],
+    ['sun-fullsuit', 'icon-fullsuit'],
   ]),
 ];
 

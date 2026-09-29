@@ -3,10 +3,11 @@ import { generateMoon } from '../../src/world/moon.js';
 import { generateMars } from '../../src/world/mars.js';
 import { generateSaturn } from '../../src/world/saturn.js';
 import { generateDino } from '../../src/world/dinoworld.js';
+import { generateSun } from '../../src/world/sunworld.js';
 import { dropOf, isSolid } from '../../src/world/blocks.js';
-import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS } from '../../src/tuning.js';
+import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS, SUN_LAYERS } from '../../src/tuning.js';
 import { UPGRADE_KINDS, nextUpgrade, buyUpgrade, buildOnPlot, canAfford, blueprintsFor, plotsOf, blueprintOk } from '../../src/game/economy.js';
-import { campGift, winSuitPiece, hasSuit, packCap } from '../../src/game/perks.js';
+import { campGift, winSuitPiece, hasSuit, packCap, winSunHeart } from '../../src/game/perks.js';
 import { planetById, layerOfRow } from '../../src/game/planets.js';
 import { defaultState } from '../../src/save/save.js';
 
@@ -84,6 +85,27 @@ const PLANET = {
     heartLayer: 'dinocore',
     rocket: 'sunrocket',
   },
+  sun: {
+    generate: generateSun,
+    layers: SUN_LAYERS,
+    tier: { corona: 17, sunspots: 17, plasmasea: 18, radiance: 19, fusion: 19, suncore: 20 },
+    special: {
+      corona: { sunstone: 12 }, // a solar flare's shower
+      sunspots: { flare: 7 * 3, sunstone: 2 * 3 }, // three fire flowers
+      plasmasea: {},
+      radiance: {},
+      fusion: { nova: 7, plasma: 3 }, // the Solar Forge
+      suncore: {},
+    },
+    chest: { corona: 'sunstone', sunspots: 'flare', plasmasea: 'plasma', radiance: 'nova', fusion: 'nova', suncore: 'nova' },
+    start: { upgrades: { pick: 17, pack: 8, lantern: 8 }, suit: ['helmet', 'boots', 'gloves', 'jetpack'] },
+    heartLayer: 'suncore',
+    rocket: 'hall',
+    // the Sun's prize is the Heart itself (the finale), not a suit piece
+    prize: 'sunheart',
+    win: winSunHeart,
+    won: (s) => !!s.sunHeart,
+  },
 };
 
 function densities(planet) {
@@ -109,6 +131,9 @@ function densities(planet) {
 function play(planet) {
   const P = PLANET[planet];
   const { ores, suit: piece } = planetById(planet);
+  const win = P.win ?? ((st) => winSuitPiece(st, piece));
+  const won = P.won ?? ((st) => hasSuit(st, piece));
+  const prize = P.prize ?? piece;
   const dens = densities(planet);
   const blueprints = blueprintsFor(planet);
   let s = { ...defaultState(), ...P.start, plots: ['house', null, null, null, null, null, null, null, null] };
@@ -142,7 +167,7 @@ function play(planet) {
     // where to dig: the Heart once the best drill is in hand, else the layer for the scarcest ore we need
     let layer;
     const best = P.tier[P.heartLayer];
-    if (s.upgrades.pick >= best && !hasSuit(s, piece)) layer = P.heartLayer;
+    if (s.upgrades.pick >= best && !won(s)) layer = P.heartLayer;
     else {
       const short = {};
       for (const cost of needs()) for (const [o, n] of Object.entries(cost)) short[o] = (short[o] ?? 0) + Math.max(0, n - (s.bank[o] ?? 0));
@@ -161,7 +186,7 @@ function play(planet) {
     for (const o of Object.keys(gain)) if (total > cap) gain[o] = Math.floor((gain[o] * cap) / total);
     s = { ...s, bank: { ...s.bank } };
     for (const [o, n] of Object.entries(gain)) s.bank[o] = (s.bank[o] ?? 0) + n;
-    if (layer === P.heartLayer && s.upgrades.pick >= best && !hasSuit(s, piece)) { s = winSuitPiece(s, piece); log.push(`${trips}:${piece}`); }
+    if (layer === P.heartLayer && s.upgrades.pick >= best && !won(s)) { s = win(s); log.push(`${trips}:${prize}`); }
     s = campGift(s, planet).state;
   }
   return { trips, log, s };
@@ -213,6 +238,15 @@ describe('Dino Planet balance', () => {
     expect(trips).toBeGreaterThanOrEqual(12);
     expect(trips).toBeLessThanOrEqual(24);
     expect(order(log, /pick|jetpack|sunrocket/)).toEqual(['pick15', 'pick16', 'pick17', 'jetpack', 'sunrocket']);
+  });
+});
+
+describe('Sun balance', () => {
+  it('the victory lap: a bit shorter, drills in order, then the Heart and the Hall of Heroes', () => {
+    const { trips, log } = play('sun');
+    expect(trips).toBeGreaterThanOrEqual(12);
+    expect(trips).toBeLessThanOrEqual(20);
+    expect(order(log, /pick|sunheart|hall/)).toEqual(['pick18', 'pick19', 'pick20', 'sunheart', 'hall']);
   });
 });
 

@@ -44,10 +44,10 @@ Chests hold their layer's ore. The first visit to each layer gives a banner and 
 | Upgrade | New level | Cost |
 |---|---|---|
 | Pickaxe | **Sun Drill** (18) | 45 sunstone + 35 flare |
-|  | **Flare Drill** (19) | 45 plasma + 45 sunstone |
-|  | **Nova Drill** (20) | 55 nova + 45 plasma |
-| Backpack | 750 (level 9) | 55 sunstone + 55 flare |
-| Lantern | 21 (level 9) | 40 plasma + 35 sunstone |
+|  | **Flare Drill** (19) | 40 plasma + 40 sunstone |
+|  | **Nova Drill** (20) | 45 nova + 40 plasma |
+| Backpack | 750 (level 9) | 45 sunstone + 45 flare |
+| Lantern | 21 (level 9) | 30 plasma + 25 sunstone |
 
 The balance test aims for about 15–18 trips: the victory lap is a bit shorter than a planet.
 
@@ -57,10 +57,10 @@ The balance test aims for about 15–18 trips: the victory lap is a bit shorter 
 
 | Building | Cost | What it does |
 |---|---|---|
-| **Sunflower Garden** | 55 flare + 25 sunstone | giant sunflowers: **+3 sunstone** every trip home |
-| **Sundial Tower** | 55 sunstone + 20 plasma | shows every chest on the depth meter |
-| **Sunbeam Lift** | 40 nova + 40 plasma | the elevator: slide down a sunbeam to any layer you've reached |
-| **Hall of Heroes** | 60 nova + 55 plasma + 60 sunstone + **the Sun's Heart** | a golden hall with statues of every pet and suit piece. Press A inside to **replay the finale** |
+| **Sunflower Garden** | 40 flare + 20 sunstone | giant sunflowers: **+3 sunstone** every trip home |
+| **Sundial Tower** | 40 sunstone + 15 plasma | shows every chest on the depth meter |
+| **Sunbeam Lift** | 30 nova + 30 plasma | the elevator: slide down a sunbeam to any layer you've reached |
+| **Hall of Heroes** | 45 nova + 40 plasma + 45 sunstone + **the Sun's Heart** | a golden hall with statues of every pet and suit piece. Press A inside to **replay the finale** |
 
 ## 6. The Sun's Heart and the grand finale
 
