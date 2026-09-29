@@ -120,7 +120,7 @@ export const STICKER_PAGES = [
     ['sun-finale', 'trophy-big'], ['sun-crown', 'crown-icon'], ['sun-minisun', 'mini-sun'],
     ['sun-flag', 'sun-flag'], ['sun-goldmonster', 'icon-goldmonster'], ['trip-sunbase', 'icon-sunbase'],
   ]),
-  page('journey3', 'planet-sun', [
+  page('journey3', 'icon-starmap', [
     ['badge-corona', 'badge', 24], ['badge-sunspots', 'badge', 25], ['badge-plasmasea', 'badge', 26],
     ['badge-radiance', 'badge', 27], ['badge-fusion', 'badge', 28], ['badge-suncore', 'badge', 29],
     ['sun-fullsuit', 'icon-fullsuit'],

@@ -62,6 +62,11 @@ const MINE = {
   skull: (s) => s.play('roar'),
   stego: (s) => s.play('rumble'),
   jet: (s) => s.play('whoosh'),
+  flareWarn: (s) => s.play('hum'),
+  flareStart: (s) => s.play('shimmer'),
+  flareGem: (s) => s.play('ore'),
+  flower: (s) => s.play('chime', 3),
+  forge: (s) => s.play('hammer'),
 };
 
 const CAMP = {
@@ -86,6 +91,8 @@ const CAMP = {
   burp: (s) => s.play('burp'),
   trick: (s) => s.play('trick'),
   fanfare: (s) => s.play('fanfare'),
+  firework: (s) => s.play('firework'),
+  party: (s) => s.play('party'),
 };
 
 const MENU = {

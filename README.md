@@ -64,7 +64,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   Saturn, Dino Planet, the Sun. The **star map** (A at any rocket) shows the
   path, the planets you can fly to, padlocks on the rest, and the **Sun Suit**
   piece hidden at the bottom of each planet. Collect all four pieces to land on
-  the Sun. The Sun says "coming soon" for now: it is the finale, next update.
+  the Sun, the finale.
 - **The Moon** (planet 1) has low gravity everywhere and five layers under its
   own camp:
   - **Crater Plains:** moonstone, moon blobs, meteorites;
@@ -150,9 +150,32 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Dino Nursery:** 3 jade every trip;
   - **Treehouse:** chests show on the depth meter;
   - **Ptero Perch:** a pterodactyl flies you down (the elevator);
-  - **Sun Rocket:** needs the Jetpack; the Sun is "coming soon".
+  - **Sun Rocket:** needs the Jetpack, and flies you to the Sun.
 - **The Longneck** gives you a boost: step up ledges two blocks high.
-- **Sticker book:** 190 stickers on 19 pages, and a trophy for each full page. Open
+- **The Sun** (the finale). Everyone is always a **golden lava monster** here:
+  you dig twice as fast, lava is safe, and creatures poof away. Every so often a
+  **solar flare** makes the screen glow gold and rains sunstones down. Its six
+  layers:
+  - **Corona:** sunstone and flame fairies;
+  - **Sunspots:** flare gems, shadow blobs, and **fire flowers** that bloom
+    open when you touch them and pop out flare gems;
+  - **Plasma Sea:** plasma orbs, plasma jellies, and lava lakes to drop through;
+  - **Radiance:** nova gems, sunbeam bunnies, and the **Baby Sun Dragon**'s egg
+    (it flies with you, and its glow lights 4 more blocks on every planet);
+  - **Fusion Forge:** sparkies and the **Solar Forge**: walk up, it hammers,
+    and out pours a pile of treasure;
+  - **Sun Core:** the **Sun's Heart**. Bring it home for the **grand finale**:
+    fireworks, the pets doing tricks, the camp friends, a giant trophy, and a
+    **gold crown** for everyone. After that a **mini-sun** hangs over Earth camp.
+
+  New drills: Sun Drill, Flare Drill, Nova Drill.
+- **Solar Station**: golden domes, flame fountains, and four buildings:
+  - **Sunflower Garden:** 3 sunstone every trip;
+  - **Sundial Tower:** chests show on the depth meter;
+  - **Sunbeam Lift:** slide down a sunbeam (the elevator);
+  - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
+    finale again.
+- **Sticker book:** 221 stickers on 22 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

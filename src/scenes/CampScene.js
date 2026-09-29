@@ -23,11 +23,12 @@ import { BUYABLE, buyDecor, decorById, decorUnlocked } from '../game/decor.js';
 import { refreshRequests, presentVisitors } from '../game/visitors.js';
 import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
-import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSuit, walkMul } from '../game/perks.js';
+import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSuit, walkMul, winSunHeart } from '../game/perks.js';
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
 import { drawMarsBackdrop, drawMarsProps } from './camp/marsScenery.js';
 import { drawSaturnBackdrop, drawSaturnProps } from './camp/saturnScenery.js';
 import { drawDinoBackdrop, drawDinoProps } from './camp/dinoScenery.js';
+import { drawSunBackdrop, drawSunProps } from './camp/sunScenery.js';
 import { planetById, rocketTo, PLANETS } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -38,15 +39,15 @@ const HUD_STRIP = 40;
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false };
 // the rocket buildings (each opens the star map), and the ground of each camp
 const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket', 'sunrocket'];
-const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW], dino: [B.GRASS, B.DIRT] };
+const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW], dino: [B.GRASS, B.DIRT], sun: [B.CORONA_ROCK, B.CORONA_ROCK] };
 // each camp's sky and scenery (Earth's are drawn here in the scene)
 const SCENERY = {
   moon: [drawMoonBackdrop, drawMoonProps], mars: [drawMarsBackdrop, drawMarsProps], saturn: [drawSaturnBackdrop, drawSaturnProps],
-  dino: [drawDinoBackdrop, drawDinoProps],
+  dino: [drawDinoBackdrop, drawDinoProps], sun: [drawSunBackdrop, drawSunProps],
 };
 // the big ship that flies a route: the rocket of the farther planet (the
 // Rocket Ship to the Moon, the Mars Rocket to Mars, the Saturn Rocket to Saturn)
-const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship' };
+const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship', sun: 'sun-ship' };
 const order = (id) => PLANETS.findIndex((p) => p.id === id);
 export const shipFor = (from, to) => SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship';
 // where each rocket building's ship stands, from the left of its plot
@@ -153,6 +154,16 @@ export class CampScene extends Phaser.Scene {
       orb.fillStyle(0xffe6a0, 0.25).fillCircle(ph.sun.x, GROUND_Y - ph.sun.y, 28);
       orb.fillStyle(ph.sun.color, 1).fillCircle(ph.sun.x, GROUND_Y - ph.sun.y, 16);
       orb.fillStyle(0xfff8e0, 1).fillCircle(ph.sun.x - 4, GROUND_Y - ph.sun.y - 4, 6);
+    }
+    // after the finale: the mini-sun hangs over Earth camp forever, gently pulsing
+    if (getState(this.registry).sunHeart) {
+      // (above the night's dimming, so it glows in the dark too)
+      const ms = this.add.image(250, GROUND_Y - 92, 'mini-sun').setDepth(26).setScrollFactor(0.15, 1).setScale(1.4);
+      const halo = this.add.image(ms.x, ms.y, 'light').setDepth(26).setScrollFactor(0.15, 1).setTint(0xffd84a).setAlpha(0.4).setScale(1)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: ms, scale: 1.55, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: halo, alpha: 0.2, scale: 1.8, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.time.delayedCall(1200, () => earnSticker(this, 'sun-minisun'));
     }
     if (ph.moon) {
       // twinkling stars and a crescent moon
@@ -458,6 +469,38 @@ export class CampScene extends Phaser.Scene {
         },
       });
     }
+    // Solar Station
+    if (id === 'sunflowers') {
+      // the big sunflowers nod, and a sunstone pops out now and then
+      this.time.addEvent({
+        delay: 1700,
+        loop: true,
+        callback: () => {
+          const c = this.add.image(x + 48 + Phaser.Math.Between(-26, 26), GROUND_Y - 62, 'ore-sunstone').setDepth(2);
+          this.tweens.add({ targets: c, y: c.y - 16, alpha: 0, duration: 1000, ease: 'Quad.easeOut', onComplete: () => c.destroy() });
+        },
+      });
+    }
+    if (id === 'sundial') {
+      // its shadow creeps around the dial
+      const hand = this.add.rectangle(x + 48, GROUND_Y - 52, 20, 2, 0x5a3214, 0.5).setOrigin(1, 0.5).setDepth(4);
+      this.tweens.add({ targets: hand, angle: 360, duration: 12000, repeat: -1 });
+    }
+    if (id === 'sunbeam') {
+      // sparkles slide down the beam
+      this.time.addEvent({
+        delay: 400,
+        loop: true,
+        callback: () => {
+          const s = this.add.image(x + 48 + Phaser.Math.Between(-6, 6), GROUND_Y - 66, 'pixel').setTint(0xffffff).setDisplaySize(2, 2).setDepth(4);
+          this.tweens.add({ targets: s, y: GROUND_Y - 4, alpha: 0, duration: 1200, onComplete: () => s.destroy() });
+        },
+      });
+    }
+    if (id === 'hall') {
+      // the crown on the roof twinkles
+      this.time.addEvent({ delay: 700, loop: true, callback: () => this.effects.sparkle(x + 48 + Phaser.Math.Between(-6, 6), GROUND_Y - 68 + Phaser.Math.Between(-4, 4), 0xffd84a, 2) });
+    }
     // Ring Station
     if (id === 'parlour') {
       // a penguin comes for ice cream, and little cones pop out of the roof
@@ -548,6 +591,8 @@ export class CampScene extends Phaser.Scene {
     // the elevator (the minecart, the Moon's UFO, the Mars rover); rockets open the star map
     if (here && here === planetById(this.planet)?.perks?.elevator && ready) return { kind: 'cart', plot };
     if (ROCKETS.includes(here) && ready) return { kind: 'rocket', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
+    // the Hall of Heroes: press A to play the finale again
+    if (here === 'hall' && ready) return { kind: 'hall', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     return null;
   }
 
@@ -608,6 +653,9 @@ export class CampScene extends Phaser.Scene {
         } else if (zone && zone.kind === 'rocket') {
           action = { x: zone.x, key: 'btn-a', y: GROUND_Y - 90 };
           if (e.a && !hud.picker) this.openStarMap(a);
+        } else if (zone && zone.kind === 'hall' && !this.partying) {
+          action = { x: zone.x, key: 'btn-a', y: GROUND_Y - 92 };
+          if (e.a && !hud.picker && !this.partying && !this.arriving && !this.leaving) this.finaleParty();
         } else if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart' || zone.kind === 'stall')) {
           const x = zone.kind === 'bench' ? this.L.benchX * TILE + TILE / 2
             : zone.kind === 'stall' ? this.L.stallX * TILE + TILE / 2
@@ -784,7 +832,7 @@ export class CampScene extends Phaser.Scene {
     } else {
       const built = new Set(plotsOf(state, this.planet).filter(Boolean));
       const options = blueprintsFor(this.planet).filter((b) => !built.has(b.id))
-        .map((b) => ({ id: b.id, cost: b.cost, needs: b.needs?.suit ?? null, affordable: canAfford(state.bank, b.cost) && blueprintOk(state, b) }));
+        .map((b) => ({ id: b.id, cost: b.cost, needs: b.needs?.suit ?? (b.needs?.sunHeart ? 'sunHeart' : null), affordable: canAfford(state.bank, b.cost) && blueprintOk(state, b) }));
       if (!options.length) return;
       hud.openPicker({ slot: a.slot, kind: 'blueprint', plot: zone.plot, options });
     }
@@ -862,6 +910,9 @@ export class CampScene extends Phaser.Scene {
     const newPiece = suitHearts > 0 && piece && !hasSuit(getState(this.registry), piece) ? piece : null;
     let banked = depositPacks(getState(this.registry), packs, { hearts });
     if (newPiece) banked = winSuitPiece(banked, newPiece);
+    // the Sun's Heart: a crown for everyone, and the grand finale
+    const sunHeart = suitHearts > 0 && (this.arrived.planet ?? this.planet) === 'sun';
+    if (sunHeart) banked = winSunHeart(banked);
     // each camp's own gift: dinosaurs dig up amber at home, space mice make
     // cheese on the Moon, robots build bolts on Mars
     const park = campGift(banked, this.planet);
@@ -878,6 +929,7 @@ export class CampScene extends Phaser.Scene {
     const eggs = this.arrived.eggs ?? [];
     this.time.delayedCall(flyTime + 400, () => {
       if (newPiece) this.suitParty(newPiece, () => { this.arriving = false; if (eggs.length) this.campPets.hatchAll(eggs); });
+      else if (sunHeart) this.finaleParty(() => { this.arriving = false; if (eggs.length) this.campPets.hatchAll(eggs); });
       else {
         this.arriving = false;
         if (eggs.length) this.campPets.hatchAll(eggs);
@@ -961,7 +1013,7 @@ export class CampScene extends Phaser.Scene {
         flame.destroy();
         this.cameras.main.shake(200, 0.006);
         for (let i = 0; i < 10; i++) {
-          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint({ earth: 0xd8c8b0, moon: 0xc8c8d8, mars: 0xe0886a, saturn: 0xf0f8ff, dino: 0xd8c8b0 }[this.planet] ?? 0xc8c8d8);
+          const d = this.add.image(x + (i - 4.5) * 8, GROUND_Y - 2, 'smoke').setDepth(9).setTint({ earth: 0xd8c8b0, moon: 0xc8c8d8, mars: 0xe0886a, saturn: 0xf0f8ff, dino: 0xd8c8b0, sun: 0xffd890 }[this.planet] ?? 0xc8c8d8);
           this.tweens.add({ targets: d, x: d.x + (i - 4.5) * 5, y: d.y - 8, scale: 2.5, alpha: 0, duration: 900, onComplete: () => d.destroy() });
         }
         this.events.emit('built');
@@ -1002,6 +1054,84 @@ export class CampScene extends Phaser.Scene {
       });
     }
     this.time.delayedCall(1800, done);
+  }
+
+  // The grand finale (the Sun's Heart came home, or A in the Hall of Heroes):
+  // a gold flash and a fanfare, fireworks, every pet doing tricks, the camp
+  // friends hopping in, a giant trophy bouncing down, and a crown for everyone.
+  finaleParty(done = () => {}) {
+    this.partying = true;
+    const cam = this.cameras.main;
+    const mid = cam.midPoint.x;
+    const top = cam.worldView.y;
+    this.events.emit('fanfare');
+    cam.flash(500, 255, 220, 120);
+    // fireworks across the sky
+    const COLORS = [0xffd84a, 0xff6a8a, 0x6ad0ff, 0x7aff9a, 0xffffff, 0xb070ff, 0xff9a2a];
+    for (let i = 0; i < 14; i++) {
+      this.time.delayedCall(300 + i * 380, () => {
+        const x = mid + Phaser.Math.Between(-150, 150);
+        const y = top + Phaser.Math.Between(24, 90);
+        const color = COLORS[i % COLORS.length];
+        this.events.emit('firework');
+        for (let k = 0; k < 18; k++) {
+          const ang = (k / 18) * Math.PI * 2;
+          const p = this.add.image(x, y, 'pixel').setTint(k % 3 ? color : 0xffffff).setDisplaySize(3, 3).setDepth(45);
+          this.tweens.add({
+            targets: p, x: x + Math.cos(ang) * 46, y: y + Math.sin(ang) * 46 + 12, alpha: 0, duration: 1100, ease: 'Quad.easeOut', onComplete: () => p.destroy(),
+          });
+        }
+        this.effects.sparkle(x, y, color, 6);
+      });
+    }
+    // every pet does tricks, over and over
+    for (let i = 0; i < 4; i++) this.time.delayedCall(600 + i * 1000, () => this.campPets.trick());
+    // the camp friends pop in and hop
+    const friends = ['bear', 'rabbit', 'owl'].map((id, i) => {
+      const f = this.add.sprite(mid - 90 + i * 90, GROUND_Y + 30, `friend-${id}`, 0).setOrigin(0.5, 1).setDepth(28);
+      this.tweens.add({ targets: f, y: GROUND_Y, duration: 400, delay: 800 + i * 250, ease: 'Back.easeOut' });
+      this.tweens.add({ targets: f, y: GROUND_Y - 14, duration: 260, delay: 1400 + i * 250, yoyo: true, repeat: 7, ease: 'Quad.easeOut' });
+      return f;
+    });
+    // the giant gold trophy bounces down in the middle
+    // (beside the players, not on top of them)
+    const a0 = this.avatars.find(Boolean);
+    const tx = a0 ? a0.sprite.x + (a0.sprite.x + 90 < cam.worldView.right - 30 ? 80 : -80) : mid;
+    const trophy = this.add.image(tx, top - 60, 'trophy-big').setOrigin(0.5, 1).setDepth(27).setScale(1.5);
+    const shine = this.add.image(tx, GROUND_Y - 34, 'light').setTint(0xffd84a).setAlpha(0).setScale(1.3).setDepth(26).setBlendMode(Phaser.BlendModes.ADD);
+    this.time.delayedCall(1600, () => {
+      this.tweens.add({ targets: trophy, y: GROUND_Y, duration: 1200, ease: 'Bounce.easeOut' });
+      this.tweens.add({ targets: shine, alpha: 0.35, duration: 800, delay: 900 });
+    });
+    this.time.delayedCall(2900, () => {
+      this.effects.confetti(tx, GROUND_Y - 40);
+      this.effects.sparkle(tx, GROUND_Y - 40, 0xffd84a, 16);
+      this.events.emit('party');
+      earnSticker(this, 'sun-finale');
+    });
+    // …and a gold crown lands on everyone
+    this.time.delayedCall(3600, () => {
+      for (const a of this.avatars.filter(Boolean)) {
+        const c = this.add.image(a.sprite.x, a.sprite.y - 100, 'crown-icon').setOrigin(0.5, 1).setDepth(46).setScale(3);
+        this.tweens.add({
+          targets: c, y: a.sprite.y - 16, scale: 1, duration: 1000, ease: 'Bounce.easeOut',
+          onComplete: () => {
+            c.destroy();
+            this.suits.refresh();
+            a.p.vy = -170;
+            this.effects.sparkle(a.sprite.x, a.sprite.y - 18, 0xffd84a, 12);
+          },
+        });
+      }
+      earnSticker(this, 'sun-crown');
+    });
+    // it all settles: the friends wave goodbye, the trophy shines and fades
+    this.time.delayedCall(8200, () => {
+      for (const f of friends) this.tweens.add({ targets: f, y: GROUND_Y + 30, alpha: 0, duration: 500, onComplete: () => f.destroy() });
+      this.tweens.add({ targets: [trophy, shine], alpha: 0, duration: 800, onComplete: () => { trophy.destroy(); shine.destroy(); } });
+      this.partying = false;
+      done();
+    });
   }
 
   startTrip({ startRow = null } = {}) {

@@ -14,12 +14,12 @@ export const SUN_HOST = {
 };
 const ORE_BLOCK = { sunstone: B.SUNSTONE, flare: B.FLARE, plasma: B.PLASMA, nova: B.NOVA };
 const DECOR = {
-  corona: { floorChance: 0.3, floor: { emberflower: 2, firecrystal: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
-  sunspots: { floorChance: 0.25, floor: { pebbles: 2, emberflower: 1 }, ceilChance: 0.12, ceil: { stalactite: 1 } },
-  plasmasea: { floorChance: 0.3, floor: { firecrystal: 2, pebbles: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
-  radiance: { floorChance: 0.4, floor: { suncrystal: 3, starflower: 1 }, ceilChance: 0.2, ceil: { crystalspike: 1 } },
-  fusion: { floorChance: 0.3, floor: { firecrystal: 2, suncrystal: 1 }, ceilChance: 0.15, ceil: { stalactite: 1 } },
-  suncore: { floorChance: 0.35, floor: { suncrystal: 2, starflower: 1 }, ceilChance: 0.15, ceil: { crystalspike: 1 } },
+  corona: { floorChance: 0.3, floor: { emberflower: 2, firecrystal: 1 }, ceilChance: 0.15, ceil: { sunspike: 1 } },
+  sunspots: { floorChance: 0.25, floor: { pebbles: 2, emberflower: 1 }, ceilChance: 0.12, ceil: { sunspike: 1 } },
+  plasmasea: { floorChance: 0.3, floor: { firecrystal: 2, pebbles: 1 }, ceilChance: 0.15, ceil: { sunspike: 1 } },
+  radiance: { floorChance: 0.4, floor: { suncrystal: 3, starflower: 1 }, ceilChance: 0.2, ceil: { sunspike: 1 } },
+  fusion: { floorChance: 0.3, floor: { firecrystal: 2, suncrystal: 1 }, ceilChance: 0.15, ceil: { sunspike: 1 } },
+  suncore: { floorChance: 0.35, floor: { suncrystal: 2, starflower: 1 }, ceilChance: 0.15, ceil: { sunspike: 1 } },
 };
 const LAYER_IDS = Object.keys(SUN_LAYERS);
 

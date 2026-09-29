@@ -57,7 +57,7 @@ export function createCampPets(camp) {
       if (current !== kind) return; // already hatched by flush()
       current = null;
       egg.destroy();
-      camp.effects.chunks(Math.floor(nest.x / TILE), Math.floor((nest.y - 12) / TILE), 99);
+      camp.effects.chunks(Math.floor(nest.x / TILE), Math.floor((nest.y - 12) / TILE), 'goo');
       camp.effects.confetti(nest.x, nest.y - 16);
       camp.events.emit('hatch');
       const r = hatch(getState(camp.registry), kind);

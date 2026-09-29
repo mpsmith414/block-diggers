@@ -35,7 +35,7 @@ const EGG = [
   '...oEEEEo...',
   '....oooo....',
 ];
-export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck'];
+export const EGG_KINDS = ['mole', 'glowbug', 'batbuddy', 'golden', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck', 'sundragon'];
 const EGG_COLORS = {
   mole: { e: '#e8d0b0', s: '#8a5a34', E: '#c8a888' },
   glowbug: { e: '#fff6b0', s: '#ffd84a', E: '#e0c860' },
@@ -52,6 +52,8 @@ const EGG_COLORS = {
   yeti: { e: '#ffffff', s: '#8ad0ff', E: '#c8e0f0' },
   // the Longneck's egg: green with yellow spots
   longneck: { e: '#a8e080', s: '#ffe066', E: '#7ab05a' },
+  // the Sun Dragon's egg: gold with orange flame spots
+  sundragon: { e: '#ffe066', s: '#ff6a1a', E: '#e0a020' },
 };
 
 const FOSSILS = [

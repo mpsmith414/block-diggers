@@ -96,7 +96,12 @@ function drawSunRocket(ctx, rect) {
     for (let k = 0; k < 6; k++) rect(ctx, '#c85a1a', 76 + k * 2, y + 2 + k, 1, 1);
   }
   rect(ctx, '#8a94a8', 62, 18, 14, 3);
-  for (const bx of [22, 50]) {
+  drawSunShip(ctx, rect);
+}
+
+// The Sun Rocket itself (without its tower): it stands on Solar Station's pad and flies.
+export function drawSunShip(ctx, rect, dx = 0) {
+  for (const bx of [dx + 22, dx + 50]) {
     rect(ctx, OUT, bx - 1, 34, 12, 42);
     rect(ctx, '#fff0c0', bx, 35, 10, 40);
     rect(ctx, '#ff8a2a', bx, 35, 10, 4);
@@ -105,31 +110,31 @@ function drawSunRocket(ctx, rect) {
     rect(ctx, '#55505e', bx + 1, 74, 8, 4);
     ell(ctx, bx + 5, 35, 5, 6, '#ff8a2a', true);
   }
-  rect(ctx, OUT, 29, 10, 22, 66);
-  rect(ctx, '#ffe066', 30, 11, 20, 64);
-  rect(ctx, '#e8b830', 45, 11, 5, 64);
-  for (const y of [30, 58]) { rect(ctx, '#ff6a2a', 30, y, 20, 3); rect(ctx, '#ffb080', 30, y, 20, 1); }
+  rect(ctx, OUT, dx + 29, 10, 22, 66);
+  rect(ctx, '#ffe066', dx + 30, 11, 20, 64);
+  rect(ctx, '#e8b830', dx + 45, 11, 5, 64);
+  for (const y of [30, 58]) { rect(ctx, '#ff6a2a', dx + 30, y, 20, 3); rect(ctx, '#ffb080', dx + 30, y, 20, 1); }
   for (let k = 0; k < 14; k++) {
     const w = Math.max(2, Math.round(22 * Math.sqrt(1 - k / 14)));
-    rect(ctx, OUT, 40 - Math.floor(w / 2) - 1, 10 - k, w + 2, 1);
-    rect(ctx, '#ff6a2a', 40 - Math.floor(w / 2), 10 - k, w, 1);
+    rect(ctx, OUT, dx + 40 - Math.floor(w / 2) - 1, 10 - k, w + 2, 1);
+    rect(ctx, '#ff6a2a', dx + 40 - Math.floor(w / 2), 10 - k, w, 1);
   }
-  ell(ctx, 40, 20, 5, 5, OUT);
-  ell(ctx, 40, 20, 4, 4, '#8ac0ff');
-  rect(ctx, '#ffffff', 38, 18, 2, 2);
+  ell(ctx, dx + 40, 20, 5, 5, OUT);
+  ell(ctx, dx + 40, 20, 4, 4, '#8ac0ff');
+  rect(ctx, '#ffffff', dx + 38, 18, 2, 2);
   // the sun on its side
-  ell(ctx, 40, 44, 6, 6, '#ff8a1a');
-  ell(ctx, 40, 44, 4, 4, '#fff6a0');
+  ell(ctx, dx + 40, 44, 6, 6, '#ff8a1a');
+  ell(ctx, dx + 40, 44, 4, 4, '#fff6a0');
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
-    rect(ctx, '#ff6a2a', Math.round(40 + Math.cos(a) * 8), Math.round(44 + Math.sin(a) * 8), 2, 2);
+    rect(ctx, '#ff6a2a', Math.round(dx + 40 + Math.cos(a) * 8), Math.round(44 + Math.sin(a) * 8), 2, 2);
   }
-  rect(ctx, OUT, 25, 60, 5, 16);
-  rect(ctx, '#ff6a2a', 26, 61, 3, 14);
-  rect(ctx, OUT, 50, 60, 5, 16);
-  rect(ctx, '#ff6a2a', 51, 61, 3, 14);
-  rect(ctx, OUT, 33, 75, 14, 5);
-  rect(ctx, '#55505e', 34, 75, 12, 4);
+  rect(ctx, OUT, dx + 25, 60, 5, 16);
+  rect(ctx, '#ff6a2a', dx + 26, 61, 3, 14);
+  rect(ctx, OUT, dx + 50, 60, 5, 16);
+  rect(ctx, '#ff6a2a', dx + 51, 61, 3, 14);
+  rect(ctx, OUT, dx + 33, 75, 14, 5);
+  rect(ctx, '#55505e', dx + 34, 75, 12, 4);
 }
 
 export const DINO_BUILDINGS = { nursery: drawNursery, treehouse: drawTreehouse, pteroperch: drawPteroPerch, sunrocket: drawSunRocket };

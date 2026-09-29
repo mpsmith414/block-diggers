@@ -7,6 +7,7 @@ import { B, isBoulder } from '../../world/blocks.js';
 import {
   explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft,
   boulderPairMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot, snowmanLoot, globeLoot, cometLoot, nestLoot, skullLoot, stegoLoot,
+  fireFlowerLoot, forgeLoot,
 } from '../../game/finds.js';
 import { cushionPressed } from '../../game/silly.js';
 import { knockback, playerCell, standAt } from '../../game/player.js';
@@ -82,6 +83,14 @@ export function createFindsView(scene) {
   } : null;
   const stego = world.stego ? {
     ...world.stego, open: false, s: scene.add.sprite((world.stego.x + 1.5) * TILE, (world.stego.y + 1) * TILE + 1, 'stego', 0).setOrigin(0.5, 1).setDepth(9),
+  } : null;
+  // the Sun: fire flowers and the Solar Forge
+  const flowers = (world.flowers ?? []).map((f) => ({
+    ...f, open: false, s: scene.add.sprite((f.x + 1.5) * TILE, (f.y + 1) * TILE, 'fireflower', 0).setOrigin(0.5, 1).setDepth(9),
+  }));
+  for (const f of flowers) scene.tweens.add({ targets: f.s, scaleY: 1.06, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  const forge = world.forge ? {
+    ...world.forge, open: false, s: scene.add.sprite((world.forge.x + 1.5) * TILE, (world.forge.y + 1) * TILE, 'forge', 0).setOrigin(0.5, 1).setDepth(9),
   } : null;
   // Saturn: snow globes and the frozen comet
   const globes = (world.globes ?? []).map((g) => ({
@@ -309,6 +318,47 @@ export function createFindsView(scene) {
     earnSticker(scene, 'find-rexskull');
     scene.trip.chests++;
     scene.events.emit('skull', skull);
+  }
+
+  // A fire flower: touch it and it blooms wide open, popping out flare gems.
+  function updateFlowers() {
+    for (const f of flowers) {
+      if (f.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(f.x, f.y, 3)))) continue;
+      f.open = true;
+      grid.set(f.x + 1, f.y, B.AIR);
+      scene.tweens.add({ targets: f.s, scale: { from: 0.6, to: 1 }, duration: 400, ease: 'Back.easeOut' });
+      f.s.setFrame(1);
+      burst(f.s.x, f.s.y - 14, fireFlowerLoot(scene.rng), 160);
+      scene.effects.sparkle(f.s.x, f.s.y - 12, 0xffb030, 12);
+      scene.events.emit('flower', f);
+      earnSticker(scene, 'find-fireflower');
+      scene.trip.chests++;
+    }
+  }
+
+  // The Solar Forge: walk up and it hammers away, then out pours a pile of treasure.
+  function updateForge() {
+    if (!forge || forge.open || !players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(forge.x, forge.y, 3)))) return;
+    forge.open = true;
+    grid.set(forge.x + 1, forge.y, B.AIR);
+    for (let i = 0; i < 6; i++) {
+      scene.time.delayedCall(i * 180, () => {
+        forge.s.setFrame(i % 2 ? 0 : 1);
+        if (i % 2 === 0) {
+          scene.events.emit('forge', forge);
+          scene.effects.sparkle(forge.s.x + 14, forge.s.y - 12, 0xffe066, 5);
+          scene.cameras.main.shake(60, 0.003);
+        }
+      });
+    }
+    scene.time.delayedCall(1100, () => {
+      forge.s.setFrame(1);
+      burst(forge.s.x, forge.s.y - 20, forgeLoot(scene.rng), 200);
+      scene.effects.confetti(forge.s.x, forge.s.y - 16);
+      scene.cameras.main.flash(140, 255, 230, 150);
+    });
+    earnSticker(scene, 'find-forge');
+    scene.trip.chests++;
   }
 
   // The sleeping stegosaurus: walk up and it wakes, stretches and shakes
@@ -657,6 +707,8 @@ export function createFindsView(scene) {
         const y = v.glyph.y * TILE + 8;
         if (!v.open && near(x, y)) out.push({ x, y, r: 1.4 * flicker, glow: 0.2, color: 0x5af0ff });
       }
+      for (const f of flowers) if (near(f.s.x, f.s.y)) out.push({ x: f.s.x, y: f.s.y - 12, r: (f.open ? 2.2 : 1.4) * flicker, glow: 0.2, color: 0xffa030 });
+      if (forge && near(forge.s.x, forge.s.y)) out.push({ x: forge.s.x - 8, y: forge.s.y - 10, r: 2.4 * flicker, glow: 0.22, color: 0xffb040 });
       for (const g of geysers) {
         const x = g.x * TILE + 8;
         const y = g.y * TILE + 12;
@@ -721,6 +773,8 @@ export function createFindsView(scene) {
       updateNests();
       updateSkull();
       updateStego();
+      updateFlowers();
+      updateForge();
       updateVaults();
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);
