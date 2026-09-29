@@ -121,8 +121,13 @@ function drawDinoRocket(ctx, rect) {
   }
   for (const y of [14, 36, 58]) { rect(ctx, '#4ab05a', 10, y, 2, 8); rect(ctx, '#4ab05a', 18, y + 4, 2, 6); }
   rect(ctx, '#8a94a8', 20, 20, 14, 3);
+  drawDinoShip(ctx, rect);
+}
+
+// The Dino Rocket itself (without its tower): it stands on Dino Camp's pad and flies.
+export function drawDinoShip(ctx, rect, dx = 0) {
   // boosters
-  for (const bx of [34, 62]) {
+  for (const bx of [34 + dx, 62 + dx]) {
     rect(ctx, OUT, bx - 1, 36, 12, 40);
     rect(ctx, '#7ae07a', bx, 37, 10, 38);
     rect(ctx, '#ff8a2a', bx, 37, 10, 5);
@@ -132,28 +137,28 @@ function drawDinoRocket(ctx, rect) {
     ell(ctx, bx + 5, 37, 5, 6, '#ff8a2a', true);
   }
   // the body, with dino spikes down its back
-  rect(ctx, OUT, 41, 14, 22, 62);
-  rect(ctx, '#9af0a0', 42, 15, 20, 60);
-  rect(ctx, '#6ac87a', 57, 15, 5, 60);
+  rect(ctx, OUT, 41 + dx, 14, 22, 62);
+  rect(ctx, '#9af0a0', 42 + dx, 15, 20, 60);
+  rect(ctx, '#6ac87a', 57 + dx, 15, 5, 60);
   for (let y = 20; y < 70; y += 8) {
-    for (let k = 0; k < 4; k++) rect(ctx, k ? '#ff8a2a' : OUT, 63 + k, y + k, 1, 7 - k * 2);
+    for (let k = 0; k < 4; k++) rect(ctx, k ? '#ff8a2a' : OUT, 63 + dx + k, y + k, 1, 7 - k * 2);
   }
   for (let k = 0; k < 14; k++) {
     const w = Math.max(2, Math.round(22 * Math.sqrt(1 - k / 14)));
-    rect(ctx, OUT, 52 - Math.floor(w / 2) - 1, 14 - k, w + 2, 1);
-    rect(ctx, '#ff8a2a', 52 - Math.floor(w / 2), 14 - k, w, 1);
+    rect(ctx, OUT, 52 + dx - Math.floor(w / 2) - 1, 14 - k, w + 2, 1);
+    rect(ctx, '#ff8a2a', 52 + dx - Math.floor(w / 2), 14 - k, w, 1);
   }
-  ell(ctx, 52, 24, 5, 5, OUT);
-  ell(ctx, 52, 24, 4, 4, '#8ac0ff');
-  rect(ctx, '#ffffff', 50, 22, 2, 2);
+  ell(ctx, 52 + dx, 24, 5, 5, OUT);
+  ell(ctx, 52 + dx, 24, 4, 4, '#8ac0ff');
+  rect(ctx, '#ffffff', 50 + dx, 22, 2, 2);
   // a dino footprint badge
-  ell(ctx, 52, 46, 5, 5, '#2a8a3a');
-  for (const [x, y] of [[48, 40], [52, 39], [56, 40]]) ell(ctx, x, y, 1, 2, '#2a8a3a');
+  ell(ctx, 52 + dx, 46, 5, 5, '#2a8a3a');
+  for (const [x, y] of [[48, 40], [52, 39], [56, 40]]) ell(ctx, x + dx, y, 1, 2, '#2a8a3a');
   // fins and the nozzle
-  rect(ctx, OUT, 37, 62, 5, 14);
-  rect(ctx, '#ff8a2a', 38, 63, 3, 12);
-  rect(ctx, OUT, 45, 75, 14, 5);
-  rect(ctx, '#55505e', 46, 75, 12, 4);
+  rect(ctx, OUT, 37 + dx, 62, 5, 14);
+  rect(ctx, '#ff8a2a', 38 + dx, 63, 3, 12);
+  rect(ctx, OUT, 45 + dx, 75, 14, 5);
+  rect(ctx, '#55505e', 46 + dx, 75, 12, 4);
 }
 
 export const SATURN_BUILDINGS = { parlour: drawParlour, lighthouse: drawLighthouse, skilift: drawSkiLift, dinorocket: drawDinoRocket };
