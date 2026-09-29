@@ -3,13 +3,14 @@
 
 import { UPGRADE_KINDS, nextUpgrade, blueprintsFor, plotsOf, blueprintOk } from './economy.js';
 import { ORES } from '../world/blocks.js';
-import { LAYERS, MOON_LAYERS } from '../tuning.js';
+import { LAYERS } from '../tuning.js';
 import { planetById } from './planets.js';
 
 // value of an ore, for ranking what's "cheapest"
 const WORTH = {
   coal: 1, iron: 2, gold: 4, diamond: 8, emerald: 8, amber: 10, brick: 12, star: 16, heart: 40,
   moonstone: 18, cheese: 18, spacegem: 22, gizmo: 26,
+  ruby: 30, bolt: 30, opal: 34, coin: 38,
 };
 const worth = (cost) => Object.entries(cost).reduce((n, [o, k]) => n + WORTH[o] * k, 0);
 
@@ -38,10 +39,9 @@ export function nextGoal(state, planet = 'earth') {
   return withMissing.find((o) => !Object.keys(o.missing).length) ?? withMissing[0];
 }
 
-const MOON_ORE_ROW = { moonstone: MOON_LAYERS.craters.top, cheese: MOON_LAYERS.cheesecaves.top, spacegem: MOON_LAYERS.mooncrystal.top, gizmo: MOON_LAYERS.alienbase.top };
-
 export function oreTopRow(ore, planet = 'earth') {
-  if (planet === 'moon') return MOON_ORE_ROW[ore] ?? MOON_LAYERS.craters.top;
+  const rows = planetById(planet)?.oreRows;
+  if (rows) return rows[ore] ?? 1;
   if (ore === 'coal') return LAYERS.dirt.top;
   if (ore === 'iron' || ore === 'gold') return LAYERS.stone.top;
   if (ore === 'amber') return 189;

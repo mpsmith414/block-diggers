@@ -57,9 +57,25 @@ export const B = {
   TELEPORT: 50,
   MOON_HEART: 51,
   UFO: 52,
+  // Mars (M22)
+  MARS_ROCK: 53,
+  RUST_ROCK: 54,
+  BASALT: 55,
+  RUIN_STONE: 56,
+  MARS_CORE: 57,
+  RUBY: 58,
+  BOLT: 59,
+  OPAL: 60,
+  COIN: 61,
+  MARS_HEART: 62,
+  GEYSER: 63,
+  OLD_ROVER: 64,
+  VAULT: 65,
+  VAULT_DOOR: 66,
+  GLYPH: 67,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -116,6 +132,21 @@ def(B.CHEESE_WHEEL, 'cheese wheel', true, 'bedrock');
 def(B.TELEPORT, 'teleport pad', false, null);
 def(B.MOON_HEART, 'moon heart', true, 'mooncore');
 def(B.UFO, 'crashed ufo', false, null);
+def(B.MARS_ROCK, 'red sandstone', true, 'marsrock');
+def(B.RUST_ROCK, 'rusty rock', true, 'rust');
+def(B.BASALT, 'basalt', true, 'basalt');
+def(B.RUIN_STONE, 'carved stone', true, 'ruin');
+def(B.MARS_CORE, 'mars core rock', true, 'marscore');
+def(B.RUBY, 'ruby', true, 'marsrock', 'ruby');
+def(B.BOLT, 'robot bolt', true, 'rust', 'bolt');
+def(B.OPAL, 'fire opal', true, 'basalt', 'opal');
+def(B.COIN, 'mars coin', true, 'ruin', 'coin');
+def(B.MARS_HEART, 'mars heart', true, 'marscore');
+def(B.GEYSER, 'steam geyser', false, null);
+def(B.OLD_ROVER, 'old rover', false, null);
+def(B.VAULT, 'vault wall', true, 'bedrock');
+def(B.VAULT_DOOR, 'vault door', true, 'bedrock');
+def(B.GLYPH, 'glyph button', false, null);
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];

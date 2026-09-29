@@ -149,8 +149,9 @@ const CREATURES = {
   dirt: 'slime', stone: 'slime', deep: 'bat', crystal: 'bat',
   dino: 'ptero', brick: 'robot', meteor: 'alien', core: 'wisp',
   craters: 'moonblob', cheesecaves: 'mouse', mooncrystal: 'jelly', alienbase: 'drone', mooncore: 'sprite',
+  dunes: 'dustbunny', rovers: 'crab', volcano: 'newt', ruins: 'martian', marscore: 'ember',
 };
-const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse']);
+const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse', 'dustbunny', 'crab', 'newt']);
 
 export { layerOfRow };
 

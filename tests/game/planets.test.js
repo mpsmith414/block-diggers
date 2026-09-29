@@ -10,7 +10,8 @@ describe('the planets', () => {
     expect(planetById('moon').suit).toBe('helmet');
     expect(planetById('earth').comingSoon).toBeFalsy();
     expect(planetById('moon').comingSoon).toBeFalsy();
-    for (const id of ['mars', 'saturn', 'dino', 'sun']) expect(planetById(id).comingSoon).toBe(true);
+    for (const id of ['saturn', 'dino', 'sun']) expect(planetById(id).comingSoon).toBe(true);
+    expect(planetById('mars').comingSoon).toBeFalsy();
     expect(planetById('sun').finale).toBe(true);
     expect(planetById('moon').gravity).toBeLessThan(1);
     expect(planetById('earth').gravity).toBe(1);
@@ -50,7 +51,7 @@ describe('the planets', () => {
 
 describe('Moon rock, ores and tools', () => {
   it('four Moon ores join the list', () => {
-    expect(ORES.slice(8)).toEqual(['moonstone', 'cheese', 'spacegem', 'gizmo']);
+    expect(ORES.slice(8, 12)).toEqual(['moonstone', 'cheese', 'spacegem', 'gizmo']);
     expect(dropOf(B.MOONSTONE)).toBe('moonstone');
     expect(dropOf(B.CHEESE)).toBe('cheese');
     expect(dropOf(B.SPACE_GEM)).toBe('spacegem');
@@ -95,11 +96,11 @@ describe('the star map', () => {
     expect(status(starMapStops(base(), 'earth'))).toEqual({ earth: 'here', moon: 'locked', mars: 'locked', saturn: 'locked', dino: 'locked', sun: 'locked' });
   });
 
-  it('the Rocket Ship opens the Moon; the Mars Rocket makes Mars "coming soon"', () => {
+  it('the Rocket Ship opens the Moon; the Mars Rocket opens Mars', () => {
     const s = { ...base(), plots: ['rocket', null, null, null, null, null, null, null, null] };
     expect(status(starMapStops(s, 'earth')).moon).toBe('open');
     const t = { ...s, bases: { moon: { plots: [null, null, null, 'marsrocket'] } } };
-    expect(status(starMapStops(t, 'moon'))).toEqual({ earth: 'open', moon: 'here', mars: 'soon', saturn: 'locked', dino: 'locked', sun: 'locked' });
+    expect(status(starMapStops(t, 'moon'))).toEqual({ earth: 'open', moon: 'here', mars: 'open', saturn: 'locked', dino: 'locked', sun: 'locked' });
   });
 
   it('each planet shows its suit piece, lit once you have it', () => {

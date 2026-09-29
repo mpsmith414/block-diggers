@@ -1,15 +1,24 @@
 // What each building does for you. Immutable: state in, new state out.
 
-import { BACKPACK, LANTERN, PERKS, PETS } from '../tuning.js';
+import { BACKPACK, LANTERN, PERKS } from '../tuning.js';
 import { plotsOf } from './economy.js';
-import { layersOf } from './planets.js';
+import { layersOf, planetById } from './planets.js';
 
 const has = (state, id) => state.plots.includes(id);
 export const hasBuilt = (state, id, planet = 'earth') => plotsOf(state, planet).includes(id);
+// the building that does a planet's perk (`reveal`, `elevator`)
+const perkBuilt = (state, perk, planet) => {
+  const id = planetById(planet)?.perks?.[perk];
+  return !!id && hasBuilt(state, id, planet);
+};
 
-export const packCap = (state) => BACKPACK[state.upgrades.pack] + (has(state, 'house') ? PERKS.houseBonus : 0);
+// the Rover Bot pulls a little trailer: half as much again
+export const packCap = (state) => {
+  const cap = BACKPACK[state.upgrades.pack] + (has(state, 'house') ? PERKS.houseBonus : 0);
+  return (state.pets ?? []).includes('rover') ? Math.round(cap * PERKS.roverPack) : cap;
+};
 export const luck = (state) => (has(state, 'statue') ? 2 : 1);
-export const revealsChests = (state, planet = 'earth') => hasBuilt(state, planet === 'moon' ? 'telescope' : 'tower', planet);
+export const revealsChests = (state, planet = 'earth') => perkBuilt(state, 'reveal', planet);
 
 // ---- the Sun Suit: one piece from the bottom of each planet ----
 
@@ -18,12 +27,17 @@ export const winSuitPiece = (state, piece) => (hasSuit(state, piece) ? state : {
 
 // the Helmet's headlamp: 2 more blocks of light, in every mine
 export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSuit(state, 'helmet') ? PERKS.headlamp : 0);
+// the Boots: faster everywhere (and dust storms can't push you)
+export const walkMul = (state) => (hasSuit(state, 'boots') ? PERKS.bootsSpeed : 1);
+export const stormProof = (state) => hasSuit(state, 'boots');
+// the Weather Station: storms on Mars carry rubies
+export const stormRubies = (state) => (hasBuilt(state, 'weather', 'mars') ? PERKS.stormRubies : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);
 
-// ---- minecart (the UFO on the Moon): an elevator to the top of any layer you've reached ----
+// ---- the elevator (the minecart, the Moon's UFO, the Mars rover): to the top of any layer you've reached ----
 
 export function elevatorStops(state, planet = 'earth') {
-  if (!hasBuilt(state, planet === 'moon' ? 'hangar' : 'minecart', planet)) return [];
+  if (!perkBuilt(state, 'elevator', planet)) return [];
   const reached = state.records?.layers ?? [];
   return Object.entries(layersOf(planet)).map(([layer, l], i) => ({
     layer,
@@ -32,21 +46,17 @@ export function elevatorStops(state, planet = 'earth') {
   }));
 }
 
-// ---- cheese factory: the space mice make cheese while you're away ----
+// ---- each camp's gift while you're away: the dino park digs up amber, the
+// space mice make cheese, the Mars robots build bolts ----
 
-export function cheeseFactoryGift(state) {
-  if (!hasBuilt(state, 'cheesefactory', 'moon')) return { state, ores: [] };
-  const ores = Array(PERKS.factoryCheese).fill('cheese');
-  return { state: { ...state, bank: { ...state.bank, cheese: (state.bank.cheese ?? 0) + ores.length } }, ores };
+export function campGift(state, planet = 'earth') {
+  const gift = planetById(planet)?.perks?.gift;
+  if (!gift || !hasBuilt(state, gift.building, planet)) return { state, ores: [] };
+  const ores = Array(gift.n).fill(gift.ore);
+  return { state: { ...state, bank: { ...state.bank, [gift.ore]: (state.bank[gift.ore] ?? 0) + ores.length } }, ores };
 }
-
-// ---- dino park: the baby dinosaurs dig up amber while you're away ----
-
-export function dinoParkGift(state) {
-  if (!has(state, 'dinopark')) return { state, ores: [] };
-  const ores = Array(PETS.parkAmber).fill('amber');
-  return { state: { ...state, bank: { ...state.bank, amber: (state.bank.amber ?? 0) + ores.length } }, ores };
-}
+export const cheeseFactoryGift = (state) => campGift(state, 'moon');
+export const dinoParkGift = (state) => campGift(state, 'earth');
 
 // ---- garden: gem flowers grow while you're away ----
 

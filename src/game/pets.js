@@ -7,7 +7,10 @@ import { PETS } from '../tuning.js';
 export const CAVE_KINDS = ['mole', 'glowbug', 'batbuddy'];
 export const DINO_KINDS = ['rex', 'trike'];
 export const MOON_KINDS = ['moonpup'];
-export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS];
+export const MARS_KINDS = ['rover'];
+export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS];
+// pets that walk along the ground (the rest fly)
+export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover'];
 
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {

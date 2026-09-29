@@ -19,7 +19,7 @@ describe('blocks', () => {
     expect(dropOf(B.COAL_DIRT)).toBe('coal');
     expect(dropOf(B.GOLD_DEEP)).toBe('gold');
     expect(dropOf(B.DIRT)).toBeNull();
-    expect(ORES).toEqual(['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo']);
+    expect(ORES).toEqual(['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin']);
   });
 });
 

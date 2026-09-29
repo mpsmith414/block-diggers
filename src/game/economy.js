@@ -12,9 +12,17 @@ export const UPGRADES = {
     // (playtest 2026-09-28: the deeper world lasted one 45-minute session, so
     // the Moon asks for about 2.5x as much, to last two or three)
     { moonstone: 35, cheese: 25 }, { spacegem: 35, moonstone: 35 }, { gizmo: 40, spacegem: 35 },
+    // Mars: Ruby Drill, Opal Drill, Mega Drill
+    { ruby: 35, bolt: 25 }, { opal: 35, ruby: 35 }, { coin: 40, opal: 35 },
   ],
-  pack: [{ coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 }],
-  lantern: [{ coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 }],
+  pack: [
+    { coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 },
+    { ruby: 40, bolt: 40 },
+  ],
+  lantern: [
+    { coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 },
+    { opal: 30, ruby: 25 },
+  ],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
 
@@ -30,7 +38,7 @@ export const BLUEPRINTS = [
   { id: 'rocket', cost: { brick: 40, star: 20, heart: 1 } },
 ];
 
-// Moon Base: four plots of its own. The Mars Rocket needs the Helmet.
+// Moon Base (and every camp after it): four plots of its own. The Mars Rocket needs the Helmet.
 export const MOON_PLOTS = 4;
 export const MOON_BLUEPRINTS = [
   { id: 'cheesefactory', cost: { cheese: 45, moonstone: 20 } },
@@ -39,7 +47,16 @@ export const MOON_BLUEPRINTS = [
   { id: 'marsrocket', cost: { gizmo: 45, spacegem: 40, moonstone: 45 }, needs: { suit: 'helmet' } },
 ];
 
-export const blueprintsFor = (planet = 'earth') => (planet === 'moon' ? MOON_BLUEPRINTS : BLUEPRINTS);
+// Mars Base: four plots too. The Saturn Rocket needs the Boots.
+export const MARS_BLUEPRINTS = [
+  { id: 'robotfactory', cost: { bolt: 45, ruby: 20 } },
+  { id: 'weather', cost: { ruby: 45, opal: 15 } },
+  { id: 'garage', cost: { coin: 30, opal: 30 } },
+  { id: 'saturnrocket', cost: { coin: 45, opal: 40, ruby: 45 }, needs: { suit: 'boots' } },
+];
+
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS };
+export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 
 // The plots of a planet's camp (Earth's are `state.plots`).

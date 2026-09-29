@@ -148,7 +148,7 @@ describe('Moon treasure', () => {
 
 describe('Moon upgrades and buildings', () => {
   it('drills 6-8 and the fifth backpack and lantern cost Moon ores', () => {
-    expect(UPGRADES.pick.slice(5)).toEqual([
+    expect(UPGRADES.pick.slice(5, 8)).toEqual([
       { moonstone: 35, cheese: 25 }, { spacegem: 35, moonstone: 35 }, { gizmo: 40, spacegem: 35 },
     ]);
     expect(UPGRADES.pack[4]).toEqual({ moonstone: 40, cheese: 40 });
