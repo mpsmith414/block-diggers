@@ -86,9 +86,9 @@ describe('Saturn ice, ores and tools', () => {
   });
 
   it('drills 12-14 and the seventh backpack and lantern cost Saturn ores', () => {
-    expect(UPGRADES.pick.slice(11)).toEqual([{ frost: 35, icecream: 25 }, { pearl: 35, frost: 35 }, { comet: 40, pearl: 35 }]);
-    expect(UPGRADES.pack[6]).toEqual({ frost: 40, icecream: 40 });
-    expect(UPGRADES.lantern[6]).toEqual({ pearl: 30, frost: 25 });
+    expect(UPGRADES.pick.slice(11)).toEqual([{ frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 }]);
+    expect(UPGRADES.pack[6]).toEqual({ frost: 50, icecream: 50 });
+    expect(UPGRADES.lantern[6]).toEqual({ pearl: 40, frost: 30 });
   });
 });
 

@@ -15,15 +15,16 @@ export const UPGRADES = {
     // Mars: Ruby Drill, Opal Drill, Mega Drill
     { ruby: 35, bolt: 25 }, { opal: 35, ruby: 35 }, { coin: 40, opal: 35 },
     // Saturn: Frost Drill, Pearl Drill, Comet Drill
-    { frost: 35, icecream: 25 }, { pearl: 35, frost: 35 }, { comet: 40, pearl: 35 },
+    // (a little dearer: by now your backpack is big)
+    { frost: 45, icecream: 30 }, { pearl: 45, frost: 45 }, { comet: 50, pearl: 45 },
   ],
   pack: [
     { coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 },
-    { ruby: 40, bolt: 40 }, { frost: 40, icecream: 40 },
+    { ruby: 40, bolt: 40 }, { frost: 50, icecream: 50 },
   ],
   lantern: [
     { coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 },
-    { opal: 30, ruby: 25 }, { pearl: 30, frost: 25 },
+    { opal: 30, ruby: 25 }, { pearl: 40, frost: 30 },
   ],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
@@ -59,10 +60,10 @@ export const MARS_BLUEPRINTS = [
 
 // Ring Station: four plots. The Dino Rocket needs the Gloves.
 export const SATURN_BLUEPRINTS = [
-  { id: 'parlour', cost: { icecream: 45, frost: 20 } },
-  { id: 'lighthouse', cost: { frost: 45, pearl: 15 } },
-  { id: 'skilift', cost: { comet: 30, pearl: 30 } },
-  { id: 'dinorocket', cost: { comet: 45, pearl: 40, frost: 45 }, needs: { suit: 'gloves' } },
+  { id: 'parlour', cost: { icecream: 55, frost: 25 } },
+  { id: 'lighthouse', cost: { frost: 55, pearl: 20 } },
+  { id: 'skilift', cost: { comet: 40, pearl: 40 } },
+  { id: 'dinorocket', cost: { comet: 60, pearl: 50, frost: 60 }, needs: { suit: 'gloves' } },
 ];
 
 const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS };

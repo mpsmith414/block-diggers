@@ -37,13 +37,13 @@ Each layer holds its own ore, so the rock always matches the ore in it (the core
 
 | Upgrade | New level | Cost |
 |---|---|---|
-| Pickaxe | **Frost Drill** (12) | 35 frost + 25 ice cream |
-|  | **Pearl Drill** (13) | 35 pearl + 35 frost |
-|  | **Comet Drill** (14) | 40 comet + 35 pearl |
-| Backpack | 500 (level 7) | 40 frost + 40 ice cream |
-| Lantern | 17 (level 7) | 30 pearl + 25 frost |
+| Pickaxe | **Frost Drill** (12) | 45 frost + 30 ice cream |
+|  | **Pearl Drill** (13) | 45 pearl + 45 frost |
+|  | **Comet Drill** (14) | 50 comet + 45 pearl |
+| Backpack | 500 (level 7) | 50 frost + 50 ice cream |
+| Lantern | 17 (level 7) | 40 pearl + 30 frost |
 
-The balance test aims for about 19 trips, like Mars.
+Costs are about 30% above Mars's, since the backpack is bigger by now. The balance test aims for about 19 trips, like Mars.
 
 ## 4. Ring Station (Saturn's camp)
 
@@ -52,10 +52,10 @@ The balance test aims for about 19 trips, like Mars.
 
 | Building | Cost | What it does |
 |---|---|---|
-| **Ice Cream Parlour** | 45 ice cream + 20 frost | **+3 ice cream** every trip home |
-| **Ice Lighthouse** | 45 frost + 15 pearl | its beam shows every chest on the depth meter |
-| **Ski Lift** | 30 comet + 30 pearl | the elevator: a chairlift down to any layer you've reached |
-| **Dino Rocket** | 45 comet + 40 pearl + 45 frost + the Gloves | lights up Dino Planet on the star map with a "coming soon" sign |
+| **Ice Cream Parlour** | 55 ice cream + 25 frost | **+3 ice cream** every trip home |
+| **Ice Lighthouse** | 55 frost + 20 pearl | its beam shows every chest on the depth meter |
+| **Ski Lift** | 40 comet + 40 pearl | the elevator: a chairlift down to any layer you've reached |
+| **Dino Rocket** | 60 comet + 50 pearl + 60 frost + the Gloves | lights up Dino Planet on the star map with a "coming soon" sign |
 
 ## 5. Travel
 

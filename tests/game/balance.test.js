@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { generateMoon } from '../../src/world/moon.js';
 import { generateMars } from '../../src/world/mars.js';
+import { generateSaturn } from '../../src/world/saturn.js';
 import { dropOf, isSolid } from '../../src/world/blocks.js';
-import { MOON_LAYERS, MARS_LAYERS } from '../../src/tuning.js';
+import { MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS } from '../../src/tuning.js';
 import { UPGRADE_KINDS, nextUpgrade, buyUpgrade, buildOnPlot, canAfford, blueprintsFor, plotsOf, blueprintOk } from '../../src/game/economy.js';
 import { campGift, winSuitPiece, hasSuit, packCap } from '../../src/game/perks.js';
 import { planetById, layerOfRow } from '../../src/game/planets.js';
@@ -49,6 +50,22 @@ const PLANET = {
     start: { upgrades: { pick: 8, pack: 5, lantern: 5 }, suit: ['helmet'] },
     heartLayer: 'marscore',
     rocket: 'saturnrocket',
+  },
+  saturn: {
+    generate: generateSaturn,
+    layers: SATURN_LAYERS,
+    tier: { rings: 11, icecream: 11, aurora: 12, comets: 13, saturncore: 14 },
+    special: {
+      rings: { frost: 9 }, // a snowman
+      icecream: {},
+      aurora: { pearl: 7 * 2, frost: 2 * 2 }, // two snow globes
+      comets: { comet: 7, pearl: 2 }, // the frozen comet
+      saturncore: {},
+    },
+    chest: { rings: 'frost', icecream: 'icecream', aurora: 'pearl', comets: 'comet', saturncore: 'pearl' },
+    start: { upgrades: { pick: 11, pack: 6, lantern: 6 }, suit: ['helmet', 'boots'] },
+    heartLayer: 'saturncore',
+    rocket: 'dinorocket',
   },
 };
 
@@ -161,6 +178,15 @@ describe('Mars balance', () => {
     PLANET.mars.start = { upgrades: { pick: 8, pack: 5, lantern: 5 }, suit: ['helmet'] };
     expect(withRover).toBeLessThanOrEqual(plain);
     expect(withRover).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('Saturn balance', () => {
+  it('takes a good many trips to build the Dino Rocket, with the drills in order', () => {
+    const { trips, log } = play('saturn');
+    expect(trips).toBeGreaterThanOrEqual(12);
+    expect(trips).toBeLessThanOrEqual(24);
+    expect(order(log, /pick|gloves|dinorocket/)).toEqual(['pick12', 'pick13', 'pick14', 'gloves', 'dinorocket']);
   });
 });
 
