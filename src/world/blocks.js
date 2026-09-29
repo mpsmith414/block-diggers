@@ -73,9 +73,23 @@ export const B = {
   VAULT: 65,
   VAULT_DOOR: 66,
   GLYPH: 67,
+  // Saturn (M23)
+  ICE: 68,
+  SOFTSERVE: 69,
+  AURORA_ROCK: 70,
+  COMET_ROCK: 71,
+  SATURN_CORE: 72,
+  FROST: 73,
+  ICECREAM: 74,
+  PEARL: 75,
+  COMET: 76,
+  SATURN_HEART: 77,
+  SNOWBALL: 78,
+  SNOW_GLOBE: 79,
+  FROZEN_COMET: 80,
 };
 
-export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin'];
+export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet'];
 
 const TABLE = [];
 const def = (id, name, solid, hardness, drop = null) => { TABLE[id] = { id, name, solid, hardness, drop }; };
@@ -147,6 +161,19 @@ def(B.OLD_ROVER, 'old rover', false, null);
 def(B.VAULT, 'vault wall', true, 'bedrock');
 def(B.VAULT_DOOR, 'vault door', true, 'bedrock');
 def(B.GLYPH, 'glyph button', false, null);
+def(B.ICE, 'ring ice', true, 'ice');
+def(B.SOFTSERVE, 'soft-serve rock', true, 'softserve');
+def(B.AURORA_ROCK, 'aurora rock', true, 'aurora');
+def(B.COMET_ROCK, 'comet rock', true, 'cometrock');
+def(B.SATURN_CORE, 'saturn core rock', true, 'saturncore');
+def(B.FROST, 'frost gem', true, 'ice', 'frost');
+def(B.ICECREAM, 'ice cream', true, 'softserve', 'icecream');
+def(B.PEARL, 'ring pearl', true, 'aurora', 'pearl');
+def(B.COMET, 'comet chunk', true, 'cometrock', 'comet');
+def(B.SATURN_HEART, 'saturn heart', true, 'saturncore');
+def(B.SNOWBALL, 'snowball', true, 'bedrock');
+def(B.SNOW_GLOBE, 'snow globe', false, null);
+def(B.FROZEN_COMET, 'frozen comet', false, null);
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];
@@ -154,4 +181,6 @@ export const isSolid = (id) => !!(TABLE[id] && TABLE[id].solid);
 export const hardnessOf = (id) => (TABLE[id] ? TABLE[id].hardness : null);
 export const dropOf = (id) => (TABLE[id] ? TABLE[id].drop : null);
 // boulders you push around (cheese wheels on the Moon)
-export const isBoulder = (id) => id === B.BOULDER || id === B.CHEESE_WHEEL;
+export const isBoulder = (id) => id === B.BOULDER || id === B.CHEESE_WHEEL || id === B.SNOWBALL;
+// Saturn's ice: you slide on it
+export const isSlippery = (id) => id === B.ICE || id === B.FROST;

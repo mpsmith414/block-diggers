@@ -14,14 +14,16 @@ export const UPGRADES = {
     { moonstone: 35, cheese: 25 }, { spacegem: 35, moonstone: 35 }, { gizmo: 40, spacegem: 35 },
     // Mars: Ruby Drill, Opal Drill, Mega Drill
     { ruby: 35, bolt: 25 }, { opal: 35, ruby: 35 }, { coin: 40, opal: 35 },
+    // Saturn: Frost Drill, Pearl Drill, Comet Drill
+    { frost: 35, icecream: 25 }, { pearl: 35, frost: 35 }, { comet: 40, pearl: 35 },
   ],
   pack: [
     { coal: 15, iron: 5 }, { iron: 10, gold: 5 }, { amber: 10, diamond: 10 }, { brick: 20, star: 5 }, { moonstone: 40, cheese: 40 },
-    { ruby: 40, bolt: 40 },
+    { ruby: 40, bolt: 40 }, { frost: 40, icecream: 40 },
   ],
   lantern: [
     { coal: 10, iron: 5 }, { gold: 5, diamond: 2 }, { amber: 10, emerald: 5 }, { brick: 10, star: 5 }, { spacegem: 30, moonstone: 25 },
-    { opal: 30, ruby: 25 },
+    { opal: 30, ruby: 25 }, { pearl: 30, frost: 25 },
   ],
 };
 export const UPGRADE_KINDS = ['pick', 'pack', 'lantern'];
@@ -55,7 +57,15 @@ export const MARS_BLUEPRINTS = [
   { id: 'saturnrocket', cost: { coin: 45, opal: 40, ruby: 45 }, needs: { suit: 'boots' } },
 ];
 
-const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS };
+// Ring Station: four plots. The Dino Rocket needs the Gloves.
+export const SATURN_BLUEPRINTS = [
+  { id: 'parlour', cost: { icecream: 45, frost: 20 } },
+  { id: 'lighthouse', cost: { frost: 45, pearl: 15 } },
+  { id: 'skilift', cost: { comet: 30, pearl: 30 } },
+  { id: 'dinorocket', cost: { comet: 45, pearl: 40, frost: 45 }, needs: { suit: 'gloves' } },
+];
+
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS };
 export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 

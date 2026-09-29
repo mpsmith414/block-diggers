@@ -150,8 +150,9 @@ const CREATURES = {
   dino: 'ptero', brick: 'robot', meteor: 'alien', core: 'wisp',
   craters: 'moonblob', cheesecaves: 'mouse', mooncrystal: 'jelly', alienbase: 'drone', mooncore: 'sprite',
   dunes: 'dustbunny', rovers: 'crab', volcano: 'newt', ruins: 'martian', marscore: 'ember',
+  rings: 'penguin', icecream: 'scoop', aurora: 'owl', comets: 'cometling', saturncore: 'snowflake',
 };
-const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse', 'dustbunny', 'crab', 'newt']);
+const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse', 'dustbunny', 'crab', 'newt', 'penguin', 'scoop']);
 
 export { layerOfRow };
 

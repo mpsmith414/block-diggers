@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { summarizeTrip, layersReached, discovery } from '../../src/game/trip.js';
 
-const zero = { coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, moonstone: 0, cheese: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0 };
+const zero = { coal: 0, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, moonstone: 0, cheese: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0, frost: 0, icecream: 0, pearl: 0, comet: 0 };
 
 describe('summarizeTrip', () => {
   it('adds up every player and reports new records', () => {

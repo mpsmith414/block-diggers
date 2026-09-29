@@ -11,6 +11,7 @@ const WORTH = {
   coal: 1, iron: 2, gold: 4, diamond: 8, emerald: 8, amber: 10, brick: 12, star: 16, heart: 40,
   moonstone: 18, cheese: 18, spacegem: 22, gizmo: 26,
   ruby: 30, bolt: 30, opal: 34, coin: 38,
+  frost: 42, icecream: 42, pearl: 46, comet: 50,
 };
 const worth = (cost) => Object.entries(cost).reduce((n, [o, k]) => n + WORTH[o] * k, 0);
 
