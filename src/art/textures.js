@@ -17,6 +17,7 @@ import { drawDeepCamp } from './deepCamp.js';
 import { drawMoonArt } from './moonArt.js';
 import { drawSillyArt } from './silly.js';
 import { drawMoonWorld, drawMoonTiles, drawMoonBacks, drawMoonOreIcon } from './moonWorld.js';
+import { drawMoonBase } from './moonBase.js';
 
 const T = 16;
 
@@ -668,4 +669,5 @@ export function drawTextures(scene) {
   drawMoonArt(scene, canvasTexture, rect);
   drawSillyArt(scene, canvasTexture, rect);
   drawMoonWorld(scene, canvasTexture, rect);
+  drawMoonBase(scene, canvasTexture, rect);
 }

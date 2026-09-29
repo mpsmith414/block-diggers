@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PLANETS, planetById, layersOf, layerOfRow, planetOfLayer, mineRows } from '../../src/game/planets.js';
+import { PLANETS, planetById, layersOf, layerOfRow, planetOfLayer, mineRows, starMapStops, rocketAt } from '../../src/game/planets.js';
 import { B, ORES, dropOf, isBoulder, isSolid } from '../../src/world/blocks.js';
 import { mineTime } from '../../src/world/grid.js';
 import { MOON_LAYERS, MOON_H, MINE_H, LAYER_COLORS, BACKPACK, LANTERN } from '../../src/tuning.js';
@@ -84,5 +84,34 @@ describe('Moon rock, ores and tools', () => {
   it('a sixth backpack and lantern level', () => {
     expect(BACKPACK[5]).toBe(320);
     expect(LANTERN[5]).toBe(13);
+  });
+});
+
+describe('the star map', () => {
+  const base = () => ({ plots: Array(9).fill(null), bases: { moon: { plots: [null, null, null, null] } }, suit: [] });
+  const status = (stops) => Object.fromEntries(stops.map((s) => [s.id, s.status]));
+
+  it('at first only Earth is open (you are here)', () => {
+    expect(status(starMapStops(base(), 'earth'))).toEqual({ earth: 'here', moon: 'locked', mars: 'locked', saturn: 'locked', dino: 'locked', sun: 'locked' });
+  });
+
+  it('the Rocket Ship opens the Moon; the Mars Rocket makes Mars "coming soon"', () => {
+    const s = { ...base(), plots: ['rocket', null, null, null, null, null, null, null, null] };
+    expect(status(starMapStops(s, 'earth')).moon).toBe('open');
+    const t = { ...s, bases: { moon: { plots: [null, null, null, 'marsrocket'] } } };
+    expect(status(starMapStops(t, 'moon'))).toEqual({ earth: 'open', moon: 'here', mars: 'soon', saturn: 'locked', dino: 'locked', sun: 'locked' });
+  });
+
+  it('each planet shows its suit piece, lit once you have it', () => {
+    const stops = starMapStops({ ...base(), suit: ['helmet'] }, 'earth');
+    expect(stops.find((x) => x.id === 'moon')).toMatchObject({ suit: 'helmet', hasSuit: true });
+    expect(stops.find((x) => x.id === 'mars')).toMatchObject({ suit: 'boots', hasSuit: false });
+    expect(stops.find((x) => x.id === 'earth').suit).toBe(null);
+  });
+
+  it('you can fly from Earth once the Rocket Ship is built, and always from Moon Base', () => {
+    expect(rocketAt(base(), 'earth')).toBe(false);
+    expect(rocketAt({ ...base(), plots: ['rocket'] }, 'earth')).toBe(true);
+    expect(rocketAt(base(), 'moon')).toBe(true);
   });
 });

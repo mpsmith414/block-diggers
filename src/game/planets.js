@@ -32,3 +32,23 @@ export function planetOfLayer(layer) {
   const p = PLANETS.find((pl) => pl.layers && layer in pl.layers);
   return p ? p.id : null;
 }
+
+// ---- the star map ----
+
+// What unlocks each planet: a rocket built on the planet before it.
+const ROCKET_TO = { moon: { at: 'earth', id: 'rocket' }, mars: { at: 'moon', id: 'marsrocket' } };
+const built = (state, planet, id) => (planet === 'earth' ? state.plots : state.bases?.[planet]?.plots ?? []).includes(id);
+
+// Can you fly from this camp? Earth needs its Rocket Ship; other camps have a landing pad.
+export const rocketAt = (state, planet) => (planet === 'earth' ? built(state, 'earth', 'rocket') : true);
+
+export function starMapStops(state, here) {
+  return PLANETS.map((p) => {
+    const need = ROCKET_TO[p.id];
+    const reached = p.id === 'earth' || (need && built(state, need.at, need.id));
+    let status = 'locked';
+    if (p.id === here) status = 'here';
+    else if (reached) status = p.comingSoon ? 'soon' : 'open';
+    return { id: p.id, status, suit: p.suit, hasSuit: !!p.suit && (state.suit ?? []).includes(p.suit) };
+  });
+}

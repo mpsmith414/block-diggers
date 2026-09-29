@@ -12,8 +12,9 @@ const WALKERS = ['mole', 'rex', 'trike', 'moonpup'];
 const DINOS = ['rex', 'trike'];
 
 export function createCampPets(camp) {
-  const groundY = CAMP.ground * TILE;
-  const nest = { x: (CAMP.fireX + 2) * TILE + 8, y: groundY };
+  const L = camp.L ?? CAMP;
+  const groundY = L.ground * TILE;
+  const nest = { x: L.nestX * TILE + 8, y: groundY };
   camp.add.image(nest.x, nest.y + 1, 'nest').setOrigin(0.5, 1).setDepth(6);
   const pets = [];
   let queue = [];
@@ -25,10 +26,11 @@ export function createCampPets(camp) {
     return pet;
   }
   const home = getState(camp.registry);
-  const parkAt = home.plots.indexOf('dinopark');
+  const onEarth = (camp.planet ?? 'earth') === 'earth';
+  const parkAt = onEarth ? home.plots.indexOf('dinopark') : -1;
   for (const [i, kind] of (home.pets ?? []).entries()) {
     // dinosaurs start the day in their park
-    const x = parkAt >= 0 && DINOS.includes(kind) ? CAMP.plots[parkAt] * TILE + 30 + i * 8 : nest.x + i * 12;
+    const x = parkAt >= 0 && DINOS.includes(kind) ? L.plots[parkAt] * TILE + 30 + i * 8 : nest.x + i * 12;
     addPet(kind, x, groundY - 20);
   }
 
@@ -101,8 +103,8 @@ export function createCampPets(camp) {
     },
     update(dt, time) {
       const players = camp.avatars.filter(Boolean);
-      const parkPlot = getState(camp.registry).plots.indexOf('dinopark');
-      const park = parkPlot >= 0 && camp.buildings[parkPlot] && !camp.buildings[parkPlot].building ? CAMP.plots[parkPlot] * TILE + 48 : null;
+      const parkPlot = onEarth ? getState(camp.registry).plots.indexOf('dinopark') : -1;
+      const park = parkPlot >= 0 && camp.buildings[parkPlot] && !camp.buildings[parkPlot].building ? L.plots[parkPlot] * TILE + 48 : null;
       pets.forEach((pet, i) => {
         pet.t += dt;
         const a = players[i % Math.max(1, players.length)];

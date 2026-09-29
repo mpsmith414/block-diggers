@@ -27,6 +27,7 @@ import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
+import { createSuitView } from './common/suitView.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
@@ -100,6 +101,7 @@ export class MineScene extends Phaser.Scene {
     this.hazards = createHazards(this);
     this.finds = createFindsView(this);
     this.pets = createPetsView(this, saved.pets ?? []);
+    this.suits = createSuitView(this);
     const rows = this.grid.h;
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE });
     this.lavaCells = [];
@@ -227,6 +229,7 @@ export class MineScene extends Phaser.Scene {
       walkT: 0,
     };
     this.avatars[slot] = a;
+    this.suits.add(a);
     // a little poof as they appear
     this.drawAvatar(a, 0, this.time.now);
     a.sprite.setScale(0.2);
@@ -285,6 +288,7 @@ export class MineScene extends Phaser.Scene {
     if (!this.goingHome && this.pauseWatch.update()) return;
     if (this.goingHome) {
       for (const a of this.avatars) if (a) this.drawAvatar(a, dt, time);
+      this.suits.update();
       this.updateCamera(dt);
       this.drawLights(time);
       return;
@@ -322,6 +326,7 @@ export class MineScene extends Phaser.Scene {
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
     this.scanSurroundings(dt);
+    this.suits.update();
     this.drawLights(time);
   }
 

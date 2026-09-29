@@ -4,7 +4,8 @@ import { UPGRADE_KINDS, UPGRADES } from '../game/economy.js';
 import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
 import { B } from '../world/blocks.js';
-import { LAYERS, LAYER_COLORS } from '../tuning.js';
+import { LAYER_COLORS } from '../tuning.js';
+import { layersOf } from '../game/planets.js';
 
 // Camp overlay in screen space (never zoomed): the ore bank, upgrade levels,
 // and the blueprint / upgrade picker.
@@ -44,7 +45,7 @@ export class CampHudScene extends Phaser.Scene {
   // ---------- bank ----------
 
   buildBank() {
-    const kinds = shownOres(getState(this.registry));
+    const kinds = shownOres(getState(this.registry), this.camp.planet);
     // the Heart of the World sits at the end of the bank once you have one
     if ((getState(this.registry).bank.heart ?? 0) > 0) kinds.push('heart');
     this.bankKinds = kinds.length;
@@ -82,7 +83,7 @@ export class CampHudScene extends Phaser.Scene {
   syncBank(bank, only = null) {
     // a newly found ore makes the bank panel grow
     const heart = (getState(this.registry).bank.heart ?? 0) > 0 ? 1 : 0;
-    if (shownOres(getState(this.registry)).length + heart !== this.bankKinds) this.buildBank();
+    if (shownOres(getState(this.registry), this.camp.planet).length + heart !== this.bankKinds) this.buildBank();
     for (const ore of [...ORES, 'heart']) {
       if (only && ore !== only) continue;
       const b = this.bankIcons[ore];
@@ -126,7 +127,8 @@ export class CampHudScene extends Phaser.Scene {
           this.time.delayedCall(delay, () => {
             const sx = a ? (a.sprite.x - cam.worldView.x) * cam.zoom : this.scale.width / 2;
             const sy = a ? (a.sprite.y - 10 - cam.worldView.y) * cam.zoom : this.scale.height / 2;
-            const target = (this.bankIcons[ore] ?? this.bankIcons.coal).icon;
+            const target = (this.bankIcons[ore] ?? Object.values(this.bankIcons)[0])?.icon;
+            if (!target) return;
             const img = this.add.image(sx, sy, `ore-${ore}`).setScale(1.3);
             this.tweens.add({
               targets: img,
@@ -264,17 +266,18 @@ export class CampHudScene extends Phaser.Scene {
       }
     } else if (pk.kind === 'elevator') {
       // the layer's badge (or its rock), and a padlock if you haven't been there yet
-      const deep = ['dino', 'brick', 'meteor', 'core'].indexOf(opt.id);
+      const deep = ['dino', 'brick', 'meteor', 'core', 'craters', 'cheesecaves', 'mooncrystal', 'alienbase', 'mooncore'].indexOf(opt.id);
       const rock = { dirt: B.DIRT, stone: B.STONE, deep: B.DEEP, crystal: B.CRYSTAL }[opt.id];
       const img = deep >= 0 ? this.add.image(midX, y + 40, 'badge', deep).setScale(3.5) : this.add.image(midX, y + 40, 'tiles', rock).setScale(3.5);
-      c.add(this.add.image(midX - 40, y + 50, 'cart', 0).setScale(2));
+      // the minecart at home, the friendly alien's UFO on the Moon
+      c.add(pk.planet === 'moon' ? this.add.image(midX - 44, y + 44, 'ufo', 0).setScale(0.6) : this.add.image(midX - 40, y + 50, 'cart', 0).setScale(2));
       c.add(img);
       if (!opt.affordable) {
         img.setTint(0x6a5a4a).setAlpha(0.5);
         c.add(this.add.image(midX, y + 40, 'icon-lock').setScale(3));
       }
       // where it is: the layers top to bottom, this one marked
-      const names = Object.keys(LAYERS);
+      const names = Object.keys(layersOf(pk.planet ?? 'earth'));
       names.forEach((name, i) => {
         const bx = midX - names.length * 7 + i * 14;
         c.add(this.add.rectangle(bx, y + h - 34, 12, 8, LAYER_COLORS[name]).setOrigin(0).setAlpha(name === opt.id ? 1 : 0.45));
@@ -284,6 +287,15 @@ export class CampHudScene extends Phaser.Scene {
       const img = this.add.image(midX, y + 8, `bld-${opt.id}`).setOrigin(0.5, 0).setScale(0.8);
       if (!opt.affordable) img.setTint(0xb0a090).setAlpha(0.7);
       c.add(img);
+      // it also needs a Sun Suit piece: shown next to it, lit once you have it
+      if (opt.needs) {
+        const have = (getState(this.registry).suit ?? []).includes(opt.needs);
+        const bx = x + w - 26;
+        c.add(this.add.circle(bx, y + 24, 13, have ? 0x9ae67a : 0xd8c49a));
+        const piece = this.add.image(bx, y + 24, 'suit-helmet-icon').setScale(1.8);
+        c.add(piece);
+        if (!have) c.add(this.add.image(bx + 8, y + 32, 'icon-lock').setScale(0.9));
+      }
     } else {
       const icon = this.add.image(midX, y + 36, UPGRADE_ICON[opt.id]).setScale(4);
       if (!opt.affordable && opt.cost) icon.setAlpha(0.6);

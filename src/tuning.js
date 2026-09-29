@@ -197,6 +197,22 @@ export const CAMP = {
   plots: [19, 26, 33, 40, 47, 54, 86, 93, 100],
   plotW: 6,
   buildSeconds: 5,
+  nestX: 17,
+};
+
+// ---- Moon Base (cells): the Moon's own camp ----
+export const MOON_CAMP = {
+  w: 62,
+  h: 14,
+  ground: 11,
+  shaftX: 5, // the hatch down into the Moon
+  benchX: 10,
+  lecternX: 12,
+  nestX: 15,
+  padX: 20, // the landing pad (its middle), where the rocket stands
+  plots: [26, 33, 40, 47],
+  plotW: 6,
+  buildSeconds: 5,
 };
 
 // ---- going home ----

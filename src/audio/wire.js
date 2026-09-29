@@ -69,6 +69,7 @@ const CAMP = {
   glug: (s) => s.play('glug'),
   burp: (s) => s.play('burp'),
   trick: (s) => s.play('trick'),
+  fanfare: (s) => s.play('fanfare'),
 };
 
 const MENU = {
@@ -80,7 +81,7 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU };
+const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp' };
 
 export function attachAudio(scene) {

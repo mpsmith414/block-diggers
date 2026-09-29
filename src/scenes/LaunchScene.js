@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { createRng } from '../world/rng.js';
 
-// Lift-off! A 3-2-1 countdown, flames and smoke, then the rocket climbs past
-// the clouds into space while the Earth shrinks away, and you land on the Moon.
+// Lift-off! A 3-2-1 countdown, flames and smoke, then the rocket climbs up
+// into space: the planet you left shrinks away below, the one you're flying
+// to grows ahead, and you land at its camp.
 
 const W = 480;
 const H = 270;
@@ -22,7 +23,8 @@ export class LaunchScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.next = data ?? {};
+    this.from = data?.from ?? 'earth';
+    this.to = data?.to ?? 'moon';
   }
 
   create() {
@@ -43,9 +45,11 @@ export class LaunchScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(-10);
     const bands = 240;
     const span = H - TOP;
+    const earth = this.from === 'earth';
     for (let i = 0; i < bands; i++) {
       const t = i / (bands - 1); // 0 = top of the world, 1 = the ground
-      const color = t < 0.45 ? lerpColor(0x05040f, 0x1a1a48, t / 0.45) : lerpColor(0x1a1a48, 0x8ec5ff, (t - 0.45) / 0.55);
+      // (the Moon has no air: its sky is space all the way down)
+      const color = t < 0.45 || !earth ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, 0x8ec5ff, (t - 0.45) / 0.55);
       g.fillStyle(color, 1).fillRect(0, TOP + (span * i) / bands, W, span / bands + 1);
     }
     // stars up in space, twinkling
@@ -55,8 +59,8 @@ export class LaunchScene extends Phaser.Scene {
       s.setAlpha(0.3 + (1 - (y - TOP) / (span * 0.55)) * 0.7);
       if (i % 3 === 0) this.tweens.add({ targets: s, alpha: 0.15, duration: 600 + (i % 7) * 200, yoyo: true, repeat: -1 });
     }
-    // fluffy clouds to fly through
-    for (let i = 0; i < 14; i++) {
+    // fluffy clouds to fly through (only on Earth)
+    for (let i = 0; i < (earth ? 14 : 0); i++) {
       const c = this.add.graphics().setDepth(-8);
       c.fillStyle(0xffffff, 0.85);
       const w = rng.int(40, 90);
@@ -67,10 +71,17 @@ export class LaunchScene extends Phaser.Scene {
 
   drawGround() {
     const g = this.add.graphics().setDepth(5);
-    g.fillStyle(0x8fb86a, 1);
+    const earth = this.from === 'earth';
+    g.fillStyle(earth ? 0x8fb86a : 0x8a8a9c, 1);
     for (let i = 0; i < 7; i++) g.fillCircle(i * 90 - 20, GROUND + 6, 44);
-    g.fillStyle(0x5aa63c, 1).fillRect(0, GROUND, W, H - GROUND);
-    g.fillStyle(0x7cc95a, 1).fillRect(0, GROUND, W, 3);
+    g.fillStyle(earth ? 0x5aa63c : 0xb8b8c8, 1).fillRect(0, GROUND, W, H - GROUND);
+    g.fillStyle(earth ? 0x7cc95a : 0xdcdcea, 1).fillRect(0, GROUND, W, 3);
+    if (!earth) {
+      // the Earth hangs in the Moon's sky while you count down
+      this.add.image(W - 90, 60, 'earth').setScale(2).setDepth(-5);
+      g.fillStyle(0x9898aa, 1);
+      for (let i = 0; i < 12; i++) g.fillRect((i * 47) % W, GROUND + 8 + (i % 3) * 6, 6, 2);
+    }
     g.fillStyle(0x8a94a8, 1).fillRect(W / 2 - 50, GROUND - 4, 100, 6);
     g.fillStyle(0xf5c629, 1).fillRect(W / 2 - 50, GROUND - 4, 100, 1);
   }
@@ -106,14 +117,20 @@ export class LaunchScene extends Phaser.Scene {
     if (this.audio) { this.audio.sfx.play('boom'); this.audio.sfx.play('whoosh'); }
     this.puffs(16);
     this.tweens.add({ targets: this.rocket, y: TOP + 140, duration: 5200, ease: 'Quad.easeIn' });
-    // looking back: the round Earth shrinks away below
+    // looking back: the planet you left shrinks away below…
+    const look = (id) => (id === 'earth' ? 'earth' : `planet-${id}`);
     this.time.delayedCall(3000, () => {
-      const earth = this.add.image(W / 2, H + 160, 'earth').setScale(12).setScrollFactor(0).setDepth(8);
-      this.tweens.add({ targets: earth, scale: 2.2, y: H - 34, duration: 2400, ease: 'Cubic.easeOut' });
+      const home = this.add.image(W / 2, H + 160, look(this.from)).setScale(12).setScrollFactor(0).setDepth(8);
+      this.tweens.add({ targets: home, scale: 2.2, y: H - 34, duration: 2400, ease: 'Cubic.easeOut' });
     });
-    this.time.delayedCall(5000, () => {
+    // …and the one you're flying to grows ahead
+    this.time.delayedCall(3600, () => {
+      const there = this.add.image(W / 2 + 60, 40, look(this.to)).setScale(0.3).setScrollFactor(0).setDepth(8).setAlpha(0);
+      this.tweens.add({ targets: there, scale: 3, alpha: 1, y: 70, duration: 2000, ease: 'Quad.easeIn' });
+    });
+    this.time.delayedCall(5400, () => {
       this.cameras.main.fadeOut(600, 5, 4, 15);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Mine', { ...this.next, world: 'moon' }));
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Camp', { planet: this.to, landing: true }));
     });
   }
 
