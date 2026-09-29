@@ -163,6 +163,14 @@ export function createSfx(audio) {
       tone({ type: 'square', freq: 480, to: 260, dur: 0.3, gain: 0.04 });
       noise({ dur: 0.3, gain: 0.08, freq: 900, to: 400, q: 2, type: 'bandpass' });
     },
+    // the Moon Skate Park: an ollie's pop, a trick's whoosh, a landing ding
+    ollie() {
+      noise({ dur: 0.06, gain: 0.2, freq: 2500, q: 1, type: 'bandpass' });
+      tone({ type: 'square', freq: 300, to: 600, dur: 0.08, gain: 0.05 });
+    },
+    ding() {
+      ['E6', 'B6'].forEach((n, i) => tone({ type: 'sine', freq: noteFreq(n), dur: 0.4, gain: 0.08, at: i * 0.07 }));
+    },
     boing() {
       tone({ type: 'sine', freq: 180, to: 520, dur: 0.25, gain: 0.14 });
       tone({ type: 'triangle', freq: 360, to: 900, dur: 0.2, gain: 0.05, at: 0.03 });

@@ -26,6 +26,7 @@ import { drawDinoWorld, drawDinoTiles, drawDinoBacks, drawDinoOreIcon } from './
 import { drawDinoBase } from './dinoBase.js';
 import { drawSunWorld, drawSunTiles, drawSunBacks, drawSunOreIcon } from './sunWorld.js';
 import { drawSunBase } from './sunBase.js';
+import { drawSkateArt } from './skate.js';
 
 const T = 16;
 
@@ -718,4 +719,5 @@ export function drawTextures(scene) {
   drawDinoBase(scene, canvasTexture, rect);
   drawSunWorld(scene, canvasTexture, rect);
   drawSunBase(scene, canvasTexture, rect);
+  drawSkateArt(scene, canvasTexture, rect);
 }

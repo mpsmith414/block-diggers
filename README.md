@@ -77,6 +77,12 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Moon Core:** star sprites and the **Moon Heart**. Bring it home for the
     **Helmet**, the first Sun Suit piece: a headlamp (2 more blocks of light)
     that your characters wear everywhere.
+  - **The Skate Park:** a big, lit room right next to the Moon Heart with a
+    **half pipe**. Walk into a skateboard on the rack to hop on (there are two,
+    for co-op). Left and right push and pump, A pops an ollie, and **A in the
+    air does a random trick** (kickflip, 360, superman, grab, handstand,
+    backflip). Keep pressing A for combos. Every trick you land pops a space
+    gem into your backpack (up to 15 a trip). Press down to step off.
 
   New drills open the deeper Moon layers: Moon Drill, Crystal Drill, Laser
   Drill. Hold B in the mine to be beamed back to Moon Base.
@@ -175,7 +181,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 221 stickers on 22 pages, and a trophy for each full page. Open
+- **Sticker book:** 229 stickers on 23 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.
