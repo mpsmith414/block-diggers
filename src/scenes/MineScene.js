@@ -85,7 +85,6 @@ export class MineScene extends Phaser.Scene {
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
-    this.stormsSeen = 0;
     // Phaser reuses this object across trips: reset all per-trip state here.
     this.avatars = [];
     this.pickups = [];
@@ -381,7 +380,6 @@ export class MineScene extends Phaser.Scene {
       }
       if (ev === 'end') {
         this.events.emit('stormEnd');
-        this.stormsSeen++;
         if (this.stormRubies) this.rainRubies();
       }
     }

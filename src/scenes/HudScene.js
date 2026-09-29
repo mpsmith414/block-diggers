@@ -39,9 +39,10 @@ export class HudScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     this.haze = this.add.rectangle(0, 0, W, H, 0xd0683a, 0).setOrigin(0);
-    this.dust = Array.from({ length: 70 }, (_, i) => this.add.image(Math.random() * W, 36 + Math.random() * (H - 36), 'pixel')
-      .setTint([0xe0784a, 0xc8583a, 0xf0a070][i % 3]).setDisplaySize(4 + (i % 6) * 2.5, i % 3 ? 1 : 2).setAlpha(0));
-    this.sock = this.add.image(W / 2, 54, 'icon-windsock').setScale(2.2).setVisible(false);
+    this.dust = Array.from({ length: 110 }, (_, i) => this.add.image(Math.random() * W, 36 + Math.random() * (H - 36), 'pixel')
+      .setTint([0xe0784a, 0xc8583a, 0xf0a070, 0xffd0a0][i % 4]).setDisplaySize(6 + (i % 7) * 4, i % 3 ? 1 : 2).setAlpha(0));
+    // (by the depth meter, clear of the sticker toasts in the middle)
+    this.sock = this.add.image(W - 40, 62, 'icon-windsock').setScale(2.2).setVisible(false);
     this.stormLevel = 0;
   }
 
@@ -53,7 +54,7 @@ export class HudScene extends Phaser.Scene {
     const level = this.stormLevel;
     const dir = s.dir || 1;
     const W = this.scale.width;
-    this.haze.setAlpha(level * 0.2);
+    this.haze.setAlpha(level * 0.28);
     this.dust.forEach((d, i) => {
       d.x += dir * (90 + (i % 5) * 70) * (0.25 + level * 1.4) * dt;
       d.y += Math.sin(time / 260 + i) * 0.4;
