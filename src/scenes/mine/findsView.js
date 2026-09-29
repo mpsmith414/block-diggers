@@ -1,11 +1,12 @@
 // The mine's toys, in the scene: eggs to carry home, boom blocks that light
 // on touch, boulders to push (together, in co-op), the big chest, geodes,
-// fossils, and bubbles in the water.
+// fossils, and bubbles in the water. On the Moon: singing crystals, teleport
+// pads and a crashed UFO. On Mars: steam geysers, old rovers and vaults.
 
 import { B, isBoulder } from '../../world/blocks.js';
 import {
   explode, pushBoulder, bigChestReady, geodeLoot, bigChestLoot, FOSSIL_KINDS, meteoriteLoot, heartLeft,
-  wheelsMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot,
+  wheelsMeet, cheesePartyLoot, ufoLoot, moonMeteoriteLoot, heartOf, roverLoot, vaultLoot,
 } from '../../game/finds.js';
 import { cushionPressed } from '../../game/silly.js';
 import { knockback, playerCell, standAt } from '../../game/player.js';
@@ -13,7 +14,7 @@ import { createPickup } from '../../game/loot.js';
 import { overlaps } from '../../game/hazards.js';
 import { EGG_KINDS } from '../../art/finds.js';
 import { earnSticker } from '../common/stickers.js';
-import { TILE, PLAYER, FUSE, PUSH_TIME, SILLY } from '../../tuning.js';
+import { TILE, PLAYER, FUSE, PUSH_TIME, SILLY, GEYSER } from '../../tuning.js';
 
 const boxOf = (a) => ({ x: a.p.x, y: a.p.y, w: PLAYER.w, h: PLAYER.h });
 const cellBox = (x, y, w = 1) => ({ x: x * TILE - 1, y: y * TILE - 1, w: w * TILE + 2, h: TILE + 2 });
@@ -34,11 +35,11 @@ export function createFindsView(scene) {
 
   const together = scene.add.image(0, 0, 'icon-together').setDepth(64).setVisible(false);
 
-  // the Heart of the World (or the Moon Heart): a big glowing gem over its 3x3 cells
-  const moonHeart = world.heart?.kind === 'moon';
+  // the Heart of the World (or the Moon Heart, or the Mars Heart): a big glowing gem over its 3x3 cells
+  const heartLook = heartOf(world.heart?.kind);
   const heart = world.heart ? {
     ...world.heart,
-    s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, moonHeart ? 'moonheart-big' : 'heart-big').setDepth(22),
+    s: scene.add.image((world.heart.x + 1.5) * TILE, (world.heart.y + 1.5) * TILE, heartLook.big).setDepth(22),
     left: 9,
   } : null;
   // the Moon: singing crystals, teleport pads and a crashed UFO
@@ -61,8 +62,16 @@ export function createFindsView(scene) {
   const cushions = (world.cushions ?? []).map((c) => ({
     ...c, flat: 0, armed: true, s: scene.add.sprite(c.x * TILE + 8, (c.y + 1) * TILE, 'cushion', 0).setOrigin(0.5, 1).setDepth(23),
   }));
-  let hearts = 0;
+  // Mars: steam geysers, old rovers, and vaults with glyph buttons
+  const geysers = (world.geysers ?? []).map((g) => ({ ...g, state: 'idle', t: 0, puffT: Math.random() * 2 }));
+  const rovers = (world.rovers ?? []).map((r) => ({
+    ...r, open: false,
+    s: scene.add.sprite((r.x + 1.5) * TILE, (r.y + 1) * TILE + 3, 'oldrover', 0).setOrigin(0.5, 1).setDepth(9),
+  }));
+  const vaults = (world.vaults ?? []).map((v) => ({ ...v, open: false }));
+  let hearts = 0; // the Heart of the World (banked on Earth)
   let moonHearts = 0;
+  let suitHearts = 0; // a planet's heart (it brings that planet's Sun Suit piece)
 
   const burst = (x, y, ores, spread = 140) => {
     for (const ore of ores) {
@@ -365,9 +374,108 @@ export function createFindsView(scene) {
     }
   }
 
+  // A steam geyser: stand on the vent, it rumbles… and WHOOSH, up you go.
+  function steam(x, y, n, spread = 6, rise = 40) {
+    for (let i = 0; i < n; i++) {
+      const p = scene.add.image(x + (Math.random() - 0.5) * spread, y, 'smoke').setDepth(30).setAlpha(0.8).setScale(0.6);
+      scene.tweens.add({ targets: p, y: y - rise - Math.random() * rise, x: p.x + (Math.random() - 0.5) * 10, scale: 2.2, alpha: 0, delay: i * 40, duration: 700 + Math.random() * 300, onComplete: () => p.destroy() });
+    }
+  }
+  function updateGeysers(dt) {
+    for (const g of geysers) {
+      const x = g.x * TILE + 8;
+      const y = g.y * TILE + 10;
+      const on = players().filter((a) => !a.bubbling && playerCell(a.p).cx === g.x && Math.abs(playerCell(a.p).cy - g.y) <= 1);
+      g.puffT -= dt;
+      if (g.state === 'idle') {
+        if (g.puffT <= 0) { g.puffT = 1.2 + Math.random() * 1.5; steam(x, y, 1, 4, 14); }
+        if (on.some((a) => a.p.grounded)) {
+          g.state = 'rumble';
+          g.t = GEYSER.rumble;
+          scene.events.emit('rumble');
+          scene.cameras.main.shake(GEYSER.rumble * 1000, 0.002);
+        }
+      } else if (g.state === 'rumble') {
+        g.t -= dt;
+        if (Math.random() < 0.5) scene.effects.sparkle(x, y, 0xffa050, 1);
+        if (g.t <= 0) {
+          g.state = 'rest';
+          g.t = GEYSER.rest;
+          for (const a of on) {
+            a.p.vy = -GEYSER.launch;
+            a.p.grounded = false;
+            a.p.mining = null;
+            a.sprite.setScale(0.7, 1.3);
+          }
+          steam(x, y, 12, 10, 60);
+          scene.events.emit('geyser', g);
+          if (on.length) earnSticker(scene, 'find-geyser');
+        }
+      } else {
+        g.t -= dt;
+        if (g.t <= 0) g.state = 'idle';
+      }
+    }
+  }
+
+  // An old rover: walk up to it and it wakes up (beep boop), pops open, full of bolts.
+  function updateRovers() {
+    for (const r of rovers) {
+      if (r.open) continue;
+      if (!players().some((a) => !a.bubbling && overlaps(boxOf(a), cellBox(r.x, r.y, 3)))) continue;
+      r.open = true;
+      grid.set(r.x + 1, r.y, B.AIR);
+      scene.events.emit('beep');
+      // it blinks awake, then pops open
+      let n = 0;
+      const blink = scene.time.addEvent({ delay: 110, repeat: 5, callback: () => { r.s.setFrame(n++ % 2); } });
+      scene.time.delayedCall(720, () => {
+        blink.remove();
+        r.s.setFrame(1);
+        scene.tweens.add({ targets: r.s, scaleY: { from: 1.2, to: 1 }, duration: 300, ease: 'Back.easeOut' });
+        burst(r.s.x, r.s.y - 14, roverLoot(scene.rng), 200);
+        scene.effects.confetti(r.s.x, r.s.y - 14);
+        scene.cameras.main.flash(120, 255, 220, 160);
+        scene.events.emit('chestOpened', r);
+      });
+      earnSticker(scene, 'find-rover');
+      scene.trip.chests++;
+    }
+  }
+
+  // A vault: step on its glyph button and the door rumbles open.
+  function updateVaults() {
+    for (const v of vaults) {
+      if (v.open) continue;
+      const pressed = players().some((a) => !a.bubbling && playerCell(a.p).cx === v.glyph.x && playerCell(a.p).cy === v.glyph.y);
+      if (!pressed) continue;
+      v.open = true;
+      scene.events.emit('vault');
+      scene.cameras.main.shake(700, 0.004);
+      scene.effects.sparkle(v.glyph.x * TILE + 8, v.glyph.y * TILE + 8, 0x5af0ff, 12);
+      v.door.forEach((d, i) => {
+        scene.time.delayedCall(350 + i * 250, () => {
+          grid.set(d.x, d.y, B.AIR);
+          scene.mapView.sync(d.x, d.y);
+          scene.effects.chunks(d.x, d.y, B.VAULT_DOOR);
+          scene.effects.sparkle(d.x * TILE + 8, d.y * TILE + 8, 0xffd84a, 8);
+        });
+      });
+      scene.time.delayedCall(950, () => {
+        const x = (v.x0 + 3.5) * TILE;
+        const y = (v.y0 + 3) * TILE;
+        burst(x, y, vaultLoot(scene.rng), 120);
+        scene.effects.confetti(x, y);
+        scene.cameras.main.flash(150, 255, 230, 150);
+      });
+      earnSticker(scene, 'find-vault');
+    }
+  }
+
   // All 9 cells dug: the Heart is yours! It floats up and rides home with you.
   function winHeart() {
-    if (moonHeart) moonHearts++;
+    if (heart.kind === 'moon') moonHearts++;
+    if (heart.kind && heart.kind !== 'earth') suitHearts++;
     else hearts++;
     const s = heart.s;
     scene.tweens.killTweensOf(s);
@@ -377,10 +485,8 @@ export function createFindsView(scene) {
     for (let i = 0; i < 3; i++) scene.time.delayedCall(i * 300, () => scene.effects.confetti(s.x + (i - 1) * 20, s.y));
     scene.cameras.main.flash(300, 255, 180, 210);
     scene.cameras.main.shake(300, 0.005);
-    burst(s.x, s.y, moonHeart
-      ? ['moonstone', 'moonstone', 'spacegem', 'spacegem', 'gizmo', 'gizmo', 'cheese', 'cheese']
-      : ['star', 'star', 'star', 'diamond', 'emerald', 'gold', 'amber', 'brick'], 220);
-    earnSticker(scene, moonHeart ? 'find-moonheart' : 'find-heart');
+    burst(s.x, s.y, heartLook.loot, 220);
+    earnSticker(scene, heartLook.sticker);
     scene.events.emit('heart', heart);
     heart.s = null;
   }
@@ -391,6 +497,25 @@ export function createFindsView(scene) {
     light,
     get hearts() { return hearts; },
     get moonHearts() { return moonHearts; },
+    get suitHearts() { return suitHearts; },
+    rovers,
+    vaults,
+    // little lights: glyph buttons still to press, and hot geyser vents
+    lights(view, flicker) {
+      const out = [];
+      const near = (x, y) => x > view.x - 64 && x < view.right + 64 && y > view.y - 64 && y < view.bottom + 64;
+      for (const v of vaults) {
+        const x = v.glyph.x * TILE + 8;
+        const y = v.glyph.y * TILE + 8;
+        if (!v.open && near(x, y)) out.push({ x, y, r: 1.4 * flicker, glow: 0.2, color: 0x5af0ff });
+      }
+      for (const g of geysers) {
+        const x = g.x * TILE + 8;
+        const y = g.y * TILE + 12;
+        if (near(x, y)) out.push({ x, y, r: (g.state === 'rumble' ? 1.6 : 0.9) * flicker, glow: 0.14, color: 0xff8a2a });
+      }
+      return out;
+    },
     heart,
     chimes,
     ufo,
@@ -418,7 +543,7 @@ export function createFindsView(scene) {
         scene.cameras.main.flash(100, 255, 240, 180);
         earnSticker(scene, 'find-meteorite');
         scene.events.emit('meteorite', m);
-      } else if ((m.id === B.HEART || m.id === B.MOON_HEART) && heart) {
+      } else if (heart && m.id === heartLook.block) {
         heart.left = heartLeft(grid, heart);
         scene.effects.sparkle(x, y, 0xff8ab0, 10);
         scene.events.emit('heartChip', m);
@@ -440,6 +565,9 @@ export function createFindsView(scene) {
       updateChimes(dt);
       updateTeleports();
       updateUfo();
+      updateGeysers(dt);
+      updateRovers();
+      updateVaults();
       // "together!": a boulder or the big chest needs both of you
       const spot = chestNeedsTwo ?? (lonely ? { x: lonely.x * TILE + 8, y: lonely.y * TILE - 12 } : null);
       together.setVisible(!!spot);

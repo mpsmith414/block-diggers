@@ -1,12 +1,15 @@
 import Phaser from 'phaser';
 import { generateMine, carveStation } from '../world/worldgen.js';
 import { generateMoon } from '../world/moon.js';
+import { generateMars } from '../world/mars.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
 import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
 import { planetById } from '../game/planets.js';
+import { createStorm, stepStorm, windOf } from '../game/storms.js';
+import { heartOf } from '../game/finds.js';
 import { createSneeze, addDust, createFall, trackFall, chestSock } from '../game/silly.js';
 import { createPowerups, touchLava, stepPowerups, multipliers } from '../game/powerups.js';
 import {
@@ -22,7 +25,7 @@ import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
-import { packCap, revealsChests, luck, lanternRadius } from '../game/perks.js';
+import { packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies } from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
@@ -38,6 +41,7 @@ import {
 const GLINT_COLORS = {
   coal: 0x9a96a8, iron: 0xf5d2b8, gold: 0xffe066, diamond: 0x9ff6ff, emerald: 0x8affb0, amber: 0xffc060, brick: 0xff7a6a, star: 0xfffbe0,
   moonstone: 0xc8ecff, cheese: 0xffe066, spacegem: 0xe0a0ff, gizmo: 0x9affb0,
+  ruby: 0xff6a8a, bolt: 0xe8ecf4, opal: 0xffa04a, coin: 0xffe066,
 };
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
@@ -56,6 +60,8 @@ export class MineScene extends Phaser.Scene {
     this.startRow = data?.startRow ?? null;
     this.planet = data?.planet ?? (data?.world === 'moon' ? 'moon' : 'earth');
     this.moon = this.planet === 'moon';
+    this.mars = this.planet === 'mars';
+    this.away = this.planet !== 'earth';
   }
 
   create() {
@@ -64,15 +70,22 @@ export class MineScene extends Phaser.Scene {
     this.eggKinds = CAVE_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
     const dinoEggKinds = DINO_KINDS.filter((k) => !(saved.pets ?? []).includes(k));
     this.luck = luck(saved);
-    this.world = this.moon
-      ? generateMoon(this.seed, { pupEgg: !(saved.pets ?? []).includes('moonpup') })
-      : generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
+    const pets = saved.pets ?? [];
+    if (this.moon) this.world = generateMoon(this.seed, { pupEgg: !pets.includes('moonpup') });
+    else if (this.mars) this.world = generateMars(this.seed, { roverEgg: !pets.includes('rover') });
+    else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     this.gravity = planetById(this.planet).gravity;
     this.light = lanternRadius({ ...saved, upgrades: this.upgrades });
-    this.airJumps = (saved.pets ?? []).includes('moonpup') ? 1 : 0;
+    this.airJumps = pets.includes('moonpup') ? 1 : 0;
+    // the Boots: faster everywhere, and Mars dust storms can't push you
+    this.walkMul = walkMul(saved);
+    this.stormProof = stormProof(saved);
+    this.stormRubies = stormRubies(saved);
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
+    this.storm = this.mars ? createStorm(this.rng) : null;
+    this.stormsSeen = 0;
     // Phaser reuses this object across trips: reset all per-trip state here.
     this.avatars = [];
     this.pickups = [];
@@ -90,9 +103,14 @@ export class MineScene extends Phaser.Scene {
     this.events.on('sticker', onSticker);
     this.events.once('shutdown', () => this.events.off('sticker', onSticker));
 
-    if (this.moon) this.drawSpace(); else this.drawSky();
-    this.mapView = createMapView(this, this.grid, this.moon ? { layerAt: this.world.layerAt, top: 'craters' } : {});
-    if (this.moon) this.drawLander(); else this.drawEntrance();
+    if (this.moon) this.drawSpace();
+    else if (this.mars) this.drawMarsSky();
+    else this.drawSky();
+    const top = Object.keys(planetById(this.planet).layers)[0];
+    this.mapView = createMapView(this, this.grid, this.away ? { layerAt: this.world.layerAt, top } : {});
+    if (this.moon) this.drawLander();
+    else if (this.mars) this.drawLander({ flag: 'mars-flag', later: 'mars-moons' });
+    else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
     this.decor = createDecorView(this, this.world.decor);
@@ -162,20 +180,40 @@ export class MineScene extends Phaser.Scene {
     this.tweens.add({ targets: this.earth, y: this.earth.y - 4, duration: 3000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  // The Moon Base hatch you climbed down through, and (every trip) you plant a flag.
-  drawLander() {
+  // Mars's sky: butterscotch pink, red dunes on the horizon, two little moons
+  // (Phobos and Deimos) and the Earth, a tiny blue dot.
+  drawMarsSky() {
+    const top = -SKY_ROWS * TILE;
+    const g = this.add.graphics().setDepth(-10);
+    g.fillGradientStyle(0xb8604a, 0xb8604a, 0xf0c090, 0xf0c090, 1);
+    g.fillRect(0, top, MINE_W * TILE, SKY_ROWS * TILE);
+    // the two moons: a lumpy one and a tiny one
+    g.fillStyle(0xd8c8b8, 1).fillEllipse(150, top + 20, 12, 9);
+    g.fillStyle(0xa89888, 1).fillCircle(147, top + 19, 2);
+    g.fillStyle(0xd8c8b8, 1).fillCircle(520, top + 32, 3);
+    this.add.image(640, top + 16, 'earth').setScale(0.22).setDepth(-9);
+    // red dunes on the horizon
+    const d = this.add.graphics().setDepth(-9);
+    d.fillStyle(0xd0704a, 1);
+    for (let i = 0; i < 7; i++) d.fillEllipse(i * 130 + 30, 8, 150, 60);
+    d.fillStyle(0xb85a3a, 1);
+    for (let i = 0; i < 8; i++) d.fillEllipse(i * 110 - 20, 12, 120, 40);
+  }
+
+  // The camp's hatch you climbed down through, and (every trip) you plant a flag.
+  drawLander({ flag = 'moon-flag', later = 'moon-earthrise' } = {}) {
     const x = SHAFT_X * TILE + TILE / 2;
     const g = this.add.graphics().setDepth(5);
     g.fillStyle(0x46545f, 1).fillRect(x - 12, -26, 4, 26).fillRect(x + 8, -26, 4, 26).fillRect(x - 14, -30, 28, 5);
     g.fillStyle(0x8a9aa8, 1).fillRect(x - 14, -30, 28, 2);
     g.fillStyle(0x3aff7a, 1).fillRect(x - 2, -29, 4, 1);
     this.time.delayedCall(1200, () => {
-      const flag = this.add.image(x - 22, 1, 'moon-flag').setOrigin(0.15, 1).setDepth(6).setScale(1, 0);
-      this.tweens.add({ targets: flag, scaleY: 1, duration: 400, ease: 'Back.easeOut' });
+      const img = this.add.image(x - 22, 1, flag).setOrigin(0.15, 1).setDepth(6).setScale(1, 0);
+      this.tweens.add({ targets: img, scaleY: 1, duration: 400, ease: 'Back.easeOut' });
       this.effects.sparkle(x - 20, -8, 0xffffff, 8);
-      earnSticker(this, 'moon-flag');
+      earnSticker(this, flag);
     });
-    this.time.delayedCall(3500, () => earnSticker(this, 'moon-earthrise'));
+    this.time.delayedCall(3500, () => earnSticker(this, later));
   }
 
   // A little wooden frame over the shaft, with a lantern.
@@ -317,6 +355,7 @@ export class MineScene extends Phaser.Scene {
       }
       this.drawAvatar(a, dt, time);
     }
+    this.stepStorm(dt);
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
     this.pets.update(dt, time);
@@ -328,6 +367,37 @@ export class MineScene extends Phaser.Scene {
     this.scanSurroundings(dt);
     this.suits.update();
     this.drawLights(time);
+  }
+
+  // Mars dust storms: a warning, then the wind blows (the HUD draws the dust).
+  // With the Weather Station, rubies rain down when it's over.
+  stepStorm(dt) {
+    if (!this.storm) return;
+    for (const ev of stepStorm(this.storm, dt, this.rng)) {
+      if (ev === 'warn') this.events.emit('stormWarn', this.storm.dir);
+      if (ev === 'start') {
+        this.events.emit('stormStart', this.storm.dir);
+        earnSticker(this, 'mars-storm');
+      }
+      if (ev === 'end') {
+        this.events.emit('stormEnd');
+        this.stormsSeen++;
+        if (this.stormRubies) this.rainRubies();
+      }
+    }
+  }
+
+  rainRubies() {
+    for (const a of this.avatars.filter(Boolean)) {
+      for (let i = 0; i < this.stormRubies; i++) {
+        const x = a.p.x + PLAYER.w / 2 + (this.rng.next() - 0.5) * 40;
+        this.time.delayedCall(i * 250, () => {
+          this.pickups.push(createPickup({ x, y: a.p.y - 40, ore: 'ruby', delay: 0.2, vy: 40 }));
+          this.effects.sparkle(x, a.p.y - 40, 0xff6a8a, 5);
+        });
+      }
+    }
+    this.events.emit('stormRubies');
   }
 
   drawHoldRing(a) {
@@ -342,14 +412,14 @@ export class MineScene extends Phaser.Scene {
     a.ring.fillStyle(0xc8904e, 1).fillRect(x - 1, y - 3, 2, 6); // a little rope
   }
 
-  // A rope drops to each player and pulls everyone up to camp (on the Moon,
-  // you're beamed back to the rocket instead).
+  // A rope drops to each player and pulls everyone up to camp (on other
+  // planets, you're beamed back to base instead).
   goHome() {
     if (this.goingHome) return;
     this.goingHome = true;
     this.events.emit('goHome');
-    if (this.moon) {
-      this.beamHome();
+    if (this.away) {
+      this.beamHome(this.mars ? 0xffa050 : 0x9ff6ff);
       return;
     }
     const top = -2 * TILE;
@@ -384,7 +454,7 @@ export class MineScene extends Phaser.Scene {
   }
 
   // Beam me up: a column of light, a sparkle, and everyone floats away.
-  beamHome() {
+  beamHome(color = 0x9ff6ff) {
     const players = this.avatars.filter(Boolean);
     for (const a of players) {
       a.ring.clear();
@@ -392,17 +462,17 @@ export class MineScene extends Phaser.Scene {
       a.bubble.setVisible(false);
       a.p.mining = null;
       a.crack.setVisible(false);
-      const beam = this.add.rectangle(a.sprite.x, a.sprite.y + 2, 18, 400, 0x9ff6ff, 0.45).setOrigin(0.5, 1).setDepth(52)
+      const beam = this.add.rectangle(a.sprite.x, a.sprite.y + 2, 18, 400, color, 0.45).setOrigin(0.5, 1).setDepth(52)
         .setBlendMode(Phaser.BlendModes.ADD).setScale(0.3, 0);
       this.tweens.add({ targets: beam, scaleY: 1, scaleX: 1, duration: 400, ease: 'Quad.easeOut' });
       this.tweens.add({ targets: beam, alpha: 0, delay: 1300, duration: 400 });
       this.tweens.add({ targets: a.sprite, alpha: 0, scaleX: 0.2, delay: 500, duration: 700 });
-      for (let i = 0; i < 6; i++) this.time.delayedCall(400 + i * 120, () => this.effects.sparkle(a.sprite.x, a.sprite.y - 8 - i * 6, 0x9ff6ff, 4));
+      for (let i = 0; i < 6; i++) this.time.delayedCall(400 + i * 120, () => this.effects.sparkle(a.sprite.x, a.sprite.y - 8 - i * 6, color, 4));
     }
     // the pets sparkle away too
     for (const s of this.pets.sprites()) {
       this.tweens.add({ targets: s, alpha: 0, y: s.y - 20, delay: 600, duration: 600 });
-      this.time.delayedCall(600, () => this.effects.sparkle(s.x, s.y, 0x9ff6ff, 4));
+      this.time.delayedCall(600, () => this.effects.sparkle(s.x, s.y, color, 4));
     }
     this.time.delayedCall(1500, () => this.cameras.main.fadeOut(700, 5, 4, 15));
     this.cameras.main.once('camerafadeoutcomplete', () => this.arriveHome(players));
@@ -415,7 +485,7 @@ export class MineScene extends Phaser.Scene {
       arrived: {
         packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
         stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
-        moonHearts: this.finds.moonHearts, planet: this.planet,
+        moonHearts: this.finds.moonHearts, suitHearts: this.finds.suitHearts, planet: this.planet,
       },
       planet: this.planet,
     });
@@ -469,7 +539,10 @@ export class MineScene extends Phaser.Scene {
     const floaty = this.gravity < 1 || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom);
     const still = mul.drinking || a.sneezeT > 0; // drinking or sneezing: stand still
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
-      { pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk, gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps });
+      {
+        pickLevel: this.upgrades.pick, dt, digMul: mul.dig, walkMul: mul.walk * this.walkMul,
+        gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
+      });
     this.stepSilly(a, dt, floaty);
     if (r.sprung) {
       this.events.emit('spring', a);
@@ -753,6 +826,9 @@ export class MineScene extends Phaser.Scene {
     if (a.sneezeT > 0.45) angle = -a.p.facing * 14;
     else if (a.sneezeT > 0) angle = a.p.facing * 16;
     if (a.dizzyT > 0) angle += Math.sin(time / 90) * 10;
+    // leaning into a dust storm (the Boots keep you steady)
+    const wind = windOf(this.storm);
+    if (wind && !this.stormProof && !a.bubbling) angle -= Math.sign(wind) * (6 + Math.sin(time / 70) * 2);
     sprite.setAngle(angle);
     a.stars.forEach((s, i) => {
       const t = time / 220 + (i * Math.PI * 2) / 3;
@@ -867,7 +943,12 @@ export class MineScene extends Phaser.Scene {
     g.fillStyle(0x6b4424, 1);
     for (let x = x0; x < x0 + 7 * TILE; x += 6) g.fillRect(x, y - 2, 3, 2);
     g.fillStyle(0xb8c4d0, 1).fillRect(x0, y - 3, 7 * TILE, 1);
-    if (this.moon) {
+    if (this.mars) {
+      // the rover drove you down, and waits there to take you home
+      const rover = this.add.sprite(x0 + 16, y - 2, 'rover-car', 0).setOrigin(0.5, 1).setDepth(13);
+      this.tweens.add({ targets: rover, y: rover.y - 1, duration: 300, yoyo: true, repeat: -1 });
+      this.time.addEvent({ delay: 400, loop: true, callback: () => rover.setFrame(rover.frame.name === 0 ? 1 : 0) });
+    } else if (this.moon) {
       // the friendly alien's UFO dropped you off, and hovers there to take you home
       const ufo = this.add.sprite(x0 + 20, y - 18, 'ufo', 0).setOrigin(0.5, 1).setDepth(13).setScale(0.6);
       this.tweens.add({ targets: ufo, y: ufo.y - 4, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -936,7 +1017,8 @@ export class MineScene extends Phaser.Scene {
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     const heart = this.finds.heart;
-    if (heart && heart.s) lights.push({ x: heart.s.x, y: heart.s.y, r: 4 * flicker, glow: 0.3, color: heart.kind === 'moon' ? 0x6ad0ff : 0xff6a9a });
+    if (heart && heart.s) lights.push({ x: heart.s.x, y: heart.s.y, r: 4 * flicker, glow: 0.3, color: heartOf(heart.kind).color });
+    lights.push(...this.finds.lights(view, flicker));
     for (const m of this.meteorites) {
       if (this.grid.get(m.x, m.y) === B.METEORITE) lights.push({ x: m.x * TILE + 8, y: m.y * TILE + 8, r: 1.2 * flicker, glow: 0.12, color: 0xffb04a });
     }

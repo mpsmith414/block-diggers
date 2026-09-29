@@ -25,6 +25,7 @@ export class LaunchScene extends Phaser.Scene {
   init(data) {
     this.from = data?.from ?? 'earth';
     this.to = data?.to ?? 'moon';
+    this.ship = data?.ship ?? 'rocket-ship';
   }
 
   create() {
@@ -33,7 +34,7 @@ export class LaunchScene extends Phaser.Scene {
     this.drawSky(rng);
     this.drawGround();
 
-    this.rocket = this.add.image(W / 2, GROUND, 'rocket-ship').setOrigin(0.5, 0.95).setScale(1.5).setDepth(10);
+    this.rocket = this.add.image(W / 2, GROUND, this.ship).setOrigin(0.5, 0.95).setScale(1.5).setDepth(10);
     this.flame = this.add.sprite(W / 2, GROUND, 'rocket-flame', 0).setOrigin(0.5, 0).setScale(1.5).setDepth(9).setVisible(false);
     this.flying = false;
     this.audio = this.registry.get('audio');
@@ -49,7 +50,9 @@ export class LaunchScene extends Phaser.Scene {
     for (let i = 0; i < bands; i++) {
       const t = i / (bands - 1); // 0 = top of the world, 1 = the ground
       // (the Moon has no air: its sky is space all the way down)
-      const color = t < 0.45 || !earth ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, 0x8ec5ff, (t - 0.45) / 0.55);
+      // (Mars's thin air is butterscotch pink near the ground)
+      const low = this.from === 'mars' ? 0xf0b890 : 0x8ec5ff;
+      const color = t < 0.45 || !(earth || this.from === 'mars') ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, low, (t - 0.45) / 0.55);
       g.fillStyle(color, 1).fillRect(0, TOP + (span * i) / bands, W, span / bands + 1);
     }
     // stars up in space, twinkling
@@ -72,11 +75,16 @@ export class LaunchScene extends Phaser.Scene {
   drawGround() {
     const g = this.add.graphics().setDepth(5);
     const earth = this.from === 'earth';
-    g.fillStyle(earth ? 0x8fb86a : 0x8a8a9c, 1);
+    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
+    g.fillStyle(look[0], 1);
     for (let i = 0; i < 7; i++) g.fillCircle(i * 90 - 20, GROUND + 6, 44);
-    g.fillStyle(earth ? 0x5aa63c : 0xb8b8c8, 1).fillRect(0, GROUND, W, H - GROUND);
-    g.fillStyle(earth ? 0x7cc95a : 0xdcdcea, 1).fillRect(0, GROUND, W, 3);
-    if (!earth) {
+    g.fillStyle(look[1], 1).fillRect(0, GROUND, W, H - GROUND);
+    g.fillStyle(look[2], 1).fillRect(0, GROUND, W, 3);
+    if (this.from === 'mars') {
+      // Mars's two little moons over the red ground
+      g.fillStyle(0xd8c8b8, 1).fillEllipse(W - 110, 50, 18, 13);
+      g.fillStyle(0xd8c8b8, 1).fillCircle(90, 80, 4);
+    } else if (!earth) {
       // the Earth hangs in the Moon's sky while you count down
       this.add.image(W - 90, 60, 'earth').setScale(2).setDepth(-5);
       g.fillStyle(0x9898aa, 1);
@@ -130,7 +138,7 @@ export class LaunchScene extends Phaser.Scene {
     });
     this.time.delayedCall(5400, () => {
       this.cameras.main.fadeOut(600, 5, 4, 15);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Camp', { planet: this.to, landing: true }));
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Camp', { planet: this.to, landing: true, from: this.from }));
     });
   }
 

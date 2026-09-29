@@ -62,13 +62,14 @@ export const MARS_LAYERS = {
   marscore: { top: 201, bottom: 250 },
 };
 
-// How Mars is made: ore veins, caves, and things to find.
+// How Mars is made: ore veins, caves, and things to find. Each layer has its
+// own ore (the core has all of them), so a layer's rock always matches its ore.
 export const MARS_GEN = {
   ores: {
     dunes: { veins: 42, weights: { ruby: 1 } },
-    rovers: { veins: 50, weights: { bolt: 5, ruby: 1 } },
-    volcano: { veins: 44, weights: { opal: 5, ruby: 1 } },
-    ruins: { veins: 44, weights: { coin: 5, opal: 1 } },
+    rovers: { veins: 50, weights: { bolt: 1 } },
+    volcano: { veins: 44, weights: { opal: 1 } },
+    ruins: { veins: 44, weights: { coin: 1 } },
     marscore: { veins: 46, weights: { ruby: 1, opal: 1, coin: 1 } },
   },
   caves: {

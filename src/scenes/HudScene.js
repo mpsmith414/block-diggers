@@ -8,6 +8,7 @@ import { nextGoal, deepestMissing, oreTopRow } from '../game/goals.js';
 import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
 import { EGG_KINDS } from '../art/finds.js';
+import { BADGE_LAYERS } from '../game/trip.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
@@ -28,7 +29,47 @@ export class HudScene extends Phaser.Scene {
 
   create() {
     this.panels = [];
+    if (this.source.storm) this.buildStorm();
     this.buildDepthMeter();
+  }
+
+  // Mars dust storms: red dust streaking across the screen (a few drifting
+  // motes when it's calm), a reddish haze, and a windsock that wobbles to warn you.
+  buildStorm() {
+    const W = this.scale.width;
+    const H = this.scale.height;
+    this.haze = this.add.rectangle(0, 0, W, H, 0xd0683a, 0).setOrigin(0);
+    this.dust = Array.from({ length: 70 }, (_, i) => this.add.image(Math.random() * W, 36 + Math.random() * (H - 36), 'pixel')
+      .setTint([0xe0784a, 0xc8583a, 0xf0a070][i % 3]).setDisplaySize(4 + (i % 6) * 2.5, i % 3 ? 1 : 2).setAlpha(0));
+    this.sock = this.add.image(W / 2, 54, 'icon-windsock').setScale(2.2).setVisible(false);
+    this.stormLevel = 0;
+  }
+
+  updateStorm(dt, time) {
+    const s = this.source.storm;
+    if (!s || !this.dust) return;
+    const target = s.phase === 'blow' ? 1 : s.phase === 'warn' ? 0.3 : 0.06;
+    this.stormLevel += (target - this.stormLevel) * Math.min(1, dt * 2);
+    const level = this.stormLevel;
+    const dir = s.dir || 1;
+    const W = this.scale.width;
+    this.haze.setAlpha(level * 0.2);
+    this.dust.forEach((d, i) => {
+      d.x += dir * (90 + (i % 5) * 70) * (0.25 + level * 1.4) * dt;
+      d.y += Math.sin(time / 260 + i) * 0.4;
+      if (d.x > W + 20) d.x = -20;
+      if (d.x < -20) d.x = W + 20;
+      d.setAlpha(Math.min(0.95, level * (0.45 + (i % 4) * 0.2)));
+    });
+    // the windsock: wobbling in the warning, flying straight out in the storm
+    const show = s.phase !== 'calm';
+    this.sock.setVisible(show);
+    if (show) {
+      const warn = s.phase === 'warn';
+      this.sock.setScale(dir * (2.2 + (warn ? Math.abs(Math.sin(time / 120)) * 0.5 : 0)), 2.2)
+        .setAngle(warn ? Math.sin(time / 70) * 14 : Math.sin(time / 50) * 4)
+        .setAlpha(warn && Math.floor(time / 250) % 2 ? 0.6 : 1);
+    }
   }
 
   // A thin strip on the right: the layers top to bottom, a face for each
@@ -141,6 +182,11 @@ export class HudScene extends Phaser.Scene {
       mooncrystal: { rock: B.MOON_CRYSTAL, ore: B.SPACE_GEM, creature: 'jelly', color: 0x8a6ae0 },
       alienbase: { rock: B.ALIEN_PANEL, ore: B.GIZMO, creature: 'drone', color: 0x5ad07a },
       mooncore: { rock: B.MOON_CORE, ore: B.MOON_HEART, creature: 'starsprite', color: 0xc8f0ff },
+      dunes: { rock: B.MARS_ROCK, ore: B.RUBY, creature: 'dustbunny', color: 0xe0703a },
+      rovers: { rock: B.RUST_ROCK, ore: B.BOLT, creature: 'crab', color: 0xa86a4a },
+      volcano: { rock: B.BASALT, ore: B.OPAL, creature: 'newt', color: 0xff8a2a },
+      ruins: { rock: B.RUIN_STONE, ore: B.COIN, creature: 'martian', color: 0xe0b060 },
+      marscore: { rock: B.MARS_CORE, ore: B.MARS_HEART, creature: 'ember', color: 0xff5a2a },
     }[layer];
     if (!LOOK) return;
     const w = 190;
@@ -151,7 +197,7 @@ export class HudScene extends Phaser.Scene {
     g.fillStyle(LOOK.color, 1).fillRoundedRect(-w / 2, -28, w, 56, 7);
     g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-w / 2 + 4, -24, w - 8, 48, 5);
     c.add(g);
-    const badge = this.add.image(-w / 2 + 28, 0, 'badge', ['dino', 'brick', 'meteor', 'core', 'craters', 'cheesecaves', 'mooncrystal', 'alienbase', 'mooncore'].indexOf(layer)).setScale(2.4);
+    const badge = this.add.image(-w / 2 + 28, 0, 'badge', BADGE_LAYERS.indexOf(layer)).setScale(2.4);
     c.add(badge);
     for (let i = 0; i < 4; i++) c.add(this.add.image(-22 + i * 20, 8, 'tiles', i === 1 ? LOOK.ore : LOOK.rock).setScale(1.25));
     const critter = this.add.sprite(46, -12, LOOK.creature, 0).setScale(1.5);
@@ -235,6 +281,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    this.updateStorm(delta / 1000, time);
     this.updateDepthMeter(time);
     this.updateGoal(delta / 1000, time);
     for (const a of this.source.avatars) {

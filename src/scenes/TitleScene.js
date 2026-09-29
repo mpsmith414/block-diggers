@@ -72,6 +72,9 @@ export class TitleScene extends Phaser.Scene {
     }
     // the Moon hangs in the sky, and now and then a little rocket zooms up to it
     this.add.image(84, 66, 'planet-moon').setAlpha(0.9);
+    // …and further off, little red Mars
+    const mars = this.add.image(400, 46, 'planet-mars').setScale(0.6).setAlpha(0.9);
+    this.tweens.add({ targets: mars, y: 49, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     const zoom = () => {
       const r = this.add.image(-10, 190, 'icon-rocket').setAngle(37).setDepth(2);
       this.tweens.add({

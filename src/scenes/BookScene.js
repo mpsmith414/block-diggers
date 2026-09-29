@@ -60,10 +60,12 @@ export class BookScene extends Phaser.Scene {
   }
 
   makeTab(page, i) {
-    const x = 50 + i * 36;
+    // the tabs share the book's top edge (narrower as pages are added)
+    this.tabStep = Math.min(36, 396 / STICKER_PAGES.length);
+    const x = 42 + i * this.tabStep;
     const c = this.add.container(x, 30);
     const bg = this.add.graphics();
-    const icon = this.add.image(15, 11, page.icon, 0);
+    const icon = this.add.image(this.tabStep / 2 - 1, 11, page.icon, 0);
     icon.setScale(Math.min(1, 16 / Math.max(icon.width, icon.height)));
     const bar = this.add.graphics();
     c.add([bg, icon, bar]);
@@ -76,12 +78,14 @@ export class BookScene extends Phaser.Scene {
       const on = t.i === this.page;
       const { have, total } = pageProgress(state, t.i);
       t.bg.clear();
-      t.bg.fillStyle(on ? PAGE : 0xd8c49a, 1).fillRoundedRect(0, on ? -4 : 0, 30, on ? 26 : 22, 4);
-      t.bg.lineStyle(1, LEATHER_DARK, 1).strokeRoundedRect(0, on ? -4 : 0, 30, on ? 26 : 22, 4);
+      const w = this.tabStep - 2;
+      t.bg.fillStyle(on ? PAGE : 0xd8c49a, 1).fillRoundedRect(0, on ? -4 : 0, w, on ? 26 : 22, 4);
+      t.bg.lineStyle(1, LEATHER_DARK, 1).strokeRoundedRect(0, on ? -4 : 0, w, on ? 26 : 22, 4);
       t.c.y = on ? 28 : 31;
       t.bar.clear();
-      t.bar.fillStyle(0xb8a070, 1).fillRect(4, 19, 22, 2);
-      t.bar.fillStyle(have === total ? GOLD : 0x6bbf59, 1).fillRect(4, 19, Math.round((22 * have) / total), 2);
+      const bw = this.tabStep - 10;
+      t.bar.fillStyle(0xb8a070, 1).fillRect(4, 19, bw, 2);
+      t.bar.fillStyle(have === total ? GOLD : 0x6bbf59, 1).fillRect(4, 19, Math.round((bw * have) / total), 2);
       t.icon.setAlpha(on ? 1 : 0.7);
     }
   }

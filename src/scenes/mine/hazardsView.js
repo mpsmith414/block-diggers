@@ -14,6 +14,7 @@ import { earnSticker } from '../common/stickers.js';
 const VOICE = {
   slime: 'blorp', bat: 'squeak', ptero: 'caw', robot: 'whirr', alien: 'giggle', wisp: 'crackle',
   moonblob: 'blorp', mouse: 'squeak', jelly: 'blorp', drone: 'whirr', sprite: 'giggle',
+  dustbunny: 'squeak', crab: 'whirr', newt: 'blorp', martian: 'giggle', ember: 'crackle',
 };
 // texture for each creature (most are named after it)
 const TEXTURE = { robot: 'toyrobot', sprite: 'starsprite' };
@@ -154,7 +155,7 @@ export function createHazards(scene) {
           }
         }
         // aliens giggle when you get close
-        if (e.species === 'alien' && e.giggleT <= 0 && players().some((a) => Math.hypot(a.p.x - e.x, a.p.y - e.y) < 3 * TILE)) {
+        if ((e.species === 'alien' || e.species === 'martian') && e.giggleT <= 0 && players().some((a) => Math.hypot(a.p.x - e.x, a.p.y - e.y) < 3 * TILE)) {
           e.giggleT = 3;
           scene.events.emit('critter', 'giggle');
           const n = scene.add.image(e.x + e.w / 2, e.y - 4, 'note').setDepth(40);

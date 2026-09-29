@@ -12,8 +12,8 @@ const fit = (rows, w = 16) => rows.map((r) => (r + '.'.repeat(w)).slice(0, w));
 export const MARS_HOSTS = {
   sand: { base: '#c8583a', dark: '#a8442a', light: '#e07a4a' },
   rust: { base: '#7a4a32', dark: '#5e3624', light: '#a06a44' },
-  basalt: { base: '#3a3036', dark: '#2a2228', light: '#4e4248' },
-  ruin: { base: '#d0a060', dark: '#a87a40', light: '#f0c880' },
+  basalt: { base: '#524650', dark: '#3e343c', light: '#6a5c66' },
+  ruin: { base: '#b8844c', dark: '#8a6034', light: '#d09c62' },
   core: { base: '#a8321a', dark: '#8a2412', light: '#e05a2a' },
 };
 
@@ -60,11 +60,12 @@ export function drawMarsTiles(ctx, at, rng, B, rect, speckle) {
     rect(ctx, '#6a7488', ox + 3, y + 2, 1, 2);
   }
 
-  // basalt: dark volcanic rock with a warm crack
+  // basalt: dark volcanic rock in rough columns
   const basalt = (id) => {
     speckle(ctx, at(id), rng, MARS_HOSTS.basalt, 5);
-    rect(ctx, '#6a2a1a', at(id) + 4, 12, 4, 1);
-    rect(ctx, '#ff6a2a', at(id) + 5, 12, 1, 1);
+    rect(ctx, '#3e343c', at(id) + 5, 0, 1, T);
+    rect(ctx, '#3e343c', at(id) + 11, 0, 1, T);
+    rect(ctx, '#6a5c66', at(id) + 6, 0, 1, T);
   };
   basalt(B.BASALT);
   // fire opals: orange stones with teal flecks
@@ -90,8 +91,6 @@ export function drawMarsTiles(ctx, at, rng, B, rect, speckle) {
     rect(ctx, MARS_HOSTS.ruin.light, ox, 8, T, 1);
   };
   ruin(B.RUIN_STONE);
-  rect(ctx, '#a87a40', at(B.RUIN_STONE) + 2, 10, 3, 1);
-  rect(ctx, '#a87a40', at(B.RUIN_STONE) + 3, 11, 1, 2);
   // Mars coins: two gold coins with a little red planet stamped on
   ruin(B.COIN);
   for (const [x, y] of [[1, 1], [8, 8]]) {
@@ -173,9 +172,8 @@ export function drawMarsBacks(ctx, rect, back, BACK) {
   rect(ctx, '#4a2016', BACK.dunes * T, 6, T, 1);
   back(BACK.rovers, { base: '#3a261c', dark: '#2e1c14', light: '#462e22' });
   rect(ctx, '#5a3a2a', BACK.rovers * T + 3, 4, 1, 4);
-  back(BACK.volcano, { base: '#1e1418', dark: '#160e12', light: '#281c20' });
-  rect(ctx, '#6a2a1a', BACK.volcano * T + 9, 10, 1, 1);
-  rect(ctx, '#6a2a1a', BACK.volcano * T + 3, 4, 1, 1);
+  back(BACK.volcano, { base: '#1a1014', dark: '#120a0e', light: '#24181c' });
+  rect(ctx, '#4a1a12', BACK.volcano * T + 9, 10, 1, 1);
   back(BACK.ruins, { base: '#4a3420', dark: '#3e2a18', light: '#56402a' });
   rect(ctx, '#3a2614', BACK.ruins * T, 7, T, 1);
   rect(ctx, '#3a2614', BACK.ruins * T + 8, 0, 1, 7);

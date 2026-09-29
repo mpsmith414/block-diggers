@@ -47,7 +47,7 @@ export class SummaryScene extends Phaser.Scene {
     c.add(g);
 
     // header: a house icon and a little rope
-    c.add(this.add.image(240, y + 14, this.summary.moon ? 'icon-rocket' : 'icon-home').setScale(2));
+    c.add(this.add.image(240, y + 14, this.summary.away ? 'icon-rocket' : 'icon-home').setScale(2));
 
     // ores per player
     let ry = y + 34;

@@ -217,6 +217,27 @@ export function createSfx(audio) {
       ['C5', 'E5', 'G5', 'E5', 'C6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.1, gain: 0.07, at: i * 0.09 }));
       noise({ dur: 0.3, gain: 0.1, freq: 6000, q: 0.7, type: 'highpass', at: 0.45 });
     },
+    // Mars: the storm's whistle and wind, a geyser, an old rover waking up, a vault door
+    whistle() {
+      tone({ type: 'sine', freq: 700, to: 1300, dur: 0.6, gain: 0.05 });
+      tone({ type: 'sine', freq: 1300, to: 800, dur: 0.7, gain: 0.05, at: 0.6 });
+      noise({ dur: 1.4, gain: 0.06, freq: 1500, to: 2500, q: 3, type: 'bandpass' });
+    },
+    wind() {
+      noise({ dur: 3, gain: 0.12, freq: 350, to: 900, q: 0.8, type: 'bandpass' });
+      noise({ dur: 5, gain: 0.08, freq: 900, to: 400, q: 0.8, type: 'bandpass', at: 3 });
+    },
+    geyser() {
+      noise({ dur: 0.9, gain: 0.22, freq: 600, to: 4000, q: 0.7, type: 'bandpass' });
+      tone({ type: 'sine', freq: 200, to: 700, dur: 0.4, gain: 0.1 });
+    },
+    beep() {
+      ['G5', 'C6', 'E6', 'C6', 'G6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.07, gain: 0.05, at: i * 0.12 }));
+    },
+    vault() {
+      noise({ dur: 1.0, gain: 0.22, freq: 250, to: 90, q: 0.8, type: 'lowpass' });
+      ['C4', 'G4', 'C5', 'E5', 'G5', 'C6'].forEach((n, i) => tone({ type: 'triangle', freq: noteFreq(n), dur: 0.35, gain: 0.07, at: 0.5 + i * 0.1 }));
+    },
   };
 
   return {
