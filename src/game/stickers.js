@@ -142,6 +142,10 @@ export const STICKER_PAGES = [
     ['egg-grove', 'icon-eggcatch'], ['egg-catch', 'catch-egg', 0], ['egg-golden', 'egg-golden-icon'], ['egg-rotten', 'egg-rotten-icon'], ['egg-star', 'egg-star'],
     ['fw-deck', 'icon-fwdeck'], ['fw-pop', 'fw-balloon', 0], ['fw-golden', 'fw-balloon', 4], ['fw-chain', 'fw-chain'], ['fw-star', 'fw-star'],
   ]),
+  // the Build Yard
+  page('build', 'icon-yard', [
+    ['build-yard', 'icon-yard'], ['build-first', 'tiles', B.BRICKS], ['build-tower', 'build-tower'], ['build-rainbow', 'build-rainbow'], ['build-100', 'build-100'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);

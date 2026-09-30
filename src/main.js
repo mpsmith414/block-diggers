@@ -10,6 +10,8 @@ import { LaunchScene } from './scenes/LaunchScene.js';
 import { ToastScene } from './scenes/ToastScene.js';
 import { BookScene } from './scenes/BookScene.js';
 import { CampHudScene } from './scenes/CampHudScene.js';
+import { BuildScene } from './scenes/BuildScene.js';
+import { BuildHudScene } from './scenes/BuildHudScene.js';
 import { StarMapScene } from './scenes/StarMapScene.js';
 
 const game = new Phaser.Game({
@@ -22,7 +24,7 @@ const game = new Phaser.Game({
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [BootScene, TitleScene, CampScene, CampHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, StarMapScene, LaunchScene, ToastScene],
+  scene: [BootScene, TitleScene, CampScene, CampHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, StarMapScene, LaunchScene, ToastScene, BuildScene, BuildHudScene],
 });
 
 // Dev-only handle for debugging and screenshots.

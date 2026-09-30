@@ -213,7 +213,15 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 251 stickers on 25 pages, and a trophy for each full page. Open
+- **The Build Yard:** walk out through the gate at the right end of Earth camp
+  into a big sunny meadow and **build with every block you've found**, as many
+  as you like (Lego-style). Reaching a layer on any planet unlocks its rock and
+  treasure for building. **LB / RB** (or Q / E) pick a block, **Y** (or the B
+  key) puts it where you're pointing (beside you, above your head with the stick
+  up, or under your feet with the stick down, so jump and build a tower under
+  yourself), and **B** (or H) takes it away. A see-through block shows where it
+  goes. Two players can build together, and whatever you build stays.
+- **Sticker book:** 256 stickers on 26 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

@@ -63,6 +63,7 @@ export class CampScene extends Phaser.Scene {
     this.planetArg = data?.planet ?? data?.arrived?.planet ?? null;
     this.landing = !!data?.landing;
     this.from = data?.from ?? null;
+    this.fromYard = !!data?.fromYard;
   }
 
   create() {
@@ -125,7 +126,7 @@ export class CampScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, this.W, (this.L.h + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
-    const startX = this.landing ? this.rocketX(this.from) : this.L.shaftX * TILE;
+    const startX = this.landing ? this.rocketX(this.from) : this.fromYard ? this.W - 4 * TILE : this.L.shaftX * TILE;
     this.cam = { zoom: 1.5, x: startX, y: GROUND_Y - 40 };
     cam.setZoom(this.cam.zoom).centerOn(this.cam.x, this.cam.y);
     cam.fadeIn(400, 20, 12, 30);
@@ -213,9 +214,11 @@ export class CampScene extends Phaser.Scene {
   drawProps() {
     const W = this.W;
     // trees behind everything
-    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5, 69, 76, 82, 106.5]) {
+    for (const x of [1, 8, 13.5, 25.5, 38.5, 52.5, 60.5, 69, 76, 82]) {
       this.add.image(x * TILE, GROUND_Y + 2, 'tree').setOrigin(0.5, 1).setDepth(-5);
     }
+    // the gate to the Build Yard, at the right end
+    this.add.image(W - 1.5 * TILE, GROUND_Y + 1, 'yard-gate').setOrigin(0.5, 1).setDepth(4);
     // meadow flowers along the ground
     for (let i = 0; i < 116; i++) {
       const x = 4 + ((i * 97) % (W - 8));
@@ -558,7 +561,9 @@ export class CampScene extends Phaser.Scene {
     const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
     const char = chars[slot] ?? CHARACTERS[slot];
     // arriving by rocket: you start inside it (hidden until the door opens)
-    const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX(this.from) - PLAYER.w / 2 } : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
+    // (back from the Build Yard: you come in through its gate, at the right end)
+    const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX(this.from) - PLAYER.w / 2 }
+      : this.fromYard ? standAt(this.L.w - 3 - slot, this.L.ground - 1) : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
     const a = {
       slot,
       char,
@@ -675,6 +680,8 @@ export class CampScene extends Phaser.Scene {
         if (action && action.key && !hud.picker) prompt = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
+      // through the gate at the right end of Earth camp: the Build Yard
+      if (this.onEarth && !this.leaving && !this.arriving && !a.carrying && a.p.x >= this.W - PLAYER.w - 3 && i.moveX > 0.5) this.goToYard();
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
       animateCharacter(a.sprite, a.p, a, dt, time);
       if (this.onEarth) this.pondDrink(a, dt, time);
@@ -1132,6 +1139,15 @@ export class CampScene extends Phaser.Scene {
       this.partying = false;
       done();
     });
+  }
+
+  // Off to the Build Yard (through the gate at the right end of Earth camp).
+  goToYard() {
+    this.leaving = true;
+    this.campPets.flush();
+    this.scene.get('CampHud').closePicker();
+    this.cameras.main.fadeOut(400, 20, 12, 30);
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Build'));
   }
 
   startTrip({ startRow = null } = {}) {
