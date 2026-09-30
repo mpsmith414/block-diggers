@@ -8,6 +8,7 @@ colors:
   plum-night: "#2a1d2e"
   twilight: "#1b1428"
   go-green: "#4cc24a"
+  go-green-deep: "#2f8f34"
   treasure-gold: "#f5c629"
   not-yet-red: "#d0463a"
   full-orange: "#e8762a"
@@ -99,7 +100,7 @@ The system is built for a pre-reader. Information travels by icon, colour, numbe
 A warm, sun-faded storybook base (parchment, leather, cocoa) with a small set of bright, saturated "toy" accents that each mean one thing.
 
 ### Primary
-- **Go Green** (#4cc24a): the A button and every "you can do this" signal. It is the glow around a camp building you can afford and the face of the A prompt that floats over anything usable. When a child sees green, pressing A does something.
+- **Go Green** (#4cc24a): the A button and every "you can do this" signal. It is the glow around a camp building you can afford and the face of the A prompt that floats over anything usable. When a child sees green, pressing A does something. **Go Green Deep** (#2f8f34) is its shade: the A button's underside, a green button's border, and "done!" messages in the grown-up backup panel.
 
 ### Secondary
 - **Treasure Gold** (#f5c629): rewards. Sticker frames, toast highlights, stars and gems glinting. Gold is earned, never decorative filler.
@@ -186,7 +187,11 @@ Soft rounded rectangles built from nested fills: shadow, then leather rim, then 
 *A little gold frame waiting to be filled.* 48px square with a Treasure Gold frame (radius 7px), a Sticker Cream inside inset 3px, and the slot shadow. An empty slot shows a faint silhouette. A filled slot shows the sticker art.
 
 ### Sticker Book
-*The treasure chest of the game.* A Book Leather cover with a darker leather rim (radius 10px), two Book Page leaves, and tab chips along the edge that lift 4px when selected (unselected tabs are a duller tan, #d8c49a).
+*The treasure chest of the game.* A Book Leather cover with a darker leather rim (radius 10px) and two Book Page leaves.
+- **Tabs:** one wide tab per planet (Earth, Moon, Mars, Saturn, Dino, Sun) plus one for the fun extras. Each tab shows the planet's picture and a thin progress bar (green, gold when complete). The chosen tab lifts 5px; unselected tabs are a duller tan (#d8c49a).
+- **Pages:** each planet holds a few pages, shown as ink dots under the left leaf.
+- **Bookmark:** the book opens at the newest sticker, which wobbles bigger with a gold sparkle. When you're on another planet, its tab carries the sparkle.
+- **Controls:** ←/→ turns pages; LB/RB or ↑/↓ jumps a whole planet.
 
 ### Block Bar (Build Yard)
 *A toy tray.* A Parchment strip at 92% opacity with a 2px leather stroke and 8px radius, 36px tall, centred at the bottom. It shows the chosen block large in the middle with its neighbours on either side, and LB/RB flip through them.

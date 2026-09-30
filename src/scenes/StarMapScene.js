@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { starMapStops } from '../game/planets.js';
+import { starMapStops, rocketTo } from '../game/planets.js';
+import { createRng } from '../world/rng.js';
 import { createEdge } from '../input/intents.js';
 import { getState } from '../save/store.js';
 import { attachAudio } from '../audio/wire.js';
@@ -8,8 +9,9 @@ import { CHARACTERS } from '../art/characters.js';
 
 // The star map: every planet on a dotted path through space, with the Sun
 // glowing at the end. Bright planets you can fly to, dark ones with a
-// padlock, a traffic cone on the ones still being built. Under each planet
-// sits the Sun Suit piece hidden at its bottom. ←/→ picks, A flies, B closes.
+// padlock (and a bubble showing the rocket that opens it), a traffic cone on
+// the ones still being built. Under each planet sits the Sun Suit piece
+// hidden at its bottom. ←/→ picks, A flies, B closes.
 
 const W = 480;
 const H = 270;
@@ -51,8 +53,11 @@ export class StarMapScene extends Phaser.Scene {
     const neb = this.add.graphics();
     neb.fillStyle(0x3a1a5a, 0.35).fillCircle(150, 60, 70).fillCircle(360, 220, 90);
     neb.fillStyle(0x1a3a5a, 0.35).fillCircle(260, 200, 60);
+    // (scattered by a seeded shuffle: the same sky every time, and no rows of
+    // stars that look like extra flight paths)
+    const sky = createRng(7);
     for (let i = 0; i < 120; i++) {
-      const s = this.add.image((i * 97) % W, (i * 53) % H, 'pixel').setTint([0xffffff, 0xfff6d0, 0x9ff6ff][i % 3]).setAlpha(0.3 + (i % 5) * 0.14);
+      const s = this.add.image(Math.floor(sky.next() * W), Math.floor(sky.next() * H), 'pixel').setTint([0xffffff, 0xfff6d0, 0x9ff6ff][i % 3]).setAlpha(0.3 + (i % 5) * 0.14);
       if (i % 4 === 0) this.tweens.add({ targets: s, alpha: 0.1, duration: 700 + (i % 6) * 250, yoyo: true, repeat: -1 });
     }
 
@@ -81,6 +86,7 @@ export class StarMapScene extends Phaser.Scene {
     this.ring = this.add.graphics();
     this.btnA = this.add.image(0, 0, 'btn-a').setScale(1.6);
     this.btnB = this.add.image(W - 16, 16, 'btn-b').setScale(1.4);
+    this.hint = this.add.container(0, 0).setDepth(5).setVisible(false);
     const next = this.stops.findIndex((s) => s.status === 'open');
     this.index = next >= 0 ? next : hereAt;
     this.drawCursor();
@@ -145,6 +151,29 @@ export class StarMapScene extends Phaser.Scene {
     const canFly = stop.status === 'open';
     this.btnA.setPosition(at.x + r * 0.8, at.y - r * 0.8).setVisible(canFly);
     for (const p of this.planets) p.img.setScale((p.stop.id === 'sun' ? 2 : p.stop.id === 'earth' ? 1.2 : 1.1) * (p === this.planets[this.index] ? 1.12 : 1));
+    this.drawHint(stop, at);
+  }
+
+  // A locked planet shows what opens it, in a little speech bubble: the rocket
+  // building to make, and the camp (planet) to make it at.
+  drawHint(stop, at) {
+    this.hint.removeAll(true);
+    const need = stop.status === 'locked' ? rocketTo(stop.id) : null;
+    if (!need) {
+      this.hint.setVisible(false);
+      return;
+    }
+    const g = this.add.graphics();
+    g.fillStyle(0x000000, 0.25).fillRoundedRect(-29, -21, 62, 38, 6);
+    g.fillStyle(0x8a5a34, 1).fillRoundedRect(-31, -24, 62, 38, 6).fillTriangle(-6, 13, 6, 13, 0, 21);
+    g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-29, -22, 58, 34, 5).fillTriangle(-4, 11, 4, 11, 0, 17);
+    const bld = this.add.image(-11, -5, `bld-${need.id}`);
+    bld.setScale(30 / bld.height);
+    const where = this.add.image(17, -5, LOOK[need.at]);
+    where.setScale(16 / Math.max(where.width, where.height));
+    this.hint.add([g, bld, where]);
+    this.hint.setPosition(at.x, at.y - (stop.id === 'sun' ? 72 : 50)).setVisible(true).setScale(0.6);
+    this.tweens.add({ targets: this.hint, scale: 1, duration: 200, ease: 'Back.easeOut' });
   }
 
   move(d) {
@@ -168,6 +197,8 @@ export class StarMapScene extends Phaser.Scene {
     // locked, or still being built
     this.events.emit('nope');
     this.tweens.add({ targets: [p.img, ...p.extras], x: '+=3', duration: 50, yoyo: true, repeat: 3 });
+    // and the hint bubble hops, to say "this is what you need"
+    if (this.hint.visible) this.tweens.add({ targets: this.hint, y: this.hint.y - 6, duration: 120, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
   }
 
   // A little rocket zooms along the dotted path to the planet you picked, then lift-off.

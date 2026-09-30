@@ -6,7 +6,15 @@
 import { exportText, importText, backupFileName, latestBackup } from '../save/backup.js';
 import { saveState } from '../save/save.js';
 
-const BTN = 'font:600 15px system-ui,sans-serif;padding:10px 16px;border-radius:10px;border:2px solid #8a5a34;background:#fff6e0;color:#4a3222;cursor:pointer;margin:6px 6px 0 0;';
+// (the game's own palette, from DESIGN.md: Book Page buttons on a Parchment
+// card with a Saddle Leather rim; the main action is Go Green)
+const BTN = 'font:600 15px system-ui,sans-serif;padding:10px 16px;border-radius:8px;border:2px solid #8a5a34;background:#f8ecd0;color:#4a3222;cursor:pointer;margin:6px 6px 0 0;box-shadow:2px 3px 0 rgba(0,0,0,.2);';
+const GO = 'background:#4cc24a;border-color:#2f8f34;color:#fff;';
+const STYLE = `<style>
+  #backup-panel button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  #backup-panel button:focus-visible { outline: 3px solid #f5c629; outline-offset: 2px; }
+  #backup-panel button:active { transform: translateY(1px); box-shadow: none; }
+</style>`;
 
 function ago(ms) {
   const m = Math.round(ms / 60000);
@@ -22,6 +30,7 @@ export function createBackupPanel({ doc = document, win = window, getState }) {
   const button = doc.createElement('button');
   button.id = 'backup-button';
   button.title = 'Game backup';
+  button.setAttribute('aria-label', 'Game backup');
   button.textContent = '💾';
   button.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:30;width:44px;height:44px;border-radius:50%;border:2px solid #8a5a34;background:#f4e4c1;font-size:22px;cursor:pointer;opacity:.8;';
 
@@ -29,13 +38,16 @@ export function createBackupPanel({ doc = document, win = window, getState }) {
   panel.id = 'backup-panel';
   panel.style.cssText = 'position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,12,30,.55);';
   const card = doc.createElement('div');
-  card.style.cssText = 'background:#f4e4c1;border:3px solid #8a5a34;border-radius:14px;padding:20px 24px;max-width:420px;font:15px/1.5 system-ui,sans-serif;color:#4a3222;';
-  card.innerHTML = `
+  card.style.cssText = 'background:#f4e4c1;border:4px solid #8a5a34;border-radius:10px;padding:20px 24px;max-width:420px;font:15px/1.5 system-ui,sans-serif;color:#4a3222;box-shadow:4px 6px 0 rgba(0,0,0,.25);';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-label', 'Game backup');
+  card.innerHTML = `${STYLE}
     <div style="font-weight:700;font-size:18px;margin-bottom:6px">💾 Game backup</div>
     <div>Save a copy of the whole game (every planet, sticker and build) as a file. Load it back here, or on another computer.</div>
-    <div id="backup-auto" style="margin-top:8px;color:#7a5a3a;font-size:13px"></div>
+    <div id="backup-auto" style="margin-top:8px;color:#4a3222;font-size:14px"></div>
     <div style="margin-top:10px">
-      <button id="backup-download" style="${BTN}">⬇ Download a backup</button>
+      <button id="backup-download" style="${BTN}${GO}">⬇ Download a backup</button>
       <button id="backup-load" style="${BTN}">⬆ Load a backup…</button>
       <button id="backup-close" style="${BTN}">Close</button>
     </div>
@@ -45,14 +57,16 @@ export function createBackupPanel({ doc = document, win = window, getState }) {
   doc.body.append(button, panel);
 
   const $ = (id) => card.querySelector(`#${id}`);
-  const say = (text, bad = false) => { $('backup-msg').textContent = text; $('backup-msg').style.color = bad ? '#b0302a' : '#3a7a2a'; };
+  const say = (text, bad = false) => { $('backup-msg').textContent = text; $('backup-msg').style.color = bad ? '#5a2a1c' : '#2f8f34'; };
   const open = () => {
     const auto = latestBackup(storage);
     $('backup-auto').textContent = auto ? `Automatic backup: ${ago(Date.now() - auto.time)}` : 'Automatic backup: not yet (it starts once you play)';
     say('');
     panel.style.display = 'flex';
+    $('backup-download').focus();
   };
-  const close = () => { panel.style.display = 'none'; };
+  // (blur, so the space bar goes back to the game, not a hidden button)
+  const close = () => { doc.activeElement?.blur?.(); panel.style.display = 'none'; };
 
   // (blur, so the space bar goes back to the game, not this button)
   button.addEventListener('click', () => { button.blur(); open(); });

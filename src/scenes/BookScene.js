@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
-import { STICKER_PAGES, pageProgress } from '../game/stickers.js';
+import { STICKER_PAGES, pageProgress, CHAPTERS, BOOK_ORDER, chapterOfPage, chapterProgress, bookmarkPage } from '../game/stickers.js';
 import { createEdge } from '../input/intents.js';
 import { getState } from '../save/store.js';
 import { attachAudio } from '../audio/wire.js';
 
-// The sticker book: an open book over the game. Tabs for the six pages,
-// stickers you've found in colour on gold, the rest as silhouettes.
-// ←/→ turns the page, B or Start closes it.
+// The sticker book: an open book over the game. One big tab per planet (and
+// one for the fun extras), each holding its pages; stickers you've found in
+// colour on gold, the rest as silhouettes. It opens at your newest sticker,
+// which sparkles. ←/→ turns the page, LB/RB or ↑/↓ jumps a whole planet, B or
+// Start closes it.
 
 const LEATHER = 0x7a3f2c;
 const LEATHER_DARK = 0x5a2a1c;
@@ -22,12 +24,12 @@ export class BookScene extends Phaser.Scene {
 
   init(data) {
     this.target = data.target;
-    this.page = data.page ?? 0;
+    this.page = data.page ?? null;
   }
 
   create() {
     this.session = this.registry.get('input');
-    this.edges = [0, 1].map(() => ({ b: createEdge(), start: createEdge(), left: createEdge(), right: createEdge(), a: createEdge() }));
+    this.edges = [0, 1].map(() => ({ b: createEdge(), start: createEdge(), left: createEdge(), right: createEdge(), a: createEdge(), prev: createEdge(), next: createEdge() }));
     for (const s of this.session.slots) {
       if (!s.intent) continue;
       const e = this.edges[s.slot];
@@ -47,7 +49,10 @@ export class BookScene extends Phaser.Scene {
     g.fillStyle(PAGE_LINE, 1).fillRect(236, 46, 8, 198);
     g.fillStyle(LEATHER_DARK, 1).fillRect(239, 44, 2, 202);
 
-    this.tabs = STICKER_PAGES.map((p, i) => this.makeTab(p, i));
+    const state = getState(this.registry);
+    this.newest = state.lastSticker ?? null;
+    if (this.page == null) this.page = bookmarkPage(state);
+    this.tabs = CHAPTERS.map((ch, i) => this.makeTab(ch, i));
     this.content = this.add.container(0, 0);
     this.arrows = [this.add.image(22, 145, 'arrow-l').setScale(2), this.add.image(458, 145, 'arrow-r').setScale(2)];
     this.closeBtn = this.add.image(452, 26, 'btn-b').setScale(1.4);
@@ -59,35 +64,43 @@ export class BookScene extends Phaser.Scene {
     this.events.emit('pickerOpen');
   }
 
-  makeTab(page, i) {
-    // the tabs share the book's top edge (narrower as pages are added)
-    this.tabStep = Math.min(36, 396 / STICKER_PAGES.length);
+  makeTab(chapter, i) {
+    // one wide tab per chapter along the book's top edge
+    this.tabStep = 396 / CHAPTERS.length;
     const x = 42 + i * this.tabStep;
     const c = this.add.container(x, 30);
     const bg = this.add.graphics();
-    const icon = this.add.image(this.tabStep / 2 - 1, 11, page.icon, 0);
-    icon.setScale(Math.min(1, 16 / Math.max(icon.width, icon.height)));
+    const icon = this.add.image(this.tabStep / 2 - 1, 10, chapter.icon, 0);
+    icon.setScale(Math.min(2, 17 / Math.max(icon.width, icon.height)));
     const bar = this.add.graphics();
-    c.add([bg, icon, bar]);
-    return { c, bg, icon, bar, i };
+    // a sparkle on the chapter with your newest sticker
+    const glint = this.add.image(this.tabStep - 10, 3, 'glint').setTint(0xffe066).setVisible(false);
+    c.add([bg, icon, bar, glint]);
+    return { c, bg, icon, bar, glint, i };
   }
 
   drawTabs() {
     const state = getState(this.registry);
+    const chapter = chapterOfPage(this.page);
+    const newestChapter = this.newest ? chapterOfPage(bookmarkPage(state)) : -1;
     for (const t of this.tabs) {
-      const on = t.i === this.page;
-      const { have, total } = pageProgress(state, t.i);
+      const on = t.i === chapter;
+      const { have, total } = chapterProgress(state, t.i);
       t.bg.clear();
-      const w = this.tabStep - 2;
-      t.bg.fillStyle(on ? PAGE : 0xd8c49a, 1).fillRoundedRect(0, on ? -4 : 0, w, on ? 26 : 22, 4);
-      t.bg.lineStyle(1, LEATHER_DARK, 1).strokeRoundedRect(0, on ? -4 : 0, w, on ? 26 : 22, 4);
-      t.c.y = on ? 28 : 31;
+      const w = this.tabStep - 3;
+      t.bg.fillStyle(on ? PAGE : 0xd8c49a, 1).fillRoundedRect(0, on ? -5 : 0, w, on ? 28 : 23, 5);
+      t.bg.lineStyle(1, LEATHER_DARK, 1).strokeRoundedRect(0, on ? -5 : 0, w, on ? 28 : 23, 5);
+      t.c.y = on ? 27 : 31;
+      // how full this planet's pages are (gold when every sticker is found)
       t.bar.clear();
-      const bw = this.tabStep - 10;
-      t.bar.fillStyle(0xb8a070, 1).fillRect(4, 19, bw, 2);
-      t.bar.fillStyle(have === total ? GOLD : 0x6bbf59, 1).fillRect(4, 19, Math.round((bw * have) / total), 2);
-      t.icon.setAlpha(on ? 1 : 0.7);
+      const bw = w - 12;
+      t.bar.fillStyle(0xb8a070, 1).fillRect(6, 19, bw, 3);
+      t.bar.fillStyle(have === total ? GOLD : 0x6bbf59, 1).fillRect(6, 19, Math.round((bw * have) / total), 3);
+      t.icon.setAlpha(on ? 1 : have ? 0.8 : 0.45);
+      t.glint.setVisible(t.i === newestChapter && !on);
     }
+    this.tweens.killTweensOf(this.tabs.map((t) => t.glint));
+    for (const t of this.tabs) if (t.glint.visible) this.tweens.add({ targets: t.glint, angle: 360, scale: { from: 0.8, to: 1.3 }, duration: 900, yoyo: true, repeat: -1 });
   }
 
   renderPage(dir) {
@@ -120,7 +133,13 @@ export class BookScene extends Phaser.Scene {
       icon.setScale(Math.min(2.5, 32 / Math.max(icon.width, icon.height)));
       if (!found) icon.setTintFill(0x6a5a4a).setAlpha(0.35);
       c.add(icon);
-      if (found) {
+      if (found && st.id === this.newest) {
+        // the newest sticker: a bigger wobble and a sparkle, so you find it straight away
+        this.tweens.add({ targets: icon, scale: icon.scale * 1.2, angle: { from: -8, to: 8 }, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        const glint = this.add.image(x + 44, y + 4, 'glint').setTint(0xffe066).setScale(1.3);
+        c.add(glint);
+        this.tweens.add({ targets: glint, angle: 360, scale: 1.8, duration: 700, yoyo: true, repeat: -1 });
+      } else if (found) {
         this.tweens.add({ targets: icon, angle: { from: -4, to: 4 }, duration: 900 + i * 60, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       } else {
         c.add(this.add.bitmapText(x + 20, y + 16, 'pixel', '?').setScale(3).setTint(0xb8a888));
@@ -134,6 +153,14 @@ export class BookScene extends Phaser.Scene {
     if (!done) trophy.setTintFill(0x6a5a4a).setAlpha(0.3);
     else this.tweens.add({ targets: trophy, scale: 2.3, duration: 500, yoyo: true, repeat: -1 });
     c.add(trophy);
+    // which page of this planet you're on: a dot per page
+    const pages = CHAPTERS[chapterOfPage(this.page)].pages;
+    if (pages.length > 1) {
+      pages.forEach((p, i) => {
+        const dx = 139 - (pages.length * 12) / 2 + i * 12 + 6;
+        c.add(this.add.circle(dx, 234, p === this.page ? 4 : 3, p === this.page ? INK : 0xd8c49a));
+      });
+    }
 
     if (old) {
       if (dir) {
@@ -172,10 +199,21 @@ export class BookScene extends Phaser.Scene {
       const b = e.b(!!intent.home);
       const st = e.start(!!intent.pause);
       e.a(!!intent.jump);
+      // a whole planet at a time: LB/RB, or up/down on the stick
+      const up = e.prev(!!intent.prev || intent.moveY < -0.5);
+      const down = e.next(!!intent.next || intent.moveY > 0.5);
       if (l || r) {
-        const n = STICKER_PAGES.length;
-        this.page = (this.page + (r ? 1 : -1) + n) % n;
+        // page by page, through every chapter in order
+        const n = BOOK_ORDER.length;
+        const at = BOOK_ORDER.indexOf(this.page);
+        this.page = BOOK_ORDER[(at + (r ? 1 : -1) + n) % n];
         this.renderPage(r ? 1 : -1);
+        this.events.emit('pickerMove');
+      } else if (up || down) {
+        const n = CHAPTERS.length;
+        const ch = (chapterOfPage(this.page) + (down ? 1 : -1) + n) % n;
+        this.page = CHAPTERS[ch].pages[0];
+        this.renderPage(down ? 1 : -1);
         this.events.emit('pickerMove');
       }
       if ((b || st) && this.time.now - this.openedAt > 300) this.close();

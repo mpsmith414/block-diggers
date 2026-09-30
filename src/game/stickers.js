@@ -149,8 +149,41 @@ export const STICKER_PAGES = [
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);
-const BY_ID = new Map(ALL_STICKERS.map((s) => [s.id, s]));
 const PAGE_OF = new Map(STICKER_PAGES.flatMap((p, i) => p.stickers.map((s) => [s.id, i])));
+
+// The book's chapters: one tab per planet (and one for the fun extras), each
+// holding its pages. Page numbers never change (trophies are kept by page).
+export const CHAPTERS = [
+  { id: 'earth', icon: 'earth', pages: [0, 1, 2, 3, 4, 5, 6, 7, 9] },
+  { id: 'moon', icon: 'planet-moon', pages: [8, 10, 11] },
+  { id: 'mars', icon: 'planet-mars', pages: [12, 13] },
+  { id: 'saturn', icon: 'planet-saturn', pages: [14, 15, 16] },
+  { id: 'dino', icon: 'planet-dino', pages: [17, 18] },
+  { id: 'sun', icon: 'planet-sun', pages: [19, 20, 21] },
+  { id: 'fun', icon: 'icon-claw', pages: [22, 23, 24, 25] },
+];
+// every page in book order (chapter by chapter)
+export const BOOK_ORDER = CHAPTERS.flatMap((c) => c.pages);
+export const chapterOfPage = (page) => CHAPTERS.findIndex((c) => c.pages.includes(page));
+
+export function chapterProgress(state, chapterIndex) {
+  let have = 0;
+  let total = 0;
+  for (const p of CHAPTERS[chapterIndex].pages) {
+    const r = pageProgress(state, p);
+    have += r.have;
+    total += r.total;
+  }
+  return { have, total };
+}
+
+// The page the book opens on: the newest sticker's page (or the first page).
+export function bookmarkPage(state) {
+  const p = state.lastSticker ? PAGE_OF.get(state.lastSticker) : undefined;
+  return p ?? BOOK_ORDER[0];
+}
+
+const BY_ID = new Map(ALL_STICKERS.map((s) => [s.id, s]));
 
 export const stickerById = (id) => BY_ID.get(id) ?? null;
 
@@ -163,7 +196,7 @@ export function pageProgress(state, pageIndex) {
 // trophy earned by completing that page (or null).
 export function award(state, id) {
   if (!BY_ID.has(id) || state.stickers[id]) return { state, isNew: false, trophy: null };
-  let next = { ...state, stickers: { ...state.stickers, [id]: true } };
+  let next = { ...state, stickers: { ...state.stickers, [id]: true }, lastSticker: id };
   const p = PAGE_OF.get(id);
   const { have, total } = pageProgress(next, p);
   let trophy = null;
