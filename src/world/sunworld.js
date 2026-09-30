@@ -79,11 +79,14 @@ export function generateSun(seed, { dragonEgg = true } = {}) {
   const eggs = dragonEgg ? takeSpots(inLayer('radiance'), 1, 0).map((c) => ({ ...c, kind: 'sundragon' })) : [];
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
-  const decor = gen.decor(DECOR);
+  // the Launch Deck: a big room right of the Sun's Heart chamber, for the Firework Launcher
+  const { room: deck, inside: onDeck } = gen.bonusRoom(B.CORONA_ROCK, 12);
+
+  const decor = gen.decor(DECOR).filter((d) => !onDeck(d));
 
   return {
-    grid, chests, decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
+    grid, chests: chests.filter((c) => !onDeck(c)), decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
     geysers: [], rovers: [], vaults: [], globes: [], comet: null, parasaurs: [], nests: [], skull: null, stego: null,
-    flowers, forge, ducks: [], cushions: [], hostAt: sunHostAt, layerAt: sunLayerAt, spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'sun',
+    flowers, forge, ducks: [], cushions: [], deck, hostAt: sunHostAt, layerAt: sunLayerAt, spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'sun',
   };
 }

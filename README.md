@@ -198,6 +198,13 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sun Core:** the **Sun's Heart**. Bring it home for the **grand finale**:
     fireworks, the pets doing tricks, the camp friends, a giant trophy, and a
     **gold crown** for everyone. After that a **mini-sun** hangs over Earth camp.
+  - **The Launch Deck:** right next to the Sun's Heart, a starry stage: the
+    **Firework Launcher!** Balloons float up from below; **jump on one of the
+    five launch pads** to send a firework rocket straight up. A rocket that hits
+    a balloon bursts it into a firework, and the burst pops the balloons close
+    by too (**chain reactions**). A **golden balloon** counts 3. Every pop sends
+    a sunstone (a golden one three novas) to whoever launched it, up to 20 a
+    trip. Rounds last 30 seconds and end with fireworks across the sky.
 
   New drills: Sun Drill, Flare Drill, Nova Drill.
 - **Solar Station**: golden domes, flame fountains, and four buildings:
@@ -206,7 +213,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 246 stickers on 25 pages, and a trophy for each full page. Open
+- **Sticker book:** 251 stickers on 25 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

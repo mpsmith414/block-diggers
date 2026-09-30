@@ -140,6 +140,7 @@ export const STICKER_PAGES = [
   // more bonus games
   page('bonus2', 'icon-eggcatch', [
     ['egg-grove', 'icon-eggcatch'], ['egg-catch', 'catch-egg', 0], ['egg-golden', 'egg-golden-icon'], ['egg-rotten', 'egg-rotten-icon'], ['egg-star', 'egg-star'],
+    ['fw-deck', 'icon-fwdeck'], ['fw-pop', 'fw-balloon', 0], ['fw-golden', 'fw-balloon', 4], ['fw-chain', 'fw-chain'], ['fw-star', 'fw-star'],
   ]),
 ];
 

@@ -68,3 +68,19 @@ describe('the Sun generator', () => {
     }
   });
 });
+
+describe('the Sun launch deck', () => {
+  it('has a big room beside the Sun’s Heart for the Firework Launcher, open to its chamber, with nothing in it', () => {
+    for (const seed of [3, 42, 555]) {
+      const w = generateSun(seed);
+      const r = w.deck;
+      expect(r).toEqual({ x0: 30, x1: 46, top: SUN_H - 14, floor: SUN_H - 2 });
+      for (let y = r.top; y < r.floor; y++) for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, r.floor)).toBe(B.CORONA_ROCK);
+      expect(w.grid.get(29, r.floor - 1)).toBe(B.AIR);
+      const inside = (c) => c.x >= r.x0 && c.x <= r.x1 && c.y >= r.top && c.y <= r.floor;
+      expect(w.chests.some(inside)).toBe(false);
+      expect(w.decor.some(inside)).toBe(false);
+    }
+  });
+});
