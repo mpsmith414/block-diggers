@@ -423,3 +423,9 @@ export const CLAW = {
   glass: [18, 116], pile: [40, 112], chute: 18, top: 22, grabY: 86,
   move: 60, drop: 55, close: 0.35, open: 0.4, reach: 10, slip: 0.15, prizes: 10,
 };
+
+// Earth's Whack-a-Mole: five molehills, 30-second rounds; moles stay up for
+// less time (and pop more often) as the round goes on; now and then a golden one
+export const WHACK = {
+  holes: 5, round: 30, up: [1.6, 0.75], gap: [1.1, 0.4], maxUp: 2, bonked: 0.45, golden: 0.12, cap: 20, star: 20,
+};

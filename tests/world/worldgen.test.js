@@ -329,3 +329,20 @@ describe('joke finds in the mine', () => {
     }
   });
 });
+
+describe('the Mole Fair', () => {
+  it('has a big room beside the Heart of the World for Whack-a-Mole, open to its chamber, with nothing in it', async () => {
+    const { MINE_H: H } = await import('../../src/tuning.js');
+    for (const seed of [1, 99, 4242]) {
+      const w = generateMine(seed);
+      const r = w.molefair;
+      expect(r).toEqual({ x0: 30, x1: 46, top: H - 14, floor: H - 2 });
+      for (let y = r.top; y < r.floor; y++) for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, r.floor)).toBe(B.CORE);
+      expect(w.grid.get(29, r.floor - 1)).toBe(B.AIR);
+      const inside = (c) => c.x >= r.x0 && c.x <= r.x1 && c.y >= r.top && c.y <= r.floor;
+      for (const list of [w.chests, w.decor, w.eggs, w.boulders]) expect(list.some(inside)).toBe(false);
+      for (let y = w.heart.y; y < w.heart.y + 3; y++) for (let x = w.heart.x; x < w.heart.x + 3; x++) expect(w.grid.get(x, y)).toBe(B.HEART);
+    }
+  });
+});

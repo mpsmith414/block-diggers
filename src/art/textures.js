@@ -28,6 +28,7 @@ import { drawSunWorld, drawSunTiles, drawSunBacks, drawSunOreIcon } from './sunW
 import { drawSunBase } from './sunBase.js';
 import { drawSkateArt } from './skate.js';
 import { drawClawArt } from './claw.js';
+import { drawWhackArt } from './whack.js';
 
 const T = 16;
 
@@ -722,4 +723,5 @@ export function drawTextures(scene) {
   drawSunBase(scene, canvasTexture, rect);
   drawSkateArt(scene, canvasTexture, rect);
   drawClawArt(scene, canvasTexture, rect);
+  drawWhackArt(scene, canvasTexture, rect);
 }
