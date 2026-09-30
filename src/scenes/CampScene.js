@@ -11,6 +11,7 @@ import { CHARACTERS } from '../art/characters.js';
 import { BUILDING_SIZE } from '../art/camp.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
+import { varyTile } from '../art/tileVariety.js';
 import { getState, setState } from '../save/store.js';
 import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
 import { attachAudio } from '../audio/wire.js';
@@ -207,7 +208,7 @@ export class CampScene extends Phaser.Scene {
     const layer = map.createBlankLayer('ground', ts).setDepth(10);
     for (let y = 0; y < this.L.h; y++) for (let x = 0; x < this.L.w; x++) {
       const id = this.grid.get(x, y);
-      if (id !== B.AIR) layer.putTileAt(id, x, y);
+      if (id !== B.AIR) varyTile(layer.putTileAt(id, x, y), x, y);
     }
   }
 

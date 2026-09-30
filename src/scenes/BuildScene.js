@@ -13,6 +13,7 @@ import { createEdge } from '../input/intents.js';
 import { CHARACTERS } from '../art/characters.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
+import { varyTile } from '../art/tileVariety.js';
 import { createSuitView } from './common/suitView.js';
 import { getState, setState } from '../save/store.js';
 import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
@@ -102,7 +103,7 @@ export class BuildScene extends Phaser.Scene {
   drawCell(x, y) {
     const id = this.grid.get(x, y);
     if (id === B.AIR) this.layer.removeTileAt(x, y);
-    else this.layer.putTileAt(id, x, y);
+    else varyTile(this.layer.putTileAt(id, x, y), x, y);
   }
 
   avatarFor(slot) {
