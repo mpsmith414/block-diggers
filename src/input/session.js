@@ -12,6 +12,9 @@ export function createInputSession({ win, doc, maxPlayers = 2, devices, guards =
   const backListeners = new Set();
   let slots = [];
   let joining = true;
+  // players whose controller went missing and who were told to rest (the
+  // other player carries on alone); they wake up when their controller is back
+  const resting = new Set();
 
   const teardown = [];
   if (guards) {
@@ -31,7 +34,8 @@ export function createInputSession({ win, doc, maxPlayers = 2, devices, guards =
       const bound = players.update(view);
       slots = bound.map(({ slot, deviceId }) => {
         const state = states.find((s) => s.id === deviceId) ?? null;
-        return { slot, deviceId, state, intent: state ? toIntent(state) : null };
+        if (state) resting.delete(slot);
+        return { slot, deviceId, state, intent: state ? toIntent(state) : null, resting: resting.has(slot) };
       });
       return slots;
     },
@@ -44,8 +48,14 @@ export function createInputSession({ win, doc, maxPlayers = 2, devices, guards =
     setJoining(on) {
       joining = on;
     },
+    // Let the others carry on without this (missing) player for now.
+    rest(slot) {
+      resting.add(slot);
+      slots = slots.map((s) => (s.slot === slot ? { ...s, resting: true } : s));
+    },
     reset() {
       players.reset();
+      resting.clear();
       slots = [];
     },
     onBack(fn) {

@@ -13,7 +13,8 @@ import { BADGE_LAYERS } from '../game/trip.js';
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
 
-const PANEL_H = 30;
+const PANEL_H = 34;
+const GOAL_H = 26;
 const PAPER = 0xf4e4c1;
 const PAPER_EDGE = 0x8a5a34;
 const INK = 0x4a3222;
@@ -140,7 +141,7 @@ export class HudScene extends Phaser.Scene {
     this.eggDots = this.source.world.eggs.map((e) => this.add.rectangle(x + 5, top + e.y * this.meter.scale, 3, 4, 0xfff6d0).setOrigin(0.5));
     const bc = this.source.world.bigChest;
     this.bigDot = bc ? this.add.rectangle(x - 4, top + bc.y * this.meter.scale, 4, 3, 0xd08cff).setOrigin(0.5) : null;
-    this.carriedEggs = this.add.container(96, 38);
+    this.carriedEggs = this.add.container(6, 44 + GOAL_H + 6);
     this.buildGoal();
     this.carriedShown = 0;
     this.faces = [];
@@ -149,7 +150,7 @@ export class HudScene extends Phaser.Scene {
   // "We're saving up for…": the next thing to get and the ore it still needs,
   // plus an arrow on the depth meter at the layer where that ore is found.
   buildGoal() {
-    this.goalCard = this.add.container(4, 36);
+    this.goalCard = this.add.container(4, 44);
     this.goalArrow = this.add.container(0, 0).setVisible(false);
     this.goalArrow.add([this.add.image(0, 0, 'arrow-r').setScale(1.5), this.add.image(-10, 0, 'ore-iron')]);
     this.goalKey = '';
@@ -171,24 +172,27 @@ export class HudScene extends Phaser.Scene {
         this.goal = goal;
         if (goal) {
           const missing = Object.entries(goal.missing);
-          const w = 30 + Math.max(1, missing.length) * 28;
+          const w = 40 + Math.max(1, missing.length) * 36;
           const g = this.add.graphics();
-          g.fillStyle(0x8a5a34, 1).fillRoundedRect(0, 0, w, 20, 4);
-          g.fillStyle(0xf4e4c1, 1).fillRoundedRect(1, 1, w - 2, 18, 3);
+          g.fillStyle(0x000000, 0.25).fillRoundedRect(2, 3, w, GOAL_H, 5);
+          g.fillStyle(0x8a5a34, 1).fillRoundedRect(0, 0, w, GOAL_H, 5);
+          g.fillStyle(0xf4e4c1, 1).fillRoundedRect(2, 2, w - 4, GOAL_H - 4, 4);
           this.goalCard.add(g);
           const icon = goal.kind === 'blueprint'
-            ? this.add.image(12, 10, `bld-${goal.id}`).setScale(0.17)
-            : this.add.image(12, 10, { pick: 'icon-pick', pack: 'icon-bag', lantern: 'icon-lantern' }[goal.id]);
+            ? this.add.image(19, GOAL_H / 2 + 1, `bld-${goal.id}`)
+            : this.add.image(18, GOAL_H / 2, { pick: 'icon-pick', pack: 'icon-bag', lantern: 'icon-lantern' }[goal.id]).setScale(1.5);
+          // (a building is shrunk to fit the card, as big as it can be)
+          if (goal.kind === 'blueprint') icon.setScale((GOAL_H - 4) / icon.height);
           this.goalCard.add(icon);
           if (!missing.length) {
             // enough ore: go home and get it!
-            const home = this.add.image(38, 10, 'icon-home');
+            const home = this.add.image(50, GOAL_H / 2, 'icon-home').setScale(1.3);
             this.goalCard.add(home);
-            this.tweens.add({ targets: home, scale: 1.3, duration: 400, yoyo: true, repeat: -1 });
+            this.tweens.add({ targets: home, scale: 1.7, duration: 400, yoyo: true, repeat: -1 });
           }
           missing.forEach(([ore, n], i) => {
-            this.goalCard.add(this.add.image(30 + i * 28, 10, `ore-${ore}`));
-            this.goalCard.add(this.add.bitmapText(37 + i * 28, 7, 'pixel', String(n)).setTint(0x4a3222));
+            this.goalCard.add(this.add.image(44 + i * 36, GOAL_H / 2, `ore-${ore}`).setScale(1.2));
+            this.goalCard.add(this.add.bitmapText(52 + i * 36, GOAL_H / 2 - 5, 'pixel', String(n)).setScale(2).setTint(0x4a3222));
           });
         }
       }
@@ -299,35 +303,40 @@ export class HudScene extends Phaser.Scene {
     }
   }
 
-  panelFor(a) {
-    const kinds = shownOres(getState(this.registry), this.source.planet ?? 'earth');
+  // Only the ores in your pack are shown (a new kind pops in), each with a
+  // big ×2 number you can read from the sofa.
+  panelFor(a, coop) {
+    const kinds = shownOres(getState(this.registry), this.source.planet ?? 'earth').filter((o) => a.pack.ores[o] > 0);
+    const key = `${kinds.join()}|${coop}`;
     const old = this.panels[a.slot];
-    if (old && old.kinds.length === kinds.length) return old;
+    if (old && old.key === key) return old;
     if (old) old.c.destroy();
-    const PANEL_W = Math.max(150, 30 + kinds.length * 25);
+    // two players with a big haul: squeeze the slots so the panels never meet
+    const slotW = coop && kinds.length > 5 ? 30 : 36;
+    const PANEL_W = Math.max(136, 26 + kinds.length * slotW);
     const x = a.slot === 0 ? 4 : this.scale.width - PANEL_W - 4;
-    const y = 4;
-    const c = this.add.container(x, y);
+    const c = this.add.container(x, 4);
     const g = this.add.graphics();
-    g.fillStyle(PAPER_EDGE, 1).fillRoundedRect(0, 0, PANEL_W, PANEL_H, 4);
-    g.fillStyle(PAPER, 1).fillRoundedRect(1, 1, PANEL_W - 2, PANEL_H - 2, 3);
+    g.fillStyle(0x000000, 0.25).fillRoundedRect(2, 3, PANEL_W, PANEL_H, 5);
+    g.fillStyle(PAPER_EDGE, 1).fillRoundedRect(0, 0, PANEL_W, PANEL_H, 5);
+    g.fillStyle(PAPER, 1).fillRoundedRect(2, 2, PANEL_W - 4, PANEL_H - 4, 4);
     c.add(g);
-    const face = this.add.image(4, 3, `char-${a.char}`, 0).setOrigin(0);
-    c.add(face);
+    c.add(this.add.image(4, 3, `char-${a.char}`, 0).setOrigin(0));
     const ores = kinds.map((ore, i) => {
-      const ox = 24 + i * 25;
-      const icon = this.add.image(ox, 4, `ore-${ore}`).setOrigin(0);
-      const num = this.add.bitmapText(ox + 11, 6, 'pixel', '0').setTint(INK);
+      const ox = 24 + i * slotW;
+      const icon = this.add.image(ox + 6, 10, `ore-${ore}`).setScale(1.2);
+      const num = this.add.bitmapText(ox + 14, 5, 'pixel', String(a.pack.ores[ore])).setScale(2).setTint(INK);
       c.add([icon, num]);
+      if (old) this.tweens.add({ targets: icon, scale: { from: 2.4, to: 1.2 }, duration: 250, ease: 'Back.easeOut' });
       return { ore, icon, num };
     });
-    const bag = this.add.image(24, 17, 'icon-bag').setOrigin(0);
-    const barBg = this.add.rectangle(36, 19, 80, 6, 0xd8c49a).setOrigin(0);
-    const bar = this.add.rectangle(36, 19, 0, 6, 0x6bbf59).setOrigin(0);
-    const count = this.add.bitmapText(120, 19, 'pixel', '0/20').setTint(INK);
-    const full = this.add.image(4, 18, 'icon-full').setOrigin(0).setVisible(false);
+    const bag = this.add.image(24, 20, 'icon-bag').setOrigin(0);
+    const barBg = this.add.rectangle(37, 22, 50, 7, 0xd8c49a).setOrigin(0);
+    const bar = this.add.rectangle(37, 22, 0, 7, 0x6bbf59).setOrigin(0);
+    const count = this.add.bitmapText(91, 19, 'pixel', '0/20').setScale(2).setTint(INK);
+    const full = this.add.image(4, 19, 'icon-full').setOrigin(0).setVisible(false);
     c.add([bag, barBg, bar, count, full]);
-    const panel = { c, ores, bar, count, full, bump: 0, kinds };
+    const panel = { c, ores, bar, count, full, key };
     this.panels[a.slot] = panel;
     return panel;
   }
@@ -337,23 +346,21 @@ export class HudScene extends Phaser.Scene {
     this.updateFlare(delta / 1000, time);
     this.updateDepthMeter(time);
     this.updateGoal(delta / 1000, time);
+    const coop = this.source.avatars.filter(Boolean).length > 1;
     for (const a of this.source.avatars) {
       if (!a) continue;
-      const p = this.panelFor(a);
+      const p = this.panelFor(a, coop);
       for (const o of p.ores) {
-        const n = a.pack.ores[o.ore];
-        const text = String(n);
+        const text = String(a.pack.ores[o.ore]);
         if (o.num.text !== text) {
           o.num.setText(text);
-          this.tweens.add({ targets: o.icon, scale: { from: 1.5, to: 1 }, duration: 200, ease: 'Back.easeOut' });
+          this.tweens.add({ targets: o.icon, scale: { from: 1.8, to: 1.2 }, duration: 200, ease: 'Back.easeOut' });
         }
-        const alpha = n > 0 ? 1 : 0.35;
-        o.icon.setAlpha(alpha);
-        o.num.setAlpha(alpha);
       }
       const frac = a.pack.count / a.pack.cap;
-      p.bar.width = Math.round(80 * frac);
-      p.bar.fillColor = frac >= 1 ? 0xe0503a : frac > 0.75 ? 0xf0b23a : 0x6bbf59;
+      p.bar.width = Math.round(50 * frac);
+      // (full is a warm orange, not red: red only ever means "not enough yet")
+      p.bar.fillColor = frac >= 1 ? 0xe8762a : frac > 0.75 ? 0xf0b23a : 0x6bbf59;
       p.count.setText(`${a.pack.count}/${a.pack.cap}`);
       const isFull = packFull(a.pack);
       p.full.setVisible(isFull && Math.floor(time / 300) % 2 === 0);

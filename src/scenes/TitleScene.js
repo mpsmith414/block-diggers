@@ -13,6 +13,8 @@ const PAPER = 0xf4e4c1;
 const EDGE = 0x8a5a34;
 const GROUND = 226;
 
+const JOIN_GRACE = 2000; // ms a lone ready player waits for a partner to join
+
 export class TitleScene extends Phaser.Scene {
   constructor() {
     super('Title');
@@ -110,7 +112,8 @@ export class TitleScene extends Phaser.Scene {
     const a = this.add.image(w / 2, h / 2 - 6, 'btn-a').setScale(3);
     this.tweens.add({ targets: a, scale: 3.4, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     const pad = this.add.image(w / 2, h / 2 + 30, 'icon-pad').setScale(2);
-    empty.add([a, pad]);
+    const ring = this.add.graphics();
+    empty.add([ring, a, pad]);
     const chosen = this.add.container(0, 0).setVisible(false);
     const sprite = this.add.sprite(w / 2, 78, `char-${this.picks[slot]}`, 0).setOrigin(0.5, 1).setScale(4);
     const left = this.add.image(10, 50, 'arrow-l').setScale(2);
@@ -119,7 +122,7 @@ export class TitleScene extends Phaser.Scene {
     const aSmall = this.add.image(w / 2, 98, 'btn-a').setScale(1.5);
     chosen.add([sprite, left, right, check, aSmall]);
     c.add([empty, chosen]);
-    const card = { c, bg, w, h, empty, chosen, sprite, check, aSmall, left, right };
+    const card = { c, bg, w, h, empty, chosen, sprite, check, aSmall, left, right, ring };
     this.paintCard(slot, card, false);
     return card;
   }
@@ -194,7 +197,26 @@ export class TitleScene extends Phaser.Scene {
     });
 
     const joined = slots.filter(({ slot }) => this.cards[slot].joined);
-    if (!this.starting && joined.length && joined.every(({ slot }) => this.ready[slot])) this.start(joined.length);
+    const allReady = joined.length && joined.every(({ slot }) => this.ready[slot]);
+    // playing alone: wait a moment (the empty card's ring fills) so a grown-up
+    // can still grab a controller and join before the game starts
+    const wait = joined.length < this.cards.length ? JOIN_GRACE : 0;
+    if (!allReady || this.starting) this.goAt = null;
+    else if (this.goAt == null) this.goAt = time + wait;
+    this.drawJoinRing(this.goAt == null ? 0 : 1 - (this.goAt - time) / (wait || 1));
+    if (this.goAt != null && time >= this.goAt) {
+      this.goAt = null;
+      this.start(joined.length);
+    }
+  }
+
+  drawJoinRing(prog) {
+    for (const card of this.cards) {
+      card.ring.clear();
+      if (card.joined || prog <= 0) continue;
+      card.ring.lineStyle(4, 0x4cc24a, 1).beginPath();
+      card.ring.arc(card.w / 2, card.h / 2 - 6, 24, -Math.PI / 2, -Math.PI / 2 + Math.min(1, prog) * Math.PI * 2, false).strokePath();
+    }
   }
 
   start(count) {

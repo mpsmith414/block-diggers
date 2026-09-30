@@ -35,13 +35,13 @@ export function createPauseWatch(scene) {
   return {
     // Returns true if the game was just paused (skip the rest of the frame).
     update() {
-      const missing = session.slots.filter((s) => !s.intent).map((s) => s.slot);
+      const missing = session.slots.filter((s) => !s.intent && !s.resting).map((s) => s.slot);
       if (missing.length) {
         open('disconnect', missing);
         return true;
       }
       for (const s of session.slots) {
-        if (edges[s.slot](!!s.intent.pause)) {
+        if (edges[s.slot](!!s.intent?.pause)) {
           open('pause');
           return true;
         }

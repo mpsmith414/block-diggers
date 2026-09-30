@@ -21,7 +21,6 @@ import {
 import { frameCamera, wallLimits, applySoftWall, isOffscreen } from '../game/camera.js';
 import { stepBubble } from '../game/bubble.js';
 import { createEdge, createHoldTimer } from '../input/intents.js';
-import { CHARACTERS } from '../art/characters.js';
 import { createMapView } from './mine/mapView.js';
 import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
@@ -39,6 +38,7 @@ import { createSuitView } from './common/suitView.js';
 import { createBonusViews } from './mine/bonusViews.js';
 import { attachAudio, songFor, setSong } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
+import { charFor } from '../game/cast.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
   LAYERS, LOW_GRAVITY, SILLY, FLARE,
@@ -57,7 +57,7 @@ const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a,
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
-const HUD_STRIP = 36; // screen pixels at the top used by the HUD
+const HUD_STRIP = 40; // screen pixels at the top used by the HUD
 const DEFAULT_UPGRADES = { pick: 0, pack: 0, lantern: 0 };
 
 export class MineScene extends Phaser.Scene {
@@ -339,8 +339,7 @@ export class MineScene extends Phaser.Scene {
 
   avatarFor(slot) {
     if (this.avatars[slot]) return this.avatars[slot];
-    const chars = this.registry.get('characters') ?? CHARACTERS;
-    const char = chars[slot] ?? CHARACTERS[slot];
+    const char = charFor(this.registry, slot);
     const partner = this.avatars.find(Boolean);
     const start = partner
       ? { x: partner.p.x, y: partner.p.y }
@@ -406,7 +405,12 @@ export class MineScene extends Phaser.Scene {
       a.bubble.setVisible(false);
       return;
     }
-    if (partner.bubbling) {
+    if (a.napping) {
+      // controller missing: doze in the bubble, floating along just above your partner
+      stepBubble(a.p, { x: partner.p.x + (a.slot ? -10 : 10), y: partner.p.y - 14 }, dt);
+      return;
+    }
+    if (partner.bubbling && !partner.napping) {
       // both bubbling (never wait on each other): player 1 pops, player 2 floats over
       if (a.slot < partner.slot) {
         a.bubbling = false;
@@ -442,6 +446,9 @@ export class MineScene extends Phaser.Scene {
     for (const { slot, intent } of slots) {
       const a = this.avatars[slot];
       const partner = coop ? this.partnerOf(a) : null;
+      // (a missing controller only gets this far once the other player chose to play on)
+      a.napping = !intent && !!partner;
+      if (a.napping && !a.bubbling) this.startBubble(a);
       // hold B to go home (both players)
       if (a.homeHold.update(!!(intent && intent.home), deltaMs)) {
         this.goHome();
@@ -461,7 +468,9 @@ export class MineScene extends Phaser.Scene {
         }
         if (partner && !partner.bubbling && !this.bonus.busy(a)) this.softWall(a, prev, partner);
         const wantsBubble = a.bubbleEdge(intent.bubble);
-        if (partner && wantsBubble && Math.hypot(partner.p.x - a.p.x, partner.p.y - a.p.y) > BUBBLE.minDistance) {
+        if (partner?.napping && wantsBubble) {
+          this.pets.trick(); // your partner is napping: Y makes the pets do a trick
+        } else if (partner && wantsBubble && Math.hypot(partner.p.x - a.p.x, partner.p.y - a.p.y) > BUBBLE.minDistance) {
           this.startBubble(a);
         } else if (!partner && wantsBubble) {
           this.pets.trick(); // playing alone, Y makes the pets do a trick

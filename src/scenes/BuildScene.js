@@ -10,7 +10,6 @@ import { B } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt } from '../game/player.js';
 import { createYard, yardEdits, placeBlock, removeBlock, aimCell, unlockedBlocks, tallest, kindsUsed } from '../game/build.js';
 import { createEdge } from '../input/intents.js';
-import { CHARACTERS } from '../art/characters.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
 import { varyTile } from '../art/tileVariety.js';
@@ -22,6 +21,7 @@ import { createPauseWatch } from './common/pauseWatch.js';
 import { earnSticker } from './common/stickers.js';
 import { walkMul } from '../game/perks.js';
 import { TILE, PLAYER, BUILD } from '../tuning.js';
+import { charFor } from '../game/cast.js';
 
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false, prev: false, next: false };
 const GROUND_Y = BUILD.ground * TILE;
@@ -108,9 +108,7 @@ export class BuildScene extends Phaser.Scene {
 
   avatarFor(slot) {
     if (this.avatars[slot]) return this.avatars[slot];
-    const state = getState(this.registry);
-    const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
-    const char = chars[slot] ?? CHARACTERS[slot];
+    const char = charFor(this.registry, slot);
     const a = {
       slot,
       char,
@@ -128,6 +126,14 @@ export class BuildScene extends Phaser.Scene {
     this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
     this.events.emit('joined', a);
     return a;
+  }
+
+  // Who the camera follows: everyone, except a player resting while their
+  // controller is away (the other one carries on alone).
+  awake() {
+    const all = this.avatars.filter(Boolean);
+    const up = all.filter((a) => !this.session.slots.find((s) => s.slot === a.slot)?.resting);
+    return up.length ? up : all;
   }
 
   update(time, deltaMs) {
@@ -230,7 +236,7 @@ export class BuildScene extends Phaser.Scene {
   }
 
   updateCamera(dt) {
-    const pts = this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
+    const pts = this.awake().map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
     if (!pts.length) return;
     const xs = pts.map((p) => p.x);
     const ys = pts.map((p) => p.y);

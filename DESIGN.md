@@ -10,6 +10,7 @@ colors:
   go-green: "#4cc24a"
   treasure-gold: "#f5c629"
   not-yet-red: "#d0463a"
+  full-orange: "#e8762a"
   marquee-yellow: "#ffe066"
   book-leather: "#7a3f2c"
   book-leather-dark: "#5a2a1c"
@@ -106,6 +107,7 @@ A warm, sun-faded storybook base (parchment, leather, cocoa) with a small set of
 
 ### Tertiary
 - **Not-Yet Red** (#d0463a): a price you can't pay *yet*. Used only to tint a number red. It is never a warning banner, never a failure screen.
+- **Full Orange** (#e8762a): the backpack is full, time to go home. It covers the pack bar at 100% and the badge on the "full" icon. A warm nudge, not an alarm.
 - **Character colours** (Miner Blue #4aa3ff, Fox Orange #f08a3c, Robot Steel #9aa4b0, Dino Green #5cc26a): identify who is who in co-op (HUD card rims, name-free player markers).
 - **Blush Pink** (#ff8fa3): cheeks on characters and creatures. The small touch that makes everything cute.
 
@@ -118,7 +120,9 @@ A warm, sun-faded storybook base (parchment, leather, cocoa) with a small set of
 - **Book Leather** (#7a3f2c), **Book Leather Dark** (#5a2a1c), **Book Page** (#f8ecd0), **Sticker Cream** (#fffaf0): the sticker book only, a slightly richer and redder leather so the book feels like a treasured object rather than a menu.
 
 ### Named Rules
-**The One Meaning Rule.** Each accent means one thing: green is "press / can", gold is "reward", red is "not yet". Don't use green for decoration or red for danger.
+**The One Meaning Rule.** Each accent means one thing: green is "press / can", gold is "reward", red is "not yet". Don't use green for decoration or red for danger. "You can afford something" is a green A, never a gold star.
+
+**The Red B Rule.** The B button is drawn red because it is red on real controllers, so the child finds it by matching colours. That is the only other red. Home is leather brown (#8a5a34), and a full pack is Full Orange.
 
 **The No Pure Black Rule.** Outlines are Plum Night, ink is Cocoa Ink, and shadows are black at 12–35% opacity. Solid #000 never appears as a colour.
 
@@ -198,7 +202,8 @@ Motion is soft and bouncy. Idle bobs and floats use Sine easeInOut. Things arriv
 - **Do** outline every new sprite or tile in Plum Night (#2a1d2e) at 1px, drawn at 16px per tile.
 - **Do** carry meaning with icon + colour + number + sound, so a pre-reader never needs a word.
 - **Do** draw any number the child needs at ×2 or larger.
-- **Do** use Go Green only for "press A / you can", Treasure Gold for rewards, and red numbers for "not yet".
+- **Do** use Go Green only for "press A / you can", Treasure Gold for rewards, and red numbers for "not yet" (plus the red B, which matches real controllers).
+- **Do** show only the ores you actually have in HUD rows; empty slots are noise to a child.
 - **Do** save arcade flourishes (bulbs, Marquee Yellow, confetti) for bonus rooms and reward moments.
 - **Do** make new things pop in with a Back easeOut bounce and a happy sound.
 
@@ -208,4 +213,5 @@ Motion is soft and bouncy. Idle bobs and floats use Sine easeInOut. Things arriv
 - **Don't** use harsh neon, strobing or rapid full-screen flashing, even in the arcade rooms.
 - **Don't** use pure black (#000000) as a colour, or blurred and glowing drop shadows on paper.
 - **Don't** use red as danger or failure. Nothing in the game punishes; red only means "not enough yet".
-- **Don't** make anything start by walking into it. Show the A prompt and wait for the press.
+- **Don't** make anything start by walking into it. Show the A prompt and wait for the press. This includes the shaft and the Build Yard gate.
+- **Don't** put an exit in the mine that skips banking the trip. Going home (hold B, or the house in pause) is the only way out.

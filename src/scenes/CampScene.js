@@ -34,9 +34,10 @@ import { planetById, rocketTo, PLANETS } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
+import { charFor } from '../game/cast.js';
 
 const GROUND_Y = CAMP.ground * TILE;
-const HUD_STRIP = 40;
+const HUD_STRIP = 48;
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false };
 // the rocket buildings (each opens the star map), and the ground of each camp
 const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket', 'sunrocket'];
@@ -264,11 +265,12 @@ export class CampScene extends Phaser.Scene {
     const L = this.L;
     this.stakes = L.plots.map((px) => this.add.image(px * TILE + (L.plotW * TILE) / 2, GROUND_Y, 'stake').setOrigin(0.5, 1).setDepth(5));
     // floating prompts
-    this.prompt = this.add.image(0, 0, 'btn-a').setDepth(70).setVisible(false);
-    // gold stars point at things you can afford right now
-    this.benchStar = this.add.image(0, 0, 'star').setDepth(69).setVisible(false);
-    this.plotStar = this.add.image(0, 0, 'star').setDepth(69).setVisible(false);
-    this.downPrompt = this.add.image(0, 0, 'arrow-r').setAngle(90).setDepth(70).setVisible(false);
+    this.prompt = this.add.image(0, 0, 'btn-a').setScale(1.5).setDepth(70).setVisible(false);
+    // a pulsing green A over things you can afford right now (green = you can;
+    // gold is kept for rewards)
+    this.benchStar = this.add.image(0, 0, 'btn-a').setDepth(69).setVisible(false);
+    this.plotStar = this.add.image(0, 0, 'btn-a').setDepth(69).setVisible(false);
+    this.downPrompt = this.add.image(0, 0, 'arrow-r').setAngle(90).setScale(1.6).setDepth(70).setVisible(false);
   }
 
   placeBuildings() {
@@ -558,9 +560,7 @@ export class CampScene extends Phaser.Scene {
 
   avatarFor(slot) {
     if (this.avatars[slot]) return this.avatars[slot];
-    const state = getState(this.registry);
-    const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
-    const char = chars[slot] ?? CHARACTERS[slot];
+    const char = charFor(this.registry, slot);
     // arriving by rocket: you start inside it (hidden until the door opens)
     // (back from the Build Yard: you come in through its gate, at the right end)
     const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX(this.from) - PLAYER.w / 2 }
@@ -600,6 +600,14 @@ export class CampScene extends Phaser.Scene {
     // the Hall of Heroes: press A to play the finale again
     if (here === 'hall' && ready) return { kind: 'hall', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     return null;
+  }
+
+  // Who the camera follows: everyone, except a player resting while their
+  // controller is away (the other one carries on alone).
+  awake() {
+    const all = this.avatars.filter(Boolean);
+    const up = all.filter((a) => !this.session.slots.find((s) => s.slot === a.slot)?.resting);
+    return up.length ? up : all;
   }
 
   update(time, deltaMs) {
@@ -668,6 +676,14 @@ export class CampScene extends Phaser.Scene {
               : this.L.plots[zone.plot] * TILE + (this.L.plotW * TILE) / 2;
           action = { x, key: 'btn-a', zone };
           if (e.a && !hud.picker) this.openPicker(hud, a, zone);
+        } else if (zone && zone.kind === 'shaft') {
+          // the way down: a green A over the shaft (down works too)
+          action = { x: this.L.shaftX * TILE + TILE / 2, key: 'btn-a', y: GROUND_Y - 56 };
+          if (e.a && !hud.picker) this.startTrip();
+        } else if (this.atGate(a)) {
+          // the gate to the Build Yard: press A to go through
+          action = { x: this.W - 1.5 * TILE, key: 'btn-a', y: GROUND_Y - 58 };
+          if (e.a && !hud.picker && !this.arriving) this.goToYard();
         } else if (decorIndex >= 0) {
           action = { x: getState(this.registry).decor.placed[decorIndex].x, key: 'icon-hand' };
           if (e.a) {
@@ -681,8 +697,6 @@ export class CampScene extends Phaser.Scene {
         if (action && action.key && !hud.picker) prompt = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
-      // through the gate at the right end of Earth camp: the Build Yard
-      if (this.onEarth && !this.leaving && !this.arriving && !a.carrying && a.p.x >= this.W - PLAYER.w - 3 && i.moveX > 0.5) this.goToYard();
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
       animateCharacter(a.sprite, a.p, a, dt, time);
       if (this.onEarth) this.pondDrink(a, dt, time);
@@ -697,7 +711,7 @@ export class CampScene extends Phaser.Scene {
     }
     // a planet whose mine you've never been down: the way down always shows
     this.newPlanet = !this.onEarth && !(getState(this.registry).records?.planetDeepest?.[this.planet] > 0);
-    this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 42 + bob);
+    this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 40 + bob);
 
     this.updateStars(time, prompt);
     this.perks?.update(time);
@@ -737,7 +751,7 @@ export class CampScene extends Phaser.Scene {
     const hud = this.scene.get('CampHud');
     const counting = hud && hud.counting;
     const bob = Math.sin(time / 250) * 2;
-    const pulse = 1 + Math.sin(time / 180) * 0.15;
+    const pulse = 1.3 + Math.sin(time / 180) * 0.2;
     const upgrade = UPGRADE_KINDS.some((k) => {
       const n = nextUpgrade(state, k);
       return n && canAfford(state.bank, n.cost);
@@ -753,7 +767,7 @@ export class CampScene extends Phaser.Scene {
     this.plotStar.setVisible(blueprint && plot >= 0 && !counting && !plotPrompted && !this.buildings[plot])
       .setPosition(this.L.plots[Math.max(0, plot)] * TILE + (this.L.plotW * TILE) / 2, GROUND_Y - 36 + bob).setScale(pulse);
 
-    // a star you can't see gets an arrow at the edge of the screen
+    // one you can't see gets an arrow at the edge of the screen
     const view = this.cameras.main.worldView;
     let side = 0;
     for (const s of [this.benchStar, this.plotStar, this.downPrompt]) {
@@ -786,7 +800,7 @@ export class CampScene extends Phaser.Scene {
   }
 
   updateCamera(dt) {
-    const pts = this.landingNow ? [{ x: this.rocketX(this.from), y: GROUND_Y - 30 }] : this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
+    const pts = this.landingNow ? [{ x: this.rocketX(this.from), y: GROUND_Y - 30 }] : this.awake().map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y }));
     if (!pts.length) pts.push({ x: this.L.shaftX * TILE, y: GROUND_Y - 20 });
     const f = frameCamera(pts, { w: this.scale.width, h: this.scale.height - HUD_STRIP }, { minZoom: 0.9, maxZoom: 1.5, margin: 60 });
     f.y = GROUND_Y - 44 - HUD_STRIP / 2 / f.zoom;
@@ -1140,6 +1154,11 @@ export class CampScene extends Phaser.Scene {
       this.partying = false;
       done();
     });
+  }
+
+  // Standing at the Build Yard gate (the right end of Earth camp).
+  atGate(a) {
+    return this.onEarth && !a.carrying && a.p.x + PLAYER.w / 2 >= this.W - 3 * TILE;
   }
 
   // Off to the Build Yard (through the gate at the right end of Earth camp).
