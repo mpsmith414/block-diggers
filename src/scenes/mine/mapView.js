@@ -4,6 +4,7 @@
 import { B } from '../../world/blocks.js';
 import { BACK, TILE_MARGIN, TILE_SPACING } from '../../art/textures.js';
 import { layerAt } from '../../world/worldgen.js';
+import { varyTile } from '../../art/tileVariety.js';
 import { TILE } from '../../tuning.js';
 
 export function createMapView(scene, grid, { layerAt: layerOf = layerAt, top = 'dirt' } = {}) {
@@ -27,11 +28,14 @@ export function createMapView(scene, grid, { layerAt: layerOf = layerAt, top = '
   }
   back.putTilesAt(backRows, 0, 0);
   front.putTilesAt(frontRows, 0, 0);
+  // rock drawn mirrored different ways, so walls don't look like wallpaper
+  back.forEachTile((t) => varyTile(t, t.x, t.y, true));
+  front.forEachTile((t) => varyTile(t, t.x, t.y), undefined, 0, 0, grid.w, grid.h, { isNotEmpty: true });
 
   const sync = (x, y) => {
     const id = grid.get(x, y);
     if (id === B.AIR || id === B.EGG || id === B.UFO) front.removeTileAt(x, y);
-    else front.putTileAt(id, x, y);
+    else varyTile(front.putTileAt(id, x, y), x, y);
   };
 
   return {

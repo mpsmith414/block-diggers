@@ -1,6 +1,8 @@
 // Pure music helpers and song data. Notes are like 'C4', 'F#5', 'Bb3';
 // '.' is a rest, '-' holds the previous note, 'x' is a drum hit.
 
+import { THEMES } from './themes.js';
+
 const SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 export function noteFreq(name) {
@@ -117,4 +119,6 @@ export const SONGS = {
       { wave: 'sine', gain: 0.04, notes: mineBell, decay: 3, attack: 0.01 },
     ],
   },
+  // a theme for every planet, and the bonus rooms' arcade tune (themes.js)
+  ...THEMES,
 };

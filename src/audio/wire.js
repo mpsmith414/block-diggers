@@ -151,6 +151,19 @@ const MENU = {
 const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp' };
 
+// Which song plays: every planet has its own theme (at its camp and in its
+// mines); Earth keeps the camp and mine songs.
+export function songFor(sceneKey, planet = 'earth') {
+  if ((sceneKey === 'Mine' || sceneKey === 'Camp') && planet !== 'earth') return planet;
+  return SONG_FOR[sceneKey] ?? null;
+}
+
+// Switch the music (it fades in; the same song keeps playing).
+export function setSong(scene, name) {
+  const audio = scene.registry.get('audio');
+  if (audio && name) audio.music.play(name);
+}
+
 export function attachAudio(scene) {
   const audio = scene.registry.get('audio');
   if (!audio) return;
@@ -161,6 +174,7 @@ export function attachAudio(scene) {
     scene.events.on(ev, h);
     return [ev, h];
   });
-  if (SONG_FOR[key]) audio.music.play(SONG_FOR[key]);
+  const song = songFor(key, scene.planet ?? 'earth');
+  if (song) audio.music.play(song);
   scene.events.once('shutdown', () => handlers.forEach(([ev, h]) => scene.events.off(ev, h)));
 }

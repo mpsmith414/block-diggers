@@ -3,7 +3,7 @@
 // scene (which decides on bonks and squashes).
 
 import {
-  createSlime, stepSlime, slimeTouch, createBat, stepBat, triggerGravel, stepGravel, overlaps, spawnSpot, creatureFor,
+  createSlime, stepSlime, slimeTouch, createBat, stepBat, triggerGravel, stepGravel, overlaps, spawnSpot, creatureFor, GAIT_OF, GAITS,
 } from '../../game/hazards.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
@@ -68,9 +68,11 @@ export function createHazards(scene) {
     const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid, planet: scene.planet, keepOut: scene.world.skatepark ?? scene.world.arcade ?? scene.world.molefair ?? scene.world.rink ?? scene.world.grove ?? scene.world.deck ?? null });
     if (!spot) return;
     const dir = scene.rng.chance(0.5) ? 1 : -1;
+    // (each species moves its own way: see GAITS)
+    const gait = GAIT_OF[species];
     const e = walker
-      ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir)
-      : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir);
+      ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir, gait ?? 'hop')
+      : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir, gait ?? 'flap');
     e.species = species;
     e.voiceT = SILLY.voiceEvery[0] + Math.random() * (SILLY.voiceEvery[1] - SILLY.voiceEvery[0]);
     e.giggleT = 0;
@@ -140,10 +142,17 @@ export function createHazards(scene) {
         else stepBat(e, scene.grid, dt);
         const s = spriteFor(e);
         if (e.kind === 'slime') {
-          s.setPosition(e.x + e.w / 2, e.y + e.h + 1).setFrame(e.grounded ? 0 : 1).setFlipX(e.dir < 0);
-          s.setScale(e.grounded ? 1 + Math.sin(time / 180 + e.x) * 0.05 : 1, 1);
+          const walks = !!GAITS[e.gait]?.walk;
+          // walkers step along (legs going while they move); hoppers squash on the ground
+          const frame = walks ? (e.moving && e.grounded ? Math.floor(time / (e.sliding ? 400 : 140)) % 2 : 0) : (e.grounded ? 0 : 1);
+          s.setPosition(e.x + e.w / 2, e.y + e.h + 1).setFrame(frame).setFlipX(e.dir < 0);
+          s.setScale(e.grounded && !walks ? 1 + Math.sin(time / 180 + e.x) * 0.05 : 1, 1);
+          // a penguin tips over onto its tummy to slide
+          s.setAngle(e.sliding ? e.dir * 70 : (walks && e.moving ? Math.sin(time / 90) * 4 : 0));
         } else {
-          s.setPosition(e.x + e.w / 2, e.y + e.h / 2).setFrame(Math.floor(time / 120) % 2).setFlipX(e.dir < 0);
+          // drifters flap slowly; darters and jitterers buzz
+          const flap = { drift: 320, glide: 260, circle: 160, dart: 60, jitter: 70 }[e.gait] ?? 120;
+          s.setPosition(e.x + e.w / 2, e.y + e.h / 2).setFrame(Math.floor(time / flap) % 2).setFlipX(e.dir < 0);
         }
         // now and then it makes its own little noise (only when you can see it)
         const view = scene.cameras.main.worldView;

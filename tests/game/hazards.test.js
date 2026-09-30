@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   overlaps, createSlime, stepSlime, slimeTouch, createBat, stepBat,
-  triggerGravel, stepGravel, lavaEscape, spawnSpot, creatureFor,
+  triggerGravel, stepGravel, lavaEscape, spawnSpot, creatureFor, GAITS as GAITS_,
 } from '../../src/game/hazards.js';
 import { createGrid } from '../../src/world/grid.js';
 import { B } from '../../src/world/blocks.js';
@@ -164,5 +164,88 @@ describe('the skate park keeps creatures out', () => {
       const spot = spawnSpot(w.grid, rng, { walker: i % 2 === 0, near: { cx: 38, cy: p.floor - 3 }, planet: 'moon', keepOut: p });
       if (spot) expect(spot.cx >= p.x0 && spot.cx <= p.x1 && spot.cy >= p.top && spot.cy <= p.floor).toBe(false);
     }
+  });
+});
+
+describe('every creature moves its own way', () => {
+  const hall = () => makeGrid(['##############################', '#............................#', '#............................#', '#............................#', '##############################']);
+
+  it('each species has a gait that fits it (walkers walk, flyers fly)', async () => {
+    const hz = await import('../../src/game/hazards.js');
+    for (const row of [10, 60, 110, 160, 200, 220, 260, 300, 350]) {
+      for (const planet of ['earth', 'moon', 'mars', 'saturn', 'dino', 'sun']) {
+        const { species, walker } = hz.creatureFor(row, planet);
+        if (!species) continue;
+        const gait = hz.GAIT_OF[species] ?? (walker ? 'hop' : 'flap');
+        expect(hz.GAITS[gait]).toBeTruthy();
+        expect(hz.WALK_GAITS.includes(gait)).toBe(walker);
+      }
+    }
+  });
+
+  it('a marching robot walks along the floor without hopping', () => {
+    const g = hall();
+    const s = createSlime(3 * TILE, 3 * TILE - 10, 1, 'march');
+    steps(30, () => stepSlime(s, g, DT));
+    const x0 = s.x;
+    let airborne = 0;
+    steps(120, () => { stepSlime(s, g, DT); if (!s.grounded) airborne++; });
+    expect(airborne).toBe(0);
+    expect(Math.abs(s.x - x0)).toBeGreaterThan(20);
+  });
+
+  it('a scurrying mouse stops for little rests', () => {
+    const g = hall();
+    const s = createSlime(3 * TILE, 3 * TILE - 10, 1, 'scurry');
+    let still = 0;
+    let prev = s.x;
+    steps(300, () => { stepSlime(s, g, DT); if (s.grounded && s.x === prev) still++; prev = s.x; });
+    expect(still).toBeGreaterThan(30);
+  });
+
+  it('a frog leaps farther than a slime hops', () => {
+    const jump = (gait) => {
+      const g = hall();
+      const s = createSlime(3 * TILE, 3 * TILE - 10, 1, gait);
+      steps(20, () => stepSlime(s, g, DT));
+      s.hopT = 0;
+      const x0 = s.x;
+      steps(60, () => stepSlime(s, g, DT));
+      return s.x - x0;
+    };
+    expect(jump('leap')).toBeGreaterThan(jump('hop') * 1.5);
+  });
+
+  it('a penguin sometimes belly-slides, faster than it waddles', () => {
+    const g = hall();
+    const s = createSlime(3 * TILE, 3 * TILE - 10, 1, 'waddle');
+    let slide = 0;
+    let waddle = 0;
+    steps(900, () => {
+      const x0 = s.x;
+      stepSlime(s, g, DT);
+      const d = Math.abs(s.x - x0);
+      if (s.sliding) slide = Math.max(slide, d);
+      else waddle = Math.max(waddle, d);
+    });
+    expect(slide).toBeCloseTo(GAITS_.waddle.slide * DT, 1);
+    expect(slide).toBeGreaterThan(waddle * 2);
+  });
+
+  it('a jelly drifts slower than a bat flaps; a dragonfly dashes then hovers', () => {
+    const g = hall();
+    const move = (gait, secs) => {
+      const b = createBat(10 * TILE, 2 * TILE, 1, gait);
+      const x0 = b.x;
+      steps(secs * 60, () => stepBat(b, g, DT));
+      return Math.abs(b.x - x0);
+    };
+    expect(move('drift', 1)).toBeLessThan(move('flap', 1));
+    const d = createBat(10 * TILE, 2 * TILE, 1, 'dart');
+    const xs = [];
+    steps(120, () => { stepBat(d, g, DT); xs.push(d.x); });
+    const still = xs.filter((x, i) => i && x === xs[i - 1]).length;
+    expect(still).toBeGreaterThan(20); // hovering
+    expect(still).toBeLessThan(115); // and dashing
   });
 });
