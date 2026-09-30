@@ -56,7 +56,7 @@ describe('createKeyboard', () => {
     const target = new EventTarget();
     createKeyboard(target);
     const mapped = keyEvent('keydown', 'ArrowUp');
-    const unmapped = keyEvent('keydown', 'q');
+    const unmapped = keyEvent('keydown', 'z');
     target.dispatchEvent(mapped);
     target.dispatchEvent(unmapped);
     expect(mapped.defaultPrevented).toBe(true);

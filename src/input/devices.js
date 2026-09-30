@@ -34,6 +34,8 @@ export const KEYMAP = {
   h: 'b',
   b: 'y',
   escape: 'start',
+  q: 'lb',
+  e: 'rb',
 };
 
 export function createKeyboard(target) {

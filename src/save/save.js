@@ -6,7 +6,7 @@ import { layersReached } from '../game/trip.js';
 import { MOON_PLOTS } from '../game/economy.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 9;
+export const VERSION = 10;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -33,6 +33,8 @@ export function defaultState() {
     bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(MOON_PLOTS).fill(null) } },
     sunHeart: false, // the finale: the Sun's Heart came home (a mini-sun over Earth camp)
     suit: [],
+    // the Build Yard: every cell that differs from the meadow, as [x, y, block]
+    build: { edits: [] },
   };
 }
 
@@ -72,6 +74,10 @@ export function migrate(raw) {
     // the Sun: the same (and sunHeart starts false)
     s = { ...s, version: 9 };
   }
+  if (s.version === 9) {
+    // the Build Yard starts as an empty meadow (filled in below)
+    s = { ...s, version: 10 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -96,6 +102,7 @@ export function migrate(raw) {
       sun: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.sun?.plots?.[i] || null) },
     },
     suit: [...new Set(s.suit || [])],
+    build: { ...(s.build || {}), edits: Array.isArray(s.build?.edits) ? s.build.edits : [] },
   };
 }
 

@@ -27,7 +27,7 @@ describe('applyDeadzone', () => {
 
 describe('toIntent', () => {
   it('is all neutral for an idle device', () => {
-    expect(toIntent(idle())).toEqual({ moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false });
+    expect(toIntent(idle())).toEqual({ moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false, prev: false, next: false });
   });
   it('maps the left stick to movement', () => {
     const s = idle(); s.axes.lx = 1; s.axes.ly = 0;
@@ -78,5 +78,12 @@ describe('createEdge', () => {
     expect(e(true)).toBe(false);
     expect(e(false)).toBe(false);
     expect(e(true)).toBe(true);
+  });
+});
+
+describe('shoulder buttons', () => {
+  it('LB and RB pick the previous and next block (in the Build Yard)', () => {
+    const s = { axes: { lx: 0, ly: 0, rx: 0, ry: 0 }, buttons: { a: false, b: false, x: false, y: false, lb: true, rb: false, back: false, start: false, up: false, down: false, left: false, right: false } };
+    expect(toIntent(s)).toMatchObject({ prev: true, next: false });
   });
 });

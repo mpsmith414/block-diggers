@@ -129,6 +129,16 @@ const CAMP = {
   party: (s) => s.play('party'),
 };
 
+const BUILD = {
+  place: (s) => s.play('hammer'),
+  unplace: (s) => s.play('pop'),
+  nope: (s) => s.play('nope'),
+  pickerMove: (s) => s.play('tick'),
+  jump: (s) => s.play('jump'),
+  joined: (s) => s.play('join'),
+  spring: (s) => s.play('boing'),
+};
+
 const MENU = {
   pickerMove: (s) => s.play('tick'),
   pickerOpen: (s) => s.play('open'),
@@ -138,8 +148,8 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
-const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp' };
+const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
+const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp' };
 
 export function attachAudio(scene) {
   const audio = scene.registry.get('audio');

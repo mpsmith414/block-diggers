@@ -25,6 +25,8 @@ export function toIntent(state) {
     bubble: !!b.y,
     home: !!b.b,
     pause: !!(b.start || b.back),
+    prev: !!b.lb,
+    next: !!b.rb,
   };
 }
 

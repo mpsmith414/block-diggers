@@ -32,6 +32,7 @@ import { drawWhackArt } from './whack.js';
 import { drawHockeyArt } from './hockey.js';
 import { drawEggCatchArt } from './eggcatch.js';
 import { drawFireworksArt } from './fireworks.js';
+import { drawBuildArt } from './build.js';
 
 const T = 16;
 
@@ -730,4 +731,5 @@ export function drawTextures(scene) {
   drawHockeyArt(scene, canvasTexture, rect);
   drawEggCatchArt(scene, canvasTexture, rect);
   drawFireworksArt(scene, canvasTexture, rect);
+  drawBuildArt(scene, canvasTexture, rect);
 }
