@@ -171,11 +171,13 @@ Soft rounded rectangles built from nested fills: shadow, then leather rim, then 
 
 ## Components
 
+**The Whose-Is-It Rule.** Anything that belongs to one player (their mine HUD card, their Build Yard bar, their face on the summary) is rimmed or backed in that player's character colour (Miner Blue, Fox Orange, Robot Steel, Dino Green). Shared things keep the leather rim. Each player gets their own A prompt at camp.
+
 ### Paper Panel
 *Tactile and handmade, like a card cut from a storybook.* A 2px Saddle Leather rim, a Parchment face (radius 4px inside a 5px rim), a panel shadow, and Cocoa Ink numbers. Used for camp price tags, the pause and summary screens, and toasts. When the item is available, a Go Green glow at 50% opacity sits 3px outside the panel.
 
 ### HUD Card
-*Small and always there.* 20px tall, a Parchment face with a 1px leather rim at radius 3–4px, carrying an icon and a ×2 numeral. Each player's portrait card uses their character colour as the outer ring.
+*Small and always there.* A Parchment face (34px tall in the mine) with a 2px rim in the player's character colour at radius 5px and a panel shadow. It shows the player's face, only the ores in their pack with ×2 numerals, and the pack bar with a ×2 count.
 
 ### A-Button Prompt
 *The friendliest thing on screen.* A 10×10 Go Green button (#4cc24a, darker #2f8f34 underside, #1f4a1f outline) with a white A. It bobs gently over anything that can be used. On camp price panels it sits in the corner at 1.4×, fading to 35% when you can't afford the item yet. The rule: nothing is ever used by walking into it. Standing near shows the prompt; pressing A uses it.

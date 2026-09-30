@@ -265,7 +265,8 @@ export class CampScene extends Phaser.Scene {
     const L = this.L;
     this.stakes = L.plots.map((px) => this.add.image(px * TILE + (L.plotW * TILE) / 2, GROUND_Y, 'stake').setOrigin(0.5, 1).setDepth(5));
     // floating prompts
-    this.prompt = this.add.image(0, 0, 'btn-a').setScale(1.5).setDepth(70).setVisible(false);
+    // one per player, so in co-op each of you sees what your own A does
+    this.prompts = [0, 1].map(() => this.add.image(0, 0, 'btn-a').setScale(1.5).setDepth(70).setVisible(false));
     // a pulsing green A over things you can afford right now (green = you can;
     // gold is kept for rewards)
     this.benchStar = this.add.image(0, 0, 'btn-a').setDepth(69).setVisible(false);
@@ -614,7 +615,7 @@ export class CampScene extends Phaser.Scene {
     const dt = Math.min(deltaMs / 1000, 1 / 30);
     if (!this.leaving && this.pauseWatch.update()) return;
     const hud = this.scene.get('CampHud');
-    let prompt = null;
+    const prompts = [];
     let downPrompt = null;
     for (const { slot, intent } of this.session.slots) {
       const a = this.avatarFor(slot);
@@ -694,7 +695,7 @@ export class CampScene extends Phaser.Scene {
         if (action) move = { ...i, jump: false }; // A acts here instead of jumping
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
         if (stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: this.walkMul }).jumped) this.events.emit('jump', a);
-        if (action && action.key && !hud.picker) prompt = action;
+        if (action && action.key && !hud.picker) prompts[slot] = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
@@ -704,16 +705,18 @@ export class CampScene extends Phaser.Scene {
 
     // floating prompts over the thing you can use
     const bob = Math.sin(time / 200) * 2;
-    if (prompt) {
-      this.prompt.setTexture(prompt.key).setVisible(true).setPosition(prompt.x, (prompt.y ?? GROUND_Y - 34) + bob);
-    } else {
-      this.prompt.setVisible(false);
-    }
+    this.prompts.forEach((img, slot) => {
+      const p = prompts[slot];
+      // both at the same thing: one prompt is enough
+      const same = slot === 1 && prompts[0] && p && Math.abs(prompts[0].x - p.x) < 8 && prompts[0].key === p.key;
+      if (!p || same) return img.setVisible(false);
+      img.setTexture(p.key).setVisible(true).setPosition(p.x, (p.y ?? GROUND_Y - 34) + bob);
+    });
     // a planet whose mine you've never been down: the way down always shows
     this.newPlanet = !this.onEarth && !(getState(this.registry).records?.planetDeepest?.[this.planet] > 0);
     this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 40 + bob);
 
-    this.updateStars(time, prompt);
+    this.updateStars(time, prompts);
     this.perks?.update(time);
     this.campPets.update(dt, time);
     this.decor?.update(time);
@@ -746,7 +749,7 @@ export class CampScene extends Phaser.Scene {
     }
   }
 
-  updateStars(time, prompt) {
+  updateStars(time, prompts) {
     const state = getState(this.registry);
     const hud = this.scene.get('CampHud');
     const counting = hud && hud.counting;
@@ -756,14 +759,14 @@ export class CampScene extends Phaser.Scene {
       const n = nextUpgrade(state, k);
       return n && canAfford(state.bank, n.cost);
     });
-    const benchPrompted = prompt && prompt.zone && prompt.zone.kind === 'bench';
+    const benchPrompted = prompts.some((p) => p?.zone?.kind === 'bench');
     this.benchStar.setVisible(upgrade && !counting && !benchPrompted)
       .setPosition(this.L.benchX * TILE + TILE / 2, GROUND_Y - 36 + bob).setScale(pulse);
     const plots = plotsOf(state, this.planet);
     const built = new Set(plots.filter(Boolean));
     const blueprint = blueprintsFor(this.planet).some((b) => !built.has(b.id) && canAfford(state.bank, b.cost) && blueprintOk(state, b));
     const plot = plots.findIndex((p) => !p);
-    const plotPrompted = prompt && prompt.zone && prompt.zone.kind === 'plot';
+    const plotPrompted = prompts.some((p) => p?.zone?.kind === 'plot');
     this.plotStar.setVisible(blueprint && plot >= 0 && !counting && !plotPrompted && !this.buildings[plot])
       .setPosition(this.L.plots[Math.max(0, plot)] * TILE + (this.L.plotW * TILE) / 2, GROUND_Y - 36 + bob).setScale(pulse);
 
@@ -919,7 +922,7 @@ export class CampScene extends Phaser.Scene {
     this.perks?.refresh();
     this.visitors?.refreshBubbles();
     const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
-    this.scene.launch('Summary', { summary, packs, chars, onDone: () => this.depositArrivals() });
+    this.scene.launch('Summary', { summary, packs, chars, deepestBy: this.arrived.deepestBy ?? [], onDone: () => this.depositArrivals() });
   }
 
   depositArrivals() {
