@@ -81,11 +81,14 @@ export function generateSaturn(seed, { yetiEgg = true } = {}) {
   const eggs = yetiEgg ? takeSpots(inLayer('aurora'), 1, 0).map((c) => ({ ...c, kind: 'yeti' })) : [];
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
-  const decor = gen.decor(DECOR);
+  // the Ice Rink: a big room right of the Saturn Heart's chamber, for Ice Hockey
+  const { room: rink, inside: inRink } = gen.bonusRoom(B.ICE, 12);
+
+  const decor = gen.decor(DECOR).filter((d) => !inRink(d));
 
   return {
-    grid, chests, decor, eggs, bigChest: null, boulders, fossils: [], heart, teleports: [], ufo: null, chimes: [],
-    geysers: [], rovers: [], vaults: [], globes, comet, ducks: [], cushions: [], hostAt: saturnHostAt, layerAt: saturnLayerAt,
+    grid, chests: chests.filter((c) => !inRink(c)), decor, eggs, bigChest: null, boulders, fossils: [], heart, teleports: [], ufo: null, chimes: [],
+    geysers: [], rovers: [], vaults: [], globes, comet, ducks: [], cushions: [], rink, hostAt: saturnHostAt, layerAt: saturnLayerAt,
     spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'saturn',
   };
 }

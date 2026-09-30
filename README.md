@@ -141,6 +141,12 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Saturn Core:** snowflake sprites and the **Saturn Heart**. Bring it home
     for the **Gloves**, the third Sun Suit piece: you dig faster everywhere,
     and you never slip on ice.
+  - **The Ice Rink:** right next to the Saturn Heart, **Ice Hockey!** A giant
+    snowball puck slides between two goals, each with a penguin goalie who hops
+    up and down. Skate into the puck to knock it along, and jump right by it
+    for a big shot. Shoot while the penguin is up and it's a **GOAL** (a horn,
+    a flashing lamp, pearls and a comet for your backpack, up to 12 a trip);
+    while he's down, he saves it. Any goal counts for everyone.
 
   New drills: Frost Drill, Pearl Drill, Comet Drill.
 - **Ring Station** (Saturn's camp): snow, igloos, a snowman, giant Saturn in
@@ -193,7 +199,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 237 stickers on 24 pages, and a trophy for each full page. Open
+- **Sticker book:** 241 stickers on 24 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

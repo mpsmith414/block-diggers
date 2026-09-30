@@ -135,6 +135,7 @@ export const STICKER_PAGES = [
   page('bonus', 'icon-claw', [
     ['claw-machine', 'icon-claw'], ['claw-robot', 'toyrobot', 0], ['claw-martian', 'martian', 0], ['claw-golden', 'claw-golden'],
     ['whack-fair', 'icon-whack'], ['whack-mole', 'whack-mole', 1], ['whack-golden', 'whack-golden'], ['whack-star', 'whack-star'],
+    ['hockey-rink', 'icon-rink'], ['hockey-goal', 'hockey-ball'], ['hockey-save', 'penguin', 0], ['hockey-five', 'hockey-five'],
   ]),
 ];
 

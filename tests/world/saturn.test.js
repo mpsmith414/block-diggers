@@ -22,7 +22,8 @@ describe('the Saturn generator', () => {
       const host = count(grid, top + 2, bottom - 2, (id) => id === SATURN_HOST[layer]);
       const solid = count(grid, top + 2, bottom - 2, (id) => isSolid(id));
       expect(host / solid).toBeGreaterThan(0.6);
-      expect(count(grid, top, bottom, (id) => dropOf(id) === ore[layer])).toBeGreaterThan(layer === 'saturncore' ? 8 : 20);
+      // (the core is small, and the ice rink takes a bite out of it)
+      expect(count(grid, top, bottom, (id) => dropOf(id) === ore[layer])).toBeGreaterThan(layer === 'saturncore' ? 2 : 20);
     }
   });
 
@@ -84,6 +85,22 @@ describe('the Saturn generator', () => {
       expect(s.globes.length).toBe(SATURN_GEN.globes);
       expect(s.comet).not.toBe(null);
       expect(s.boulders.length).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
+describe('the Saturn ice rink', () => {
+  it('has a big icy room beside the Saturn Heart for Ice Hockey, open to its chamber, with nothing in it', () => {
+    for (const seed of [2, 42, 900]) {
+      const w = generateSaturn(seed);
+      const r = w.rink;
+      expect(r).toEqual({ x0: 30, x1: 46, top: SATURN_H - 14, floor: SATURN_H - 2 });
+      for (let y = r.top; y < r.floor; y++) for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, r.floor)).toBe(B.ICE);
+      expect(w.grid.get(29, r.floor - 1)).toBe(B.AIR);
+      const inside = (c) => c.x >= r.x0 && c.x <= r.x1 && c.y >= r.top && c.y <= r.floor;
+      expect(w.chests.some(inside)).toBe(false);
+      expect(w.decor.some(inside)).toBe(false);
     }
   });
 });

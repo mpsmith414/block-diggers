@@ -65,7 +65,7 @@ export function createHazards(scene) {
     const kind = walker ? 'slime' : 'bat';
     if (kind === 'slime' && count('slime') >= SLIME.max) return;
     if (kind === 'bat' && count('bat') >= BAT.max) return;
-    const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid, planet: scene.planet, keepOut: scene.world.skatepark ?? scene.world.arcade ?? scene.world.molefair ?? null });
+    const spot = spawnSpot(scene.grid, scene.rng, { walker, near, avoid, planet: scene.planet, keepOut: scene.world.skatepark ?? scene.world.arcade ?? scene.world.molefair ?? scene.world.rink ?? null });
     if (!spot) return;
     const dir = scene.rng.chance(0.5) ? 1 : -1;
     const e = walker
