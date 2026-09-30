@@ -119,7 +119,7 @@ export class MineScene extends Phaser.Scene {
     this.goingHome = false;
     this.offscreenGraceUntil = 0;
     this.glintT = 0;
-    this.trip = { deepest: 0, chests: 0, stickers: [], skateGems: 0 };
+    this.trip = { deepest: 0, deepestBy: [], chests: 0, stickers: [], skateGems: 0 };
     this.knownLayers = [...(saved.records?.layers ?? [])];
     this.seenChests = new Set();
     this.revealAll = revealsChests(getState(this.registry), this.planet);
@@ -641,7 +641,7 @@ export class MineScene extends Phaser.Scene {
     for (const a of players) packs[a.slot] = { ...a.pack.ores };
     this.scene.start('Camp', {
       arrived: {
-        packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, chests: this.trip.chests,
+        packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, deepestBy: [...this.trip.deepestBy], chests: this.trip.chests,
         stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
         moonHearts: this.finds.moonHearts, suitHearts: this.finds.suitHearts, planet: this.planet,
       },
@@ -1224,6 +1224,7 @@ export class MineScene extends Phaser.Scene {
       if (!a) continue;
       const row = Math.floor((a.p.y + PLAYER.h / 2) / TILE);
       this.trip.deepest = Math.max(this.trip.deepest, row);
+      this.trip.deepestBy[a.slot] = Math.max(this.trip.deepestBy[a.slot] ?? 0, row);
       const found = discovery(row, this.knownLayers, this.planet);
       if (found) this.discover(found, a);
     }

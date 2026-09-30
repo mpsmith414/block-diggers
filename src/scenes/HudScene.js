@@ -9,6 +9,7 @@ import { getState } from '../save/store.js';
 import { shownOres } from '../game/ores.js';
 import { EGG_KINDS } from '../art/finds.js';
 import { BADGE_LAYERS } from '../game/trip.js';
+import { CHARACTER_COLORS } from '../art/characters.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
@@ -318,7 +319,8 @@ export class HudScene extends Phaser.Scene {
     const c = this.add.container(x, 4);
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.25).fillRoundedRect(2, 3, PANEL_W, PANEL_H, 5);
-    g.fillStyle(PAPER_EDGE, 1).fillRoundedRect(0, 0, PANEL_W, PANEL_H, 5);
+    // rimmed in your character's colour: whose card is whose, at a glance
+    g.fillStyle(CHARACTER_COLORS[a.char] ?? PAPER_EDGE, 1).fillRoundedRect(0, 0, PANEL_W, PANEL_H, 5);
     g.fillStyle(PAPER, 1).fillRoundedRect(2, 2, PANEL_W - 4, PANEL_H - 4, 4);
     c.add(g);
     c.add(this.add.image(4, 3, `char-${a.char}`, 0).setOrigin(0));

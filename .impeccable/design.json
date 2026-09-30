@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-30T16:52:29.767Z",
+  "generatedAt": "2026-09-30T17:07:16.249Z",
   "title": "Design System: Block Diggers",
   "extensions": {
     "colorMeta": {
@@ -471,6 +471,11 @@
         "name": "The Paper Sits Down Rule",
         "body": "A shadow always falls down and to the right, as if lit from the top-left lantern. It is never a glow, never centred, and never coloured (except green's \"you can\" glow).",
         "section": "elevation"
+      },
+      {
+        "name": "The Whose-Is-It Rule",
+        "body": "Anything that belongs to one player (their mine HUD card, their Build Yard bar, their face on the summary) is rimmed or backed in that player's character colour (Miner Blue, Fox Orange, Robot Steel, Dino Green). Shared things keep the leather rim. Each player gets their own A prompt at camp.",
+        "section": "components"
       }
     ],
     "dos": [
