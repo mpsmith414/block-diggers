@@ -13,7 +13,7 @@ import { TILE, PLAYER, WHACK } from '../../tuning.js';
 const NONE = {
   busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
 };
-const BULBS = 20;
+const BULBS = 10; // (big enough to read from the sofa)
 
 export function createWhackView(scene) {
   const cells = scene.world.molefair;
@@ -52,7 +52,7 @@ export function createWhackView(scene) {
   const boardY = floorY - 118;
   scene.add.image(boardX, boardY, 'whack-board').setOrigin(0.5, 0).setDepth(1);
   const scoreText = scene.add.bitmapText(boardX + 12, boardY + 16, 'pixel', '0').setOrigin(0.5).setScale(2).setDepth(1.1).setTint(0xffe066);
-  const bulbs = Array.from({ length: BULBS }, (_, i) => scene.add.image(boardX - 38 + i * 4, boardY + 40, 'pixel').setDisplaySize(3, 3).setDepth(1.1));
+  const bulbs = Array.from({ length: BULBS }, (_, i) => scene.add.image(boardX - 35 + i * 8, boardY + 40, 'pixel').setDisplaySize(6, 6).setDepth(1.1));
 
   let game = null; // the round being played
   let best = 0;

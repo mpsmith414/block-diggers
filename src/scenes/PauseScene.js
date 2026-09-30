@@ -90,7 +90,11 @@ export class PauseScene extends Phaser.Scene {
     g.fillStyle(0x000000, 0.25).fillRoundedRect(x + 3, 94, w, 90, 8);
     g.fillStyle(EDGE, 1).fillRoundedRect(x, 90, w, 90, 8);
     g.fillStyle(PAPER, 1).fillRoundedRect(x + 3, 93, w - 6, 84, 7);
-    this.add.image(240, 70, 'icon-pause').setScale(3);
+    // the pause sign sits on a little paper tab on the panel's top edge
+    g.fillStyle(0x000000, 0.25).fillRoundedRect(223, 62, 40, 34, 6);
+    g.fillStyle(EDGE, 1).fillRoundedRect(220, 58, 40, 34, 6);
+    g.fillStyle(PAPER, 1).fillRoundedRect(223, 61, 34, 30, 5);
+    this.add.image(240, 74, 'icon-pause').setScale(2.2);
     this.cursor = this.add.graphics();
     this.icons = this.options.map((o, i) => this.add.image(x + 45 + i * 60, 135, o.icon).setScale(3));
     this.drawCursor();
