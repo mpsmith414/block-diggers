@@ -9,6 +9,18 @@ import { MINE_W } from '../tuning.js';
 
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
+// A bonus room right of the Heart's chamber at the bottom of a mine H rows
+// deep (it opens into the chamber), `height` rows of air over a flat floor:
+// the Moon's skate park, the Mars arcade, Earth's Mole Fair. Returns it (in
+// cells) and `inside(c)` to keep chests and decorations out of it.
+export function carveBonusRoom(grid, H, floorBlock, height) {
+  const room = { x0: 30, x1: MINE_W - 2, top: H - 2 - height, floor: H - 2 };
+  for (let y = room.top; y < room.floor; y++) for (let x = room.x0; x <= room.x1; x++) grid.set(x, y, B.AIR);
+  for (let x = room.x0; x <= room.x1; x++) grid.set(x, room.floor, floorBlock);
+  const inside = (c) => c.x >= room.x0 && c.x <= room.x1 && c.y >= room.top && c.y <= room.floor;
+  return { room, inside };
+}
+
 export function createPlanetGen({ rng, H, layers, hosts }) {
   const ids = Object.keys(layers);
   const layerAt = (y) => ids.find((id) => y <= layers[id].bottom) ?? ids[ids.length - 1];
@@ -82,16 +94,8 @@ export function createPlanetGen({ rng, H, layers, hosts }) {
     return { x: hx, y: hy, kind };
   };
 
-  // A bonus room right of the Heart's chamber (it opens into it), with a flat
-  // floor: the Moon's skate park, the Mars arcade. Returns it (in cells) and
-  // `inside(c)` to keep chests and decorations out of it.
-  const bonusRoom = (floorBlock, height) => {
-    const room = { x0: 30, x1: MINE_W - 2, top: H - 2 - height, floor: H - 2 };
-    for (let y = room.top; y < room.floor; y++) for (let x = room.x0; x <= room.x1; x++) grid.set(x, y, B.AIR);
-    for (let x = room.x0; x <= room.x1; x++) grid.set(x, room.floor, floorBlock);
-    const inside = (c) => c.x >= room.x0 && c.x <= room.x1 && c.y >= room.top && c.y <= room.floor;
-    return { room, inside };
-  };
+  // the bonus room beside the Heart's chamber (see carveBonusRoom)
+  const bonusRoom = (floorBlock, height) => carveBonusRoom(grid, H, floorBlock, height);
 
   // cave floors: open cells with rock underneath (not bedrock)
   const floors = (top, bottom) => {

@@ -2,6 +2,7 @@
 // chests, and things to find (geodes, fossils, boom blocks, boulders, a big
 // chest, pet eggs).
 
+import { carveBonusRoom } from './planetgen.js';
 import { createRng } from './rng.js';
 import { createGrid } from './grid.js';
 import { B, isSolid, isBoulder } from './blocks.js';
@@ -277,6 +278,12 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
   for (let y = hy; y <= hy + 2; y++) for (let x = hx; x <= hx + 2; x++) grid.set(x, y, B.HEART);
   const heart = { x: hx, y: hy };
 
+  // the Mole Fair: a big room right of the Heart's chamber, for Whack-a-Mole
+  const { room: molefair, inside: inFair } = carveBonusRoom(grid, MINE_H, B.CORE, 12);
+  // (a boulder whose floor or pit the room cut away turns back into rock)
+  const nearFair = (b) => [-2, 0, 2].some((d) => inFair({ x: b.x + d, y: b.y + 1 }));
+  for (const b of boulders) if (nearFair(b) && isBoulder(grid.get(b.x, b.y))) grid.set(b.x, b.y, B.CORE);
+
   // the shaft: a short ladder down through the grass
   for (let y = 0; y < SHAFT_DEPTH; y++) grid.set(SHAFT_X, y, B.LADDER);
 
@@ -289,8 +296,8 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
       const below = grid.get(x, y + 1);
       const above = grid.get(x, y - 1);
       if (isSolid(below) && below !== B.BEDROCK && rng.chance(kinds.floorChance)) {
-        decor.push({ x, y, on: 'floor', kind: rng.weighted(kinds.floor), v: rng.int(0, 2) });
-      } else if (isSolid(above) && above !== B.BEDROCK && y > 1 && rng.chance(kinds.ceilChance)) {
+        if (!inFair({ x, y })) decor.push({ x, y, on: 'floor', kind: rng.weighted(kinds.floor), v: rng.int(0, 2) });
+      } else if (isSolid(above) && above !== B.BEDROCK && y > 1 && rng.chance(kinds.ceilChance) && !inFair({ x, y })) {
         decor.push({ x, y, on: 'ceil', kind: rng.weighted(kinds.ceil), v: rng.int(0, 2) });
       }
     }
@@ -320,7 +327,11 @@ export function generateMine(seed, { luck = 1, eggKinds = ['mole', 'glowbug', 'b
     SILLY.cushions, 14,
   );
 
-  return { grid, chests, decor, eggs, bigChest, boulders, fossils, heart, ducks, cushions, spawn: { x: SHAFT_X, y: -1 }, seed };
+  return {
+    grid, chests: chests.filter((c) => !inFair(c)), decor, eggs: eggs.filter((e) => !inFair(e)),
+    bigChest: bigChest && !inFair(bigChest) ? bigChest : null, boulders: boulders.filter((b) => !nearFair(b)),
+    fossils: fossils.filter((f) => !inFair(f)), heart, ducks, cushions, molefair, spawn: { x: SHAFT_X, y: -1 }, seed,
+  };
 }
 
 // The minecart station: a little room at `row` to start a trip in. Returns the

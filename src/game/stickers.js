@@ -134,6 +134,7 @@ export const STICKER_PAGES = [
   // the bonus games at the bottom of the planets
   page('bonus', 'icon-claw', [
     ['claw-machine', 'icon-claw'], ['claw-robot', 'toyrobot', 0], ['claw-martian', 'martian', 0], ['claw-golden', 'claw-golden'],
+    ['whack-fair', 'icon-whack'], ['whack-mole', 'whack-mole', 1], ['whack-golden', 'whack-golden'], ['whack-star', 'whack-star'],
   ]),
 ];
 

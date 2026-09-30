@@ -36,6 +36,12 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   **the Core** (ember wisps, lava, and the giant **Heart of the World** at the
   very bottom). Each new layer needs a better tool: amber pick, brick drill,
   star drill. Reaching a deep layer for the first time shows its banner and badge.
+- **The Mole Fair:** right next to the Heart of the World, a room with bunting,
+  a scoreboard and five molehills: **Whack-a-Mole!** Grab a toy mallet from the
+  stand (two, for co-op): left and right hop between the molehills, A bonks,
+  down puts the mallet back. Rounds last 30 seconds (the bulbs under the
+  scoreboard go out one by one) and get faster as they go. Every mole gives
+  gold (a **golden mole** gives diamonds and counts 3), up to 20 a trip.
 - **Lava Monster:** touch lava and you become a lava monster for 8 seconds:
   lava-proof, digging twice as fast, and creatures poof away.
 - **Drinking:** stand in water (or at the camp pond) to drink it: glug glug,
@@ -187,7 +193,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 233 stickers on 24 pages, and a trophy for each full page. Open
+- **Sticker book:** 237 stickers on 24 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.
