@@ -130,3 +130,20 @@ describe('the Mars generator', () => {
     }
   });
 });
+
+describe('the Mars arcade', () => {
+  it('has a big room beside the Mars Heart for the claw machine, open to its chamber, with nothing in it', () => {
+    for (const seed of [3, 42, 777]) {
+      const w = generateMars(seed);
+      const r = w.arcade;
+      expect(r).toEqual({ x0: 30, x1: 46, top: MARS_H - 14, floor: MARS_H - 2 });
+      for (let y = r.top; y < r.floor; y++) for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, r.floor)).toBe(B.MARS_CORE);
+      expect(w.grid.get(29, r.floor - 1)).toBe(B.AIR);
+      const inside = (c) => c.x >= r.x0 && c.x <= r.x1 && c.y >= r.top && c.y <= r.floor;
+      expect(w.chests.some(inside)).toBe(false);
+      expect(w.decor.some(inside)).toBe(false);
+      for (let y = w.heart.y; y < w.heart.y + 3; y++) for (let x = w.heart.x; x < w.heart.x + 3; x++) expect(w.grid.get(x, y)).toBe(B.MARS_HEART);
+    }
+  });
+});

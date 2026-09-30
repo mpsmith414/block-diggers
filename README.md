@@ -107,6 +107,12 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Mars Core:** embers and the **Mars Heart**. Bring it home for the
     **Boots**, the second Sun Suit piece: you run faster everywhere, and
     storms can't push you.
+  - **The Arcade:** a big room right next to the Mars Heart with a giant
+    **claw machine** full of prizes (rubies, bolts, coins, opals, toy robots,
+    martian plushies and one rare **golden robot**). Walk up to the joystick
+    to play: left and right move the claw, A drops it, down steps away. It
+    grabs whatever's right below (now and then a prize slips back), and each
+    prize pops out of the prize door with treasure for your backpack.
 
   New drills: Ruby Drill, Opal Drill, Mega Drill.
 - **Mars Base** (Mars's camp): greenhouses, a windsock, the Mars Rocket on its
@@ -181,7 +187,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 229 stickers on 23 pages, and a trophy for each full page. Open
+- **Sticker book:** 233 stickers on 24 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

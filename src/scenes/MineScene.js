@@ -36,7 +36,7 @@ import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createSuitView } from './common/suitView.js';
-import { createSkateView } from './mine/skateView.js';
+import { createBonusViews } from './mine/bonusViews.js';
 import { attachAudio } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
@@ -152,7 +152,7 @@ export class MineScene extends Phaser.Scene {
     this.finds = createFindsView(this);
     this.pets = createPetsView(this, saved.pets ?? []);
     this.suits = createSuitView(this);
-    this.skateView = createSkateView(this);
+    this.bonus = createBonusViews(this);
     const rows = this.grid.h;
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE });
     this.lavaCells = [];
@@ -391,7 +391,7 @@ export class MineScene extends Phaser.Scene {
 
   startBubble(a) {
     if (a.bubbling) return;
-    if (a.skate) this.skateView.stepOff(a);
+    this.bonus.leave(a);
     a.bubbling = true;
     a.p.mining = null;
     a.bubble.setVisible(true).setScale(0.3);
@@ -452,14 +452,14 @@ export class MineScene extends Phaser.Scene {
         this.stepBubbling(a, dt);
       } else if (intent) {
         const prev = { x: a.p.x, y: a.p.y };
-        // on a skateboard in the Moon Skate Park, the half pipe moves you
-        if (a.skate) {
-          this.skateView.step(a, intent, dt);
-          if (a.skate) this.collectNear(a, dt);
+        // skating in the Moon Skate Park, or playing the Mars claw machine
+        if (this.bonus.busy(a)) {
+          this.bonus.step(a, intent, dt);
+          if (this.bonus.busy(a)) this.collectNear(a, dt);
         } else {
           this.stepAvatar(a, intent, dt);
         }
-        if (partner && !partner.bubbling && !a.skate) this.softWall(a, prev, partner);
+        if (partner && !partner.bubbling && !this.bonus.busy(a)) this.softWall(a, prev, partner);
         const wantsBubble = a.bubbleEdge(intent.bubble);
         if (partner && wantsBubble && Math.hypot(partner.p.x - a.p.x, partner.p.y - a.p.y) > BUBBLE.minDistance) {
           this.startBubble(a);
@@ -468,13 +468,13 @@ export class MineScene extends Phaser.Scene {
         }
       }
       this.drawAvatar(a, dt, time);
-      if (a.skate) this.skateView.draw(a, time);
+      this.bonus.draw(a, time);
     }
     this.stepStorm(dt);
     this.stepFlare(dt);
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
-    this.skateView.update();
+    this.bonus.update(dt, time);
     this.pets.update(dt, time);
     for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
     if (coop) this.catchOffscreen(dt);
@@ -559,7 +559,7 @@ export class MineScene extends Phaser.Scene {
   goHome() {
     if (this.goingHome) return;
     this.goingHome = true;
-    for (const a of this.avatars) if (a?.skate) this.skateView.stepOff(a);
+    for (const a of this.avatars) if (a) this.bonus.leave(a);
     this.events.emit('goHome');
     if (this.away) {
       this.beamHome(BEAM[this.planet]);
@@ -662,7 +662,7 @@ export class MineScene extends Phaser.Scene {
   updateCamera(dt) {
     const pts = this.avatars.filter(Boolean).map((a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 - 6 }));
     if (!pts.length) return;
-    pts.push(...this.skateView.framePoints());
+    pts.push(...this.bonus.framePoints());
     // keep the top strip clear for the HUD panels
     const hud = HUD_STRIP;
     const f = frameCamera(pts, { w: this.scale.width, h: this.scale.height - hud });
@@ -929,7 +929,7 @@ export class MineScene extends Phaser.Scene {
   bonk(a, fromX, { noKnock = false, kind = null, enemy = null } = {}) {
     if (kind && !a.bubbling && a.invuln <= 0) earnSticker(this, creatureSticker(kind));
     // a lava monster (or someone riding a dino) is not bothered by anything: creatures poof away
-    if (a.pu.lava > 0 || a.pu.ride > 0 || a.skate) {
+    if (a.pu.lava > 0 || a.pu.ride > 0 || this.bonus.busy(a)) {
       if (enemy) {
         this.hazards.squash(enemy);
         this.effects.sparkle(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 0xff8a1f, 8);
@@ -1256,7 +1256,7 @@ export class MineScene extends Phaser.Scene {
     }
     lights.push(...this.decor.lights(view, flicker));
     lights.push(...this.pets.lights());
-    lights.push(...this.skateView.lights(view, flicker));
+    lights.push(...this.bonus.lights(view, flicker));
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     const heart = this.finds.heart;

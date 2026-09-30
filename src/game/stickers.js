@@ -131,6 +131,10 @@ export const STICKER_PAGES = [
     ['trick-kickflip', 'trick-kickflip'], ['trick-spin360', 'trick-spin360'], ['trick-superman', 'trick-superman'],
     ['trick-grab', 'trick-grab'], ['trick-handstand', 'trick-handstand'], ['trick-backflip', 'trick-backflip'],
   ]),
+  // the bonus games at the bottom of the planets
+  page('bonus', 'icon-claw', [
+    ['claw-machine', 'icon-claw'], ['claw-robot', 'toyrobot', 0], ['claw-martian', 'martian', 0], ['claw-golden', 'claw-golden'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);

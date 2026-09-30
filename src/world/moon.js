@@ -111,10 +111,7 @@ export function generateMoon(seed, { pupEgg = true } = {}) {
 
   // the Skate Park: a big room right of the Moon Heart's chamber (it opens
   // into it), with a flat floor for the half pipe; nothing else goes in it
-  const skatepark = { x0: 30, x1: MINE_W - 2, top: H - 17, floor: H - 2 };
-  for (let y = skatepark.top; y < skatepark.floor; y++) for (let x = skatepark.x0; x <= skatepark.x1; x++) grid.set(x, y, B.AIR);
-  for (let x = skatepark.x0; x <= skatepark.x1; x++) grid.set(x, skatepark.floor, B.MOON_CORE);
-  const inPark = (c) => c.x >= skatepark.x0 && c.x <= skatepark.x1 && c.y >= skatepark.top && c.y <= skatepark.floor;
+  const { room: skatepark, inside: inPark } = gen.bonusRoom(B.MOON_CORE, 15);
 
   // decorations: little things growing on cave floors and ceilings
   const decor = gen.decor(DECOR, new Set(chimes.map((c) => `${c.x},${c.y}`))).filter((d) => !inPark(d));
