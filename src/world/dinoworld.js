@@ -85,11 +85,14 @@ export function generateDino(seed, { longneckEgg = true } = {}) {
   const eggs = longneckEgg ? takeSpots(inLayer('bonebeds'), 1, 0).map((c) => ({ ...c, kind: 'longneck' })) : [];
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
-  const decor = gen.decor(DECOR);
+  // the Egg Grove: a big room right of the Dino Heart's chamber, for Egg Catch
+  const { room: grove, inside: inGrove } = gen.bonusRoom(B.JUNGLE_SOIL, 12);
+
+  const decor = gen.decor(DECOR).filter((d) => !inGrove(d));
 
   return {
-    grid, chests, decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
+    grid, chests: chests.filter((c) => !inGrove(c)), decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
     geysers: [], rovers: [], vaults: [], globes: [], comet: null, parasaurs, nests, skull, stego,
-    ducks: [], cushions: [], hostAt: dinoHostAt, layerAt: dinoLayerAt, spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'dino',
+    ducks: [], cushions: [], grove, hostAt: dinoHostAt, layerAt: dinoLayerAt, spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'dino',
   };
 }

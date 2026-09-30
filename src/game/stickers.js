@@ -137,6 +137,10 @@ export const STICKER_PAGES = [
     ['whack-fair', 'icon-whack'], ['whack-mole', 'whack-mole', 1], ['whack-golden', 'whack-golden'], ['whack-star', 'whack-star'],
     ['hockey-rink', 'icon-rink'], ['hockey-goal', 'hockey-ball'], ['hockey-save', 'penguin', 0], ['hockey-five', 'hockey-five'],
   ]),
+  // more bonus games
+  page('bonus2', 'icon-eggcatch', [
+    ['egg-grove', 'icon-eggcatch'], ['egg-catch', 'catch-egg', 0], ['egg-golden', 'egg-golden-icon'], ['egg-rotten', 'egg-rotten-icon'], ['egg-star', 'egg-star'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);
