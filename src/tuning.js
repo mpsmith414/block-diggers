@@ -429,3 +429,10 @@ export const CLAW = {
 export const WHACK = {
   holes: 5, round: 30, up: [1.6, 0.75], gap: [1.1, 0.4], maxUp: 2, bonked: 0.45, golden: 0.12, cap: 20, star: 20,
 };
+
+// Saturn's Ice Hockey: a giant snowball puck on the ice between two goals,
+// each with a penguin goalie who hops (shoot while he's up!)
+export const HOCKEY = {
+  goal: 26, radius: 7, friction: 0.45, max: 340, shot: 300, nudge: 80, touch: 13, reach: 24,
+  goalieW: 9, stand: 1.3, hop: 0.9, reset: 1.6, cap: 12, trick: 5,
+};

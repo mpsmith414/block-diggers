@@ -168,6 +168,12 @@ export function createSfx(audio) {
       noise({ dur: 0.06, gain: 0.2, freq: 2500, q: 1, type: 'bandpass' });
       tone({ type: 'square', freq: 300, to: 600, dur: 0.08, gain: 0.05 });
     },
+    // Saturn's ice hockey: the goal horn
+    horn() {
+      tone({ type: 'sawtooth', freq: noteFreq('A3'), dur: 0.9, gain: 0.06, attack: 0.02 });
+      tone({ type: 'square', freq: noteFreq('E4'), dur: 0.9, gain: 0.035, attack: 0.02 });
+      ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.12, gain: 0.05, at: 0.95 + i * 0.08 }));
+    },
     ding() {
       ['E6', 'B6'].forEach((n, i) => tone({ type: 'sine', freq: noteFreq(n), dur: 0.4, gain: 0.08, at: i * 0.07 }));
     },
