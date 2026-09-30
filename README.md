@@ -221,6 +221,17 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   up, or under your feet with the stick down, so jump and build a tower under
   yourself), and **B** (or H) takes it away. A see-through block shows where it
   goes. Two players can build together, and whatever you build stays.
+- **Music for every place:** each planet has its own theme at its camp and in
+  its mines (a twinkly Moon, spacey Mars, snowy Saturn with sleigh bells,
+  jungle drums on Dino Planet, a triumphant Sun), and the bonus rooms play a
+  bouncy arcade tune.
+- **Creatures with personality:** each one moves its own way (bunnies bounce,
+  frogs leap, robots march, mice scurry, penguins waddle and belly-slide,
+  jellies drift, fairies zigzag, dragonflies dart, moths loop).
+- **Game backup:** the game keeps two automatic copies of your save, and a
+  missing or damaged save comes back on its own. On the title screen, the 💾
+  button (for grown-ups, with a mouse) downloads the whole game as a file, or
+  loads one back (on another computer, or after clearing the browser).
 - **Sticker book:** 256 stickers on 26 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry

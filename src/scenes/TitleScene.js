@@ -4,6 +4,7 @@ import { createEdge } from '../input/intents.js';
 import { getState, setState } from '../save/store.js';
 import { attachAudio } from '../audio/wire.js';
 import { createEffects } from './mine/effects.js';
+import { createBackupPanel } from '../ui/backupPanel.js';
 
 // Title and character select. Press A to join (up to two players),
 // left/right to pick a character, A again when ready.
@@ -28,6 +29,9 @@ export class TitleScene extends Phaser.Scene {
     this.ready = [false, false];
 
     this.drawBackdrop();
+    // a grown-up's backup button in the corner (only on the title screen)
+    this.backup = createBackupPanel({ getState: () => getState(this.registry) });
+    this.events.once('shutdown', () => this.backup.destroy());
     this.logo = this.add.image(240, 44, 'logo').setDepth(10);
     this.tweens.add({ targets: this.logo, y: 48, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.time.addEvent({

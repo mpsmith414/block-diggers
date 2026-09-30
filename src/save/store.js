@@ -2,6 +2,9 @@
 // localStorage whenever it changes.
 
 import { loadState, saveState } from './save.js';
+import { rollBackup, withBackup, BACKUP_EVERY } from './backup.js';
+
+let lastBackup = 0; // (only look at the copies now and then)
 
 function storage() {
   try {
@@ -12,7 +15,8 @@ function storage() {
 }
 
 export function loadIntoRegistry(registry) {
-  const { state, status } = loadState(storage());
+  // (a missing or damaged save comes back from its automatic copy)
+  const { state, status } = withBackup(loadState(storage()), storage());
   registry.set('save', state);
   registry.set('saveStatus', status);
   return state;
@@ -25,5 +29,10 @@ export function getState(registry) {
 export function setState(registry, state) {
   registry.set('save', state);
   saveState(storage(), state);
+  const now = Date.now();
+  if (now - lastBackup >= BACKUP_EVERY) {
+    rollBackup(storage(), state, now);
+    lastBackup = now;
+  }
   return state;
 }
