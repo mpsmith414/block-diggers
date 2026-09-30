@@ -37,7 +37,7 @@ import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createSuitView } from './common/suitView.js';
 import { createBonusViews } from './mine/bonusViews.js';
-import { attachAudio } from '../audio/wire.js';
+import { attachAudio, songFor, setSong } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
@@ -475,6 +475,12 @@ export class MineScene extends Phaser.Scene {
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
     this.bonus.update(dt, time);
+    // the bonus rooms have their own bouncy arcade tune
+    this.songT = (this.songT ?? 0) - dt;
+    if (this.songT <= 0) {
+      this.songT = 0.5;
+      setSong(this, this.bonus.occupied() ? 'arcade' : songFor('Mine', this.planet));
+    }
     this.pets.update(dt, time);
     for (const a of this.avatars) if (a) a.invuln = Math.max(0, a.invuln - dt);
     if (coop) this.catchOffscreen(dt);

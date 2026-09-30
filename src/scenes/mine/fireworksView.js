@@ -12,7 +12,7 @@ import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
 import { TILE, PLAYER, FIREWORKS } from '../../tuning.js';
 
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [],
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
 };
 const BULBS = 20;
 const FRAME = { red: 0, blue: 1, green: 2, pink: 3, gold: 4 };
@@ -109,6 +109,8 @@ export function createFireworksView(scene) {
   }
 
   return {
+    // is anyone in the room? (the bonus rooms play the arcade tune)
+    occupied: () => scene.avatars.some((a) => a && inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 })),
     busy: () => false,
     step() {},
 

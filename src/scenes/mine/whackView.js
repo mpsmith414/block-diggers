@@ -11,7 +11,7 @@ import { drawRoom, roomLights, flyOres, pressToUse } from './bonusRoom.js';
 import { TILE, PLAYER, WHACK } from '../../tuning.js';
 
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [],
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
 };
 const BULBS = 20;
 
@@ -142,6 +142,8 @@ export function createWhackView(scene) {
   }
 
   return {
+    // is anyone in the room? (the bonus rooms play the arcade tune)
+    occupied: () => scene.avatars.some((a) => a && inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 })),
     busy: (a) => !!a.whack,
 
     // Holding a mallet: hop between the molehills, bonk, or put it back.

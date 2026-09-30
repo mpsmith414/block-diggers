@@ -10,7 +10,7 @@ import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
 import { TILE, PLAYER, EGGS } from '../../tuning.js';
 
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [],
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
 };
 const BULBS = 20;
 const FRAME = { egg: 0, golden: 1, rotten: 2 };
@@ -91,6 +91,8 @@ export function createEggView(scene) {
   }
 
   return {
+    // is anyone in the room? (the bonus rooms play the arcade tune)
+    occupied: () => scene.avatars.some((a) => a && inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 })),
     busy: () => false,
     step() {},
 

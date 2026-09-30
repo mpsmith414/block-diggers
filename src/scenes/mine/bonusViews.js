@@ -22,5 +22,6 @@ export function createBonusViews(scene) {
     leave(a) { using(a)?.leave(a); },
     lights: (view, flicker) => views.flatMap((v) => v.lights(view, flicker)),
     framePoints: () => views.flatMap((v) => v.framePoints()),
+    occupied: () => views.some((v) => v.occupied()),
   };
 }
