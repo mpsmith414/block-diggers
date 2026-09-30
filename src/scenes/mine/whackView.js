@@ -1,13 +1,13 @@
-// Earth's Mole Fair, in the mine: Whack-a-Mole. Take a toy mallet from the
-// stand (two, for co-op): left/right hop you from molehill to molehill, A
-// bonks, down puts the mallet back. Rounds last 30 seconds (the bulbs under
+// Earth's Mole Fair, in the mine: Whack-a-Mole. Press A at the stand to take
+// a toy mallet (two, for co-op): left/right hop you from molehill to
+// molehill, A bonks; down (or walking off either end) puts the mallet back. Rounds last 30 seconds (the bulbs under
 // the scoreboard go out one by one); every bonk sends treasure to your
 // backpack; a golden mole is worth 3.
 
 import { createWhack, stepWhack, whack, whackReward } from '../../game/whack.js';
 import { createEdge } from '../../input/intents.js';
 import { earnSticker } from '../common/stickers.js';
-import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
+import { drawRoom, roomLights, flyOres, pressToUse } from './bonusRoom.js';
 import { TILE, PLAYER, WHACK } from '../../tuning.js';
 
 const NONE = {
@@ -32,6 +32,14 @@ export function createWhackView(scene) {
   const mallets = [-5, 5].map((dx) => {
     const home = { x: standX + dx, y: floorY - 3, angle: dx * 3 };
     return { home, holder: null, ready: true, s: scene.add.image(home.x, home.y, 'mallet').setOrigin(0.5, 1).setAngle(home.angle).setDepth(4) };
+  });
+  // press A at the stand to take a mallet
+  const stand = pressToUse(scene, {
+    x: standX,
+    y: floorY - 30,
+    near: (a) => !a.whack && !a.bubbling && !a.skate && !a.claw && !scene.goingHome && mallets.some((q) => !q.holder && q.ready)
+      && Math.abs(a.p.x + PLAYER.w / 2 - standX) < 12 && a.p.y + PLAYER.h > floorY - 12,
+    use: (a) => takeMallet(a, mallets.find((q) => !q.holder && q.ready)),
   });
   const holes = Array.from({ length: WHACK.holes }, (_, i) => {
     const x = room.x0 + 76 + i * 40;
@@ -75,6 +83,7 @@ export function createWhackView(scene) {
     a.p.vy = 0;
     a.p.mining = null;
     a.p.facing = 1;
+    a.p.y = floorY - PLAYER.h;
     m.s.setDepth(31);
     scene.events.emit('whackOn', a);
     if (!game && !waving) pause = Math.min(pause || 1.2, 1.2);
@@ -84,7 +93,6 @@ export function createWhackView(scene) {
     if (!a.whack) return;
     const m = a.whack.mallet;
     a.whack = null;
-    a.whackArmed = false;
     m.holder = null;
     m.s.setDepth(4);
     scene.tweens.add({ targets: m.s, x: m.home.x, y: m.home.y, angle: m.home.angle, duration: 400, onComplete: () => { m.ready = true; } });
@@ -149,6 +157,11 @@ export function createWhackView(scene) {
         leave(a);
         return;
       } else {
+        // walking off either end puts the mallet back
+        if ((left && w.hole === 0) || (right && w.hole === WHACK.holes - 1)) {
+          leave(a);
+          return;
+        }
         if (left) w.hole = Math.max(0, w.hole - 1);
         if (right) w.hole = Math.min(WHACK.holes - 1, w.hole + 1);
         if (pressed && w.swing <= 0) {
@@ -173,13 +186,8 @@ export function createWhackView(scene) {
         if (!a || a.bubbling) continue;
         const c = { x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 };
         if (inRoom(c)) earnSticker(scene, 'whack-fair');
-        const atStand = Math.abs(c.x - standX) < 12 && a.p.y + PLAYER.h > floorY - 4;
-        if (!atStand) a.whackArmed = true;
-        if (!a.whack && atStand && a.whackArmed !== false && !a.skate && !a.claw && !scene.goingHome) {
-          const m = mallets.find((q) => !q.holder && q.ready);
-          if (m) takeMallet(a, m);
-        }
       }
+      stand.update(scene.time.now);
       // the round: a short pause, then 30 seconds of moles, then the wave
       if (players().length) {
         if (waving > 0) {

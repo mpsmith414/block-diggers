@@ -1,4 +1,4 @@
-// The Mars arcade, in the mine: a big claw machine full of prizes. Walk up to
+// The Mars arcade, in the mine: a big claw machine full of prizes. Press A at
 // the joystick to play (one at a time): left/right moves the claw, A drops
 // it, down steps away. Whatever it grabs goes down the chute and pops out of
 // the prize door, and its treasure flies into your backpack.
@@ -6,7 +6,7 @@
 import { stockPrizes, createClaw, stepClaw, prizeReward } from '../../game/claw.js';
 import { createEdge } from '../../input/intents.js';
 import { earnSticker } from '../common/stickers.js';
-import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
+import { drawRoom, roomLights, flyOres, pressToUse } from './bonusRoom.js';
 import { TILE, PLAYER, CLAW } from '../../tuning.js';
 
 const NONE = {
@@ -64,10 +64,15 @@ export function createClawView(scene) {
   let lastOwner = null;
   let move = 0;
   let drop = false;
-  const zone = (a) => {
-    const cx = a.p.x + PLAYER.w / 2;
-    return Math.abs(cx - (ox + JOY)) < 10 && a.p.y + PLAYER.h > floorY - 4;
-  };
+
+  // press A at the joystick to play
+  const joystick = pressToUse(scene, {
+    x: ox + JOY,
+    y: oy + 80,
+    near: (a) => !owner && !a.bubbling && !a.skate && !a.whack && !scene.goingHome
+      && Math.abs(a.p.x + PLAYER.w / 2 - (ox + JOY)) < 10 && a.p.y + PLAYER.h > floorY - 12,
+    use: (a) => takeControl(a),
+  });
 
   function takeControl(a) {
     owner = a;
@@ -77,6 +82,7 @@ export function createClawView(scene) {
     a.clawDown = createEdge();
     a.clawFresh = true;
     a.p.x = ox + JOY - PLAYER.w / 2;
+    a.p.y = floorY - PLAYER.h;
     a.p.vx = 0;
     a.p.vy = 0;
     a.p.mining = null;
@@ -87,7 +93,6 @@ export function createClawView(scene) {
     if (owner !== a) return;
     owner = null;
     a.claw = false;
-    a.clawArmed = false;
     move = 0;
   }
 
@@ -142,9 +147,8 @@ export function createClawView(scene) {
       for (const a of scene.avatars) {
         if (!a || a.bubbling) continue;
         if (inRoom({ x: a.p.x, y: a.p.y })) earnSticker(scene, 'claw-machine');
-        if (!zone(a)) a.clawArmed = true;
-        if (!owner && a.clawArmed !== false && !a.skate && !scene.goingHome && zone(a)) takeControl(a);
       }
+      joystick.update(scene.time.now);
       for (const ev of stepClaw(claw, { moveX: owner ? move : 0 }, { drop }, dt, scene.rng)) {
         if (ev.type === 'drop') scene.events.emit('clawDrop');
         if (ev.type === 'grab') scene.events.emit('clawGrab');
