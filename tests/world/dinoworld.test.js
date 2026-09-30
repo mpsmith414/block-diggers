@@ -83,3 +83,19 @@ describe('the Dino Planet generator', () => {
     }
   });
 });
+
+describe('the Dino Egg Grove', () => {
+  it('has a big room beside the Dino Heart for Egg Catch, open to its chamber, with nothing in it', () => {
+    for (const seed of [5, 42, 321]) {
+      const w = generateDino(seed);
+      const r = w.grove;
+      expect(r).toEqual({ x0: 30, x1: 46, top: DINO_H - 14, floor: DINO_H - 2 });
+      for (let y = r.top; y < r.floor; y++) for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, y)).toBe(B.AIR);
+      for (let x = r.x0; x <= r.x1; x++) expect(w.grid.get(x, r.floor)).toBe(B.JUNGLE_SOIL);
+      expect(w.grid.get(29, r.floor - 1)).toBe(B.AIR);
+      const inside = (c) => c.x >= r.x0 && c.x <= r.x1 && c.y >= r.top && c.y <= r.floor;
+      expect(w.chests.some(inside)).toBe(false);
+      expect(w.decor.some(inside)).toBe(false);
+    }
+  });
+});

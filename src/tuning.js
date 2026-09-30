@@ -436,3 +436,10 @@ export const HOCKEY = {
   goal: 26, radius: 7, friction: 0.45, max: 340, shot: 300, nudge: 80, touch: 13, reach: 24,
   goalieW: 9, stand: 1.3, hop: 0.9, reset: 1.6, cap: 12, trick: 5,
 };
+
+// Dino Planet's Egg Catch: a pterodactyl drops eggs; catch them in a basket.
+// Drops come more often (and eggs fall faster) as the 30-second round goes on.
+export const EGGS = {
+  round: 30, ptero: 70, every: [1.5, 0.55], gravity: [110, 230], maxFall: 170, catchW: 12,
+  golden: 0.08, rotten: 0.12, cap: 20, star: 15,
+};

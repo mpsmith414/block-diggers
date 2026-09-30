@@ -168,6 +168,13 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
     Stegosaurus** that wakes up and shakes obsidian off its back;
   - **Dino Core:** glow moths and the **Dino Heart**. Bring it home for the
     **Jetpack**, the last Sun Suit piece: hold jump in the air to fly.
+  - **The Egg Grove:** right next to the Dino Heart, a jungle sunset with a
+    volcano: **Egg Catch!** A pterodactyl flies back and forth dropping eggs,
+    and everyone in the grove carries a basket over their head, so just run
+    under them. A speckled egg is 1 (jade for your backpack), a **golden egg**
+    3 (obsidian), and a **rotten egg** goes pee-yew (a stink cloud, nothing
+    else). Missed eggs splat. Rounds last 30 seconds and get faster; up to 20
+    treasures a trip.
 
   New drills: Jungle Drill, Tooth Drill, Obsidian Drill.
 - **Dino Camp**: jungle, tree ferns, a smoking volcano, and four buildings:
@@ -199,7 +206,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
     finale again.
-- **Sticker book:** 241 stickers on 24 pages, and a trophy for each full page. Open
+- **Sticker book:** 246 stickers on 25 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

@@ -4,7 +4,7 @@
 import { canAfford, spend } from './economy.js';
 import { TILE, CAMP } from '../tuning.js';
 
-export const TROPHY_COUNT = 24;
+export const TROPHY_COUNT = 25;
 
 export const DECOR_ITEMS = [
   { id: 'lamp', cost: { coal: 3, iron: 1 }, w: 10 },

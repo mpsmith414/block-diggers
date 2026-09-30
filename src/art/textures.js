@@ -30,6 +30,7 @@ import { drawSkateArt } from './skate.js';
 import { drawClawArt } from './claw.js';
 import { drawWhackArt } from './whack.js';
 import { drawHockeyArt } from './hockey.js';
+import { drawEggCatchArt } from './eggcatch.js';
 
 const T = 16;
 
@@ -726,4 +727,5 @@ export function drawTextures(scene) {
   drawClawArt(scene, canvasTexture, rect);
   drawWhackArt(scene, canvasTexture, rect);
   drawHockeyArt(scene, canvasTexture, rect);
+  drawEggCatchArt(scene, canvasTexture, rect);
 }
