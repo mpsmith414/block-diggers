@@ -443,3 +443,10 @@ export const EGGS = {
   round: 30, ptero: 70, every: [1.5, 0.55], gravity: [110, 230], maxFall: 170, catchW: 12,
   golden: 0.08, rotten: 0.12, cap: 20, star: 15,
 };
+
+// the Sun's Firework Launcher: balloons float up; jump on a pad to launch a
+// rocket; a burst pops the balloons near it too (chain reactions!)
+export const FIREWORKS = {
+  round: 30, every: [1.3, 0.45], rise: [24, 44], rocket: 280, hitX: 10, hitY: 12, chain: 30,
+  padCooldown: 0.6, golden: 0.08, cap: 20, star: 15,
+};
