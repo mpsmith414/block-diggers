@@ -1,0 +1,474 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-30T16:06:25.038Z",
+  "title": "Design System: Block Diggers",
+  "extensions": {
+    "colorMeta": {
+      "parchment": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "oklch(92.3% 0.049 86.3)",
+        "tonalRamp": [
+          "#120a00",
+          "#2e2203",
+          "#4b3e20",
+          "#6a5c3d",
+          "#8d7f5f",
+          "#b2a382",
+          "#d9c9a7",
+          "#fdedca"
+        ]
+      },
+      "saddle-leather": {
+        "role": "neutral",
+        "displayName": "Saddle Leather",
+        "canonical": "oklch(51.2% 0.083 57.9)",
+        "tonalRamp": [
+          "#180600",
+          "#3a1a00",
+          "#5f3308",
+          "#80512b",
+          "#a6744d",
+          "#cc9871",
+          "#f4be95",
+          "#feeadc"
+        ]
+      },
+      "cocoa-ink": {
+        "role": "neutral",
+        "displayName": "Cocoa Ink",
+        "canonical": "oklch(34.1% 0.044 54.4)",
+        "tonalRamp": [
+          "#180500",
+          "#341e0e",
+          "#523a29",
+          "#725746",
+          "#967a68",
+          "#bb9e8b",
+          "#e2c4b0",
+          "#feeadd"
+        ]
+      },
+      "plum-night": {
+        "role": "neutral",
+        "displayName": "Plum Night",
+        "canonical": "oklch(25.4% 0.036 318.1)",
+        "tonalRamp": [
+          "#110615",
+          "#2b1e2f",
+          "#483a4c",
+          "#66576b",
+          "#8a7a8f",
+          "#ae9eb4",
+          "#d5c4da",
+          "#f9e7ff"
+        ]
+      },
+      "twilight": {
+        "role": "neutral",
+        "displayName": "Twilight",
+        "canonical": "oklch(21.1% 0.040 299.1)",
+        "tonalRamp": [
+          "#0e0719",
+          "#272035",
+          "#423b52",
+          "#605971",
+          "#837b95",
+          "#a8a0bb",
+          "#cec5e1",
+          "#f1ebff"
+        ]
+      },
+      "go-green": {
+        "role": "primary",
+        "displayName": "Go Green",
+        "canonical": "oklch(72.2% 0.192 143.0)",
+        "tonalRamp": [
+          "#001100",
+          "#002e01",
+          "#004f03",
+          "#017209",
+          "#179b1c",
+          "#4bc149",
+          "#75e971",
+          "#ccffc8"
+        ]
+      },
+      "treasure-gold": {
+        "role": "secondary",
+        "displayName": "Treasure Gold",
+        "canonical": "oklch(84.4% 0.164 90.2)",
+        "tonalRamp": [
+          "#110a00",
+          "#2e2200",
+          "#4f3d00",
+          "#735a01",
+          "#9c7c04",
+          "#c89f08",
+          "#f4c526",
+          "#ffeebe"
+        ]
+      },
+      "not-yet-red": {
+        "role": "tertiary",
+        "displayName": "Not-Yet Red",
+        "canonical": "oklch(58.6% 0.176 28.6)",
+        "tonalRamp": [
+          "#210000",
+          "#4c0000",
+          "#7d0002",
+          "#ab1f19",
+          "#d54b3e",
+          "#ff7363",
+          "#ffb5aa",
+          "#fee9e5"
+        ]
+      },
+      "marquee-yellow": {
+        "role": "secondary",
+        "displayName": "Marquee Yellow",
+        "canonical": "oklch(91.0% 0.144 95.1)",
+        "tonalRamp": [
+          "#100b00",
+          "#2c2300",
+          "#4c3f00",
+          "#6f5c01",
+          "#977e05",
+          "#c1a314",
+          "#e8c94d",
+          "#ffefb1"
+        ]
+      },
+      "book-leather": {
+        "role": "neutral",
+        "displayName": "Book Leather",
+        "canonical": "oklch(43.8% 0.088 38.5)",
+        "tonalRamp": [
+          "#1e0100",
+          "#450e00",
+          "#652c1a",
+          "#874b37",
+          "#ad6d59",
+          "#d5927c",
+          "#fdb7a1",
+          "#ffe9e2"
+        ]
+      },
+      "book-leather-dark": {
+        "role": "neutral",
+        "displayName": "Book Leather Dark",
+        "canonical": "oklch(34.7% 0.075 37.1)",
+        "tonalRamp": [
+          "#1e0100",
+          "#411306",
+          "#613022",
+          "#824e3f",
+          "#a87060",
+          "#ce9583",
+          "#f7baa8",
+          "#fee9e3"
+        ]
+      },
+      "book-page": {
+        "role": "neutral",
+        "displayName": "Book Page",
+        "canonical": "oklch(94.5% 0.039 87.6)",
+        "tonalRamp": [
+          "#120a00",
+          "#2c230c",
+          "#483f27",
+          "#675d44",
+          "#8a7f66",
+          "#afa489",
+          "#d5caae",
+          "#faeed2"
+        ]
+      },
+      "sticker-cream": {
+        "role": "neutral",
+        "displayName": "Sticker Cream",
+        "canonical": "oklch(98.6% 0.014 84.6)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#27241c",
+          "#433f37",
+          "#615d55",
+          "#848077",
+          "#a9a49b",
+          "#cfcac0",
+          "#f3eee4"
+        ]
+      },
+      "blush-pink": {
+        "role": "tertiary",
+        "displayName": "Blush Pink",
+        "canonical": "oklch(77.5% 0.136 9.3)",
+        "tonalRamp": [
+          "#1f0006",
+          "#4a0019",
+          "#760e30",
+          "#9a344d",
+          "#c2596e",
+          "#ec7e92",
+          "#ffb2be",
+          "#fee8eb"
+        ]
+      },
+      "miner-blue": {
+        "role": "tertiary",
+        "displayName": "Miner Blue",
+        "canonical": "oklch(70.4% 0.160 251.8)",
+        "tonalRamp": [
+          "#000b20",
+          "#002449",
+          "#004077",
+          "#025eaa",
+          "#2482db",
+          "#57a8ff",
+          "#a4cfff",
+          "#e3f0fe"
+        ]
+      },
+      "fox-orange": {
+        "role": "tertiary",
+        "displayName": "Fox Orange",
+        "canonical": "oklch(73.0% 0.153 54.5)",
+        "tonalRamp": [
+          "#190500",
+          "#3c1900",
+          "#642f00",
+          "#8f4701",
+          "#c26301",
+          "#ec8738",
+          "#ffb98b",
+          "#ffeadd"
+        ]
+      },
+      "robot-steel": {
+        "role": "tertiary",
+        "displayName": "Robot Steel",
+        "canonical": "oklch(71.5% 0.021 252.9)",
+        "tonalRamp": [
+          "#050c14",
+          "#1d252e",
+          "#38414b",
+          "#555f69",
+          "#78818d",
+          "#9ca6b2",
+          "#c1ccd8",
+          "#e5f0fd"
+        ]
+      },
+      "dino-green": {
+        "role": "tertiary",
+        "displayName": "Dino Green",
+        "canonical": "oklch(73.2% 0.157 146.6)",
+        "tonalRamp": [
+          "#001001",
+          "#002d09",
+          "#004e16",
+          "#007224",
+          "#2d9842",
+          "#58be66",
+          "#80e68c",
+          "#c9ffcd"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Counts, prices, scores: the 4×6 'pixel' bitmap font at ×2. Digits and x+-/:!? only; no words."
+      },
+      "numeral-small": {
+        "displayName": "Numeral Small",
+        "purpose": "Rare ×1 secondary numbers for grown-ups; never the only carrier of meaning."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel",
+        "value": "2px 3px 0 rgba(0,0,0,0.25)",
+        "purpose": "Paper panels and price tags; same radius as the panel, no blur."
+      },
+      {
+        "name": "book",
+        "value": "6px 6px 0 rgba(0,0,0,0.3)",
+        "purpose": "The sticker book, the heaviest object on screen."
+      },
+      {
+        "name": "slot",
+        "value": "2px 3px 0 rgba(0,0,0,0.12)",
+        "purpose": "Sticker slots resting on the page."
+      },
+      {
+        "name": "hud-backing",
+        "value": "0 0 0 4px rgba(0,0,0,0.35)",
+        "purpose": "Behind thin gauges so they read on any background."
+      },
+      {
+        "name": "go-glow",
+        "value": "0 0 0 3px rgba(76,194,74,0.5)",
+        "purpose": "The only coloured glow: \"you can afford / use this\"."
+      }
+    ],
+    "motion": [
+      {
+        "name": "idle-bob",
+        "value": "Phaser Sine.easeInOut",
+        "purpose": "Floating prompts, hovering pets, idle sways."
+      },
+      {
+        "name": "pop-in",
+        "value": "Phaser Back.easeOut (≈ cubic-bezier(0.34, 1.56, 0.64, 1))",
+        "purpose": "Panels, rewards and stickers arriving."
+      },
+      {
+        "name": "fly",
+        "value": "Phaser Quad.easeOut",
+        "purpose": "Ores flying to the backpack, quick moves."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "canvas",
+        "value": "480×270 logical pixels, Scale.FIT to any screen"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Paper Panel",
+      "kind": "card",
+      "refersTo": "paper-panel",
+      "description": "Camp price tags, pause/summary panels and toasts: leather rim, parchment face, soft offset shadow.",
+      "html": "<div class=\"ds-panel\"><span class=\"ds-panel-icon\">⛏</span><span class=\"ds-num\">12</span></div>",
+      "css": ".ds-panel { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; background: #f4e4c1; border: 4px solid #8a5a34; border-radius: 10px; box-shadow: 4px 6px 0 rgba(0,0,0,0.25); color: #4a3222; transition: transform .15s cubic-bezier(.34,1.56,.64,1); } .ds-panel:hover { transform: translateY(-2px); } .ds-panel-icon { font-size: 28px; } .ds-num { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 20px; color: #4a3222; }"
+    },
+    {
+      "name": "Paper Panel (can afford)",
+      "kind": "card",
+      "refersTo": "paper-panel",
+      "description": "The same panel with the Go Green glow and an A prompt when the player can buy or use it.",
+      "html": "<div class=\"ds-panel-go\"><span class=\"ds-panel-icon\">🏠</span><span class=\"ds-num\">8</span><span class=\"ds-a\">A</span></div>",
+      "css": ".ds-panel-go { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; background: #f4e4c1; border: 4px solid #8a5a34; border-radius: 10px; box-shadow: 0 0 0 6px rgba(76,194,74,0.5), 4px 6px 0 rgba(0,0,0,0.25); color: #4a3222; } .ds-panel-icon { font-size: 28px; } .ds-num { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 20px; } .ds-a { width: 28px; height: 28px; display: grid; place-items: center; background: #4cc24a; color: #fff; border: 3px solid #1f4a1f; border-bottom-width: 6px; border-radius: 6px; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 12px; }"
+    },
+    {
+      "name": "A-Button Prompt",
+      "kind": "button",
+      "refersTo": "a-button-prompt",
+      "description": "Floats and bobs over anything usable; nothing is used until A is pressed.",
+      "html": "<button class=\"ds-abtn\" aria-label=\"Press A\">A</button>",
+      "css": "@keyframes ds-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } } .ds-abtn { width: 44px; height: 44px; background: #4cc24a; color: #fff; border: 4px solid #1f4a1f; border-bottom: 10px solid #2f8f34; outline: none; border-radius: 10px; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 16px; cursor: pointer; animation: ds-bob 1.2s ease-in-out infinite; } .ds-abtn:hover { filter: brightness(1.08); } .ds-abtn:focus-visible { box-shadow: 0 0 0 4px #f5c629; } .ds-abtn:active { border-bottom-width: 4px; transform: translateY(6px); animation: none; }"
+    },
+    {
+      "name": "HUD Card",
+      "kind": "custom",
+      "refersTo": "hud-card",
+      "description": "Small edge-hugging counter: icon plus a ×2 numeral on parchment.",
+      "html": "<div class=\"ds-hud\"><span class=\"ds-hud-gem\"></span><span class=\"ds-num\">37</span></div>",
+      "css": ".ds-hud { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; background: #f4e4c1; border: 2px solid #8a5a34; border-radius: 6px; color: #4a3222; } .ds-hud-gem { width: 14px; height: 14px; background: #d0463a; border: 2px solid #2a1d2e; transform: rotate(45deg); } .ds-num { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 16px; }"
+    },
+    {
+      "name": "Not-Yet Price",
+      "kind": "chip",
+      "refersTo": "paper-panel",
+      "description": "A price you cannot pay yet: the numeral turns Not-Yet Red and the A prompt fades to 35%.",
+      "html": "<div class=\"ds-price\"><span class=\"ds-num ds-short\">20</span><span class=\"ds-a ds-faded\">A</span></div>",
+      "css": ".ds-price { display: inline-flex; align-items: center; gap: 12px; padding: 10px 16px; background: #f4e4c1; border: 4px solid #8a5a34; border-radius: 10px; box-shadow: 4px 6px 0 rgba(0,0,0,0.25); } .ds-num { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 18px; color: #4a3222; } .ds-short { color: #d0463a; } .ds-a { width: 26px; height: 26px; display: grid; place-items: center; background: #4cc24a; color: #fff; border: 3px solid #1f4a1f; border-radius: 6px; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 11px; } .ds-faded { opacity: .35; }"
+    },
+    {
+      "name": "Sticker Slot",
+      "kind": "card",
+      "refersTo": "sticker-slot",
+      "description": "A gold frame on the book page; empty shows a faint silhouette, filled shows the sticker.",
+      "html": "<div class=\"ds-slots\"><div class=\"ds-slot\"><span>🦕</span></div><div class=\"ds-slot ds-empty\"><span>🦖</span></div></div>",
+      "css": ".ds-slots { display: flex; gap: 16px; padding: 20px; background: #f8ecd0; border-radius: 8px; } .ds-slot { width: 96px; height: 96px; background: #f5c629; border-radius: 14px; padding: 6px; box-sizing: border-box; box-shadow: 4px 6px 0 rgba(0,0,0,0.12); transition: transform .2s cubic-bezier(.34,1.56,.64,1); } .ds-slot span { display: grid; place-items: center; width: 100%; height: 100%; background: #fffaf0; border-radius: 10px; font-size: 44px; } .ds-slot:hover { transform: scale(1.06) rotate(-2deg); } .ds-empty span { filter: grayscale(1) brightness(1.6); opacity: .35; }"
+    },
+    {
+      "name": "Sticker Book",
+      "kind": "custom",
+      "refersTo": "sticker-book",
+      "description": "Leather cover with two pages and lifting tabs; the treasured object of the game.",
+      "html": "<div class=\"ds-book\"><div class=\"ds-tabs\"><i class=\"on\"></i><i></i><i></i></div><div class=\"ds-pages\"><div></div><div></div></div></div>",
+      "css": ".ds-book { position: relative; width: 320px; padding: 22px 14px 14px; margin-top: 16px; background: #7a3f2c; border: 4px solid #5a2a1c; border-radius: 20px; box-shadow: 12px 12px 0 rgba(0,0,0,0.3); } .ds-pages { display: flex; gap: 8px; } .ds-pages div { flex: 1; height: 150px; border-radius: 8px; background: repeating-linear-gradient(#f8ecd0 0 18px, #e8d8b0 18px 20px); } .ds-tabs { position: absolute; top: -14px; left: 24px; display: flex; gap: 6px; align-items: flex-end; } .ds-tabs i { width: 36px; height: 22px; background: #d8c49a; border-radius: 8px 8px 0 0; } .ds-tabs i.on { background: #f8ecd0; height: 30px; }"
+    },
+    {
+      "name": "Block Bar",
+      "kind": "nav",
+      "refersTo": "block-bar",
+      "description": "Build Yard tray: the chosen block big in the middle, neighbours either side, LB/RB to flip.",
+      "html": "<div class=\"ds-bar\"><b>LB</b><i style=\"background:#8a6a4a\"></i><i class=\"on\" style=\"background:#c0463a\"></i><i style=\"background:#7a7f8a\"></i><b>RB</b></div>",
+      "css": ".ds-bar { display: inline-flex; align-items: center; gap: 10px; height: 72px; padding: 0 16px; background: rgba(244,228,193,0.92); border: 4px solid #8a5a34; border-radius: 16px; } .ds-bar i { width: 32px; height: 32px; border: 2px solid #2a1d2e; opacity: .7; } .ds-bar i.on { width: 48px; height: 48px; opacity: 1; box-shadow: 0 0 0 4px #f5c629; } .ds-bar b { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 10px; color: #4a3222; }"
+    },
+    {
+      "name": "Scoreboard",
+      "kind": "custom",
+      "refersTo": "scoreboard",
+      "description": "Bonus-room marquee: Marquee Yellow score over a row of timer bulbs.",
+      "html": "<div class=\"ds-score\"><span>14</span><div class=\"ds-bulbs\"><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"y\"></i><i class=\"p\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i><i class=\"\"></i></div></div>",
+      "css": ".ds-score { width: 168px; padding: 12px 10px 10px; background: #1b1428; border: 4px solid #2a1d2e; border-radius: 8px; text-align: center; } .ds-score span { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 28px; color: #ffe066; } .ds-bulbs { display: flex; gap: 2px; justify-content: center; margin-top: 10px; } .ds-bulbs i { width: 6px; height: 6px; background: #3a2a4a; } .ds-bulbs i.y { background: #ffe066; } .ds-bulbs i.p { background: #ff5a5a; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cosy Couch Arcade",
+    "overview": "Block Diggers is a storybook you can play. Everything a player touches, from menus to the sticker book to the price tags at camp, is made of warm parchment with a saddle-leather rim, like a well-loved picture book held open on the sofa. Arcade energy happens *on top of* that paper: big icons, chunky numbers, marquee bulbs, confetti, a green A button that says \"press me\". The storybook sets the warmth; the arcade supplies the punch.\n\nThe world is drawn at 480×270 in hard-edged pixel art and scaled up to fill a living-room TV. Every sprite wears the same plum-black outline, so creatures, blocks and UI all feel like they came out of one hand-drawn box. The mood is cosy and warm, silly and playful, bright and colourful, and full of wonder and discovery. Mines are allowed to be deep and dark, because the lantern glow and the colours of the finds carry the warmth.\n\nThe system is built for a pre-reader. Information travels by icon, colour, number, motion and sound. Words exist only in grown-up corners (the backup panel). Screens stay sparse: one clear thing to look at, readable from across a room.",
+    "keyCharacteristics": [
+      "Warm parchment and leather panels with a soft drop shadow; never glossy, never glassy.",
+      "One plum-black outline (#2a1d2e) around everything drawn.",
+      "Numbers-only bitmap type, always at least ×2 on screen.",
+      "Green means \"go / press / you can\", gold means \"treasure / reward\", red numbers mean \"not yet\".",
+      "Arcade flourish (bulbs, confetti, marquee yellow) lives inside the bonus rooms and reward moments, not in everyday UI.",
+      "Chunky, low-detail pixel art at 16px per tile."
+    ],
+    "rules": [
+      {
+        "name": "The One Meaning Rule",
+        "body": "Each accent means one thing: green is \"press / can\", gold is \"reward\", red is \"not yet\". Don't use green for decoration or red for danger.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Pure Black Rule",
+        "body": "Outlines are Plum Night, ink is Cocoa Ink, and shadows are black at 12–35% opacity. Solid #000 never appears as a colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Gentle Sky Rule",
+        "body": "Camp skies move through four soft gradients (morning, day, sunset, night) with no harsh neon. Night is deep blue-violet (#141a3a → #3a3a6e), never black.",
+        "section": "colors"
+      },
+      {
+        "name": "The Picture-Book Rule",
+        "body": "No words the child must read. If meaning needs a word, use an icon, a colour, a number, a motion or a sound instead. Text is allowed only in grown-up-only surfaces (the backup panel, which uses DOM text).",
+        "section": "typography"
+      },
+      {
+        "name": "The Two-Times Rule",
+        "body": "Numbers the child needs are drawn at ×2 or larger, so they stay readable on a TV across a room.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Sits Down Rule",
+        "body": "A shadow always falls down and to the right, as if lit from the top-left lantern. It is never a glow, never centred, and never coloured (except green's \"you can\" glow).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do build every panel as shadow → Saddle Leather rim (2px) → Parchment face, in the radius steps above.",
+      "Do outline every new sprite or tile in Plum Night (#2a1d2e) at 1px, drawn at 16px per tile.",
+      "Do carry meaning with icon + colour + number + sound, so a pre-reader never needs a word.",
+      "Do draw any number the child needs at ×2 or larger.",
+      "Do use Go Green only for \"press A / you can\", Treasure Gold for rewards, and red numbers for \"not yet\".",
+      "Do save arcade flourishes (bulbs, Marquee Yellow, confetti) for bonus rooms and reward moments.",
+      "Do make new things pop in with a Back easeOut bounce and a happy sound."
+    ],
+    "donts": [
+      "Don't add text menus, word labels or instructions to anything the child uses.",
+      "Don't go realistic or detailed: no gradients on sprites, no textures finer than the pixel grid, no anti-aliasing.",
+      "Don't use harsh neon, strobing or rapid full-screen flashing, even in the arcade rooms.",
+      "Don't use pure black (#000000) as a colour, or blurred and glowing drop shadows on paper.",
+      "Don't use red as danger or failure. Nothing in the game punishes; red only means \"not enough yet\".",
+      "Don't make anything start by walking into it. Show the A prompt and wait for the press."
+    ]
+  }
+}
