@@ -48,3 +48,19 @@ export function flyOres(scene, a, x, y, ores) {
     });
   });
 }
+
+// "Press A here": a bobbing A button over the thing you use (the mallet
+// stand, the board rack, the joystick), shown while a free player is next to
+// it. The jump that A makes is what picks it up, so just walking past never
+// grabs anything. `near(a)`: can this player use it right now?
+export function pressToUse(scene, { x, y, near, use }) {
+  const prompt = scene.add.image(x, y, 'btn-a').setDepth(40).setVisible(false);
+  const onJump = (a) => { if (near(a)) use(a); };
+  scene.events.on('jump', onJump);
+  scene.events.once('shutdown', () => scene.events.off('jump', onJump));
+  return {
+    update(time) {
+      prompt.setVisible(scene.avatars.some((a) => a && near(a))).setY(y + Math.sin(time / 200) * 2);
+    },
+  };
+}

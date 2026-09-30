@@ -37,9 +37,9 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   very bottom). Each new layer needs a better tool: amber pick, brick drill,
   star drill. Reaching a deep layer for the first time shows its banner and badge.
 - **The Mole Fair:** right next to the Heart of the World, a room with bunting,
-  a scoreboard and five molehills: **Whack-a-Mole!** Grab a toy mallet from the
-  stand (two, for co-op): left and right hop between the molehills, A bonks,
-  down puts the mallet back. Rounds last 30 seconds (the bulbs under the
+  a scoreboard and five molehills: **Whack-a-Mole!** Press A at the stand to take a
+  toy mallet (two, for co-op): left and right hop between the molehills, A
+  bonks, and down (or walking off either end) puts the mallet back. Rounds last 30 seconds (the bulbs under the
   scoreboard go out one by one) and get faster as they go. Every mole gives
   gold (a **golden mole** gives diamonds and counts 3), up to 20 a trip.
 - **Lava Monster:** touch lava and you become a lava monster for 8 seconds:
@@ -84,7 +84,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
     **Helmet**, the first Sun Suit piece: a headlamp (2 more blocks of light)
     that your characters wear everywhere.
   - **The Skate Park:** a big, lit room right next to the Moon Heart with a
-    **half pipe**. Walk into a skateboard on the rack to hop on (there are two,
+    **half pipe**. Press A at the rack to hop on a skateboard (there are two,
     for co-op). Left and right push and pump, A pops an ollie, and **A in the
     air does a random trick** (kickflip, 360, superman, grab, handstand,
     backflip). Keep pressing A for combos. Every trick you land pops a space
@@ -115,7 +115,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
     storms can't push you.
   - **The Arcade:** a big room right next to the Mars Heart with a giant
     **claw machine** full of prizes (rubies, bolts, coins, opals, toy robots,
-    martian plushies and one rare **golden robot**). Walk up to the joystick
+    martian plushies and one rare **golden robot**). Press A at the joystick
     to play: left and right move the claw, A drops it, down steps away. It
     grabs whatever's right below (now and then a prize slips back), and each
     prize pops out of the prize door with treasure for your backpack.

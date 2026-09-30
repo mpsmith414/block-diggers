@@ -1,10 +1,10 @@
 // The Moon Skate Park, in the mine: the half pipe, lamps, and a rack with two
-// skateboards (one each in co-op). Walk into a board to hop on; left/right
+// skateboards (one each in co-op). Press A at the rack to hop on; left/right
 // push and pump, A pops an ollie, A in the air does a random trick (combo
 // them!), and down steps off. Landed tricks pop out space gems.
 
 import { createPipe, createSkate, stepSkate } from '../../game/skate.js';
-import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
+import { drawRoom, roomLights, flyOres, pressToUse } from './bonusRoom.js';
 import { createEdge } from '../../input/intents.js';
 import { earnSticker } from '../common/stickers.js';
 import { TILE, PLAYER, SKATE } from '../../tuning.js';
@@ -36,6 +36,15 @@ export function createSkateView(scene) {
   });
 
   const center = (a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 });
+  // press A at the rack to hop on a board
+  const freeBoard = () => boards.find((b) => !b.rider && b.ready);
+  const rack = pressToUse(scene, {
+    x: midX,
+    y: pipe.floor - 30,
+    near: (a) => !a.skate && !a.bubbling && !a.claw && !a.whack && !scene.goingHome && !!freeBoard()
+      && Math.abs(center(a).x - midX) < 14 && a.p.y + PLAYER.h > pipe.floor - 12,
+    use: (a) => hopOn(a, freeBoard()),
+  });
 
   function hopOn(a, board) {
     board.rider = a;
@@ -59,7 +68,6 @@ export function createSkateView(scene) {
     const board = a.board;
     a.skate = null;
     a.board = null;
-    a.skateArmed = false;
     a.sprite.setAngle(0).setFlipY(false);
     a.p.x = Math.max(pipe.x0 + 1, Math.min(pipe.x1 - PLAYER.w - 1, a.p.x));
     a.p.vx = 0;
@@ -89,18 +97,10 @@ export function createSkateView(scene) {
   }
 
   return {
-    // Hop on a board, and the park's sticker when you first walk in.
+    // The park's sticker when you first walk in; the A button over the rack.
     update() {
-      for (const a of scene.avatars) {
-        if (!a || a.skate) continue;
-        const c = center(a);
-        if (inRoom(c)) earnSticker(scene, 'skate-park');
-        // step away from the rack before you can grab a board again
-        if (Math.abs(c.x - midX) > 22) a.skateArmed = true;
-        if (a.skateArmed === false || a.bubbling || scene.goingHome) continue;
-        const board = boards.find((b) => !b.rider && b.ready && Math.abs(b.s.x - c.x) < 12 && Math.abs(b.s.y - c.y) < 14);
-        if (board) hopOn(a, board);
-      }
+      for (const a of scene.avatars) if (a && !a.skate && inRoom(center(a))) earnSticker(scene, 'skate-park');
+      rack.update(scene.time.now);
     },
 
     // Skating instead of walking: A pops and tricks, down steps off.
