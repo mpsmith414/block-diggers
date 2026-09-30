@@ -44,4 +44,20 @@ describe('createInputSession', () => {
     expect(slots).toHaveLength(1);
     expect(slots[0].intent.jump).toBe(true);
   });
+
+  it('a missing player can rest while the other plays on, and wakes when the controller is back', () => {
+    const a0 = state('pad0', { buttons: { ...state('pad0').buttons, a: true } });
+    const a1 = state('pad1', { buttons: { ...state('pad1').buttons, a: true } });
+    const s = createInputSession({ devices: fakeDevices([[a0, a1], [a0], [a0], [a0, state('pad1')]]), guards: false });
+    s.update();
+    let [, p2] = s.update();
+    expect(p2).toMatchObject({ intent: null, resting: false });
+    s.rest(1);
+    expect(s.slots[1].resting).toBe(true);
+    [, p2] = s.update();
+    expect(p2).toMatchObject({ intent: null, resting: true });
+    [, p2] = s.update();
+    expect(p2.resting).toBe(false);
+    expect(p2.intent).not.toBeNull();
+  });
 });

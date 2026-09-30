@@ -527,7 +527,7 @@ function drawIcons(scene) {
     rect(ctx, '#8a5a34', 1, 3, 8, 8);
     rect(ctx, '#6b4424', 3, 1, 4, 2);
     rect(ctx, '#a3703f', 2, 5, 6, 2);
-    rect(ctx, '#e03a3a', 7, 0, 5, 7);
+    rect(ctx, '#e8762a', 7, 0, 5, 7); // (warm orange: red only means "not enough yet")
     rect(ctx, '#ffffff', 9, 1, 1, 3);
     rect(ctx, '#ffffff', 9, 5, 1, 1);
     tex.refresh();

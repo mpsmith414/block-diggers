@@ -44,7 +44,7 @@ export class CampHudScene extends Phaser.Scene {
     this.pickerUi = null;
     this.buildBank();
     this.pointer = this.add.container(0, 0).setVisible(false);
-    this.pointer.add([this.add.image(0, -12, 'star').setScale(1.5), this.add.image(0, 4, 'arrow-r').setScale(2)]);
+    this.pointer.add([this.add.image(0, -13, 'btn-a').setScale(1.5), this.add.image(0, 4, 'arrow-r').setScale(2)]);
   }
 
   // ---------- bank ----------
@@ -54,34 +54,38 @@ export class CampHudScene extends Phaser.Scene {
     // the Heart of the World sits at the end of the bank once you have one
     if ((getState(this.registry).bank.heart ?? 0) > 0) kinds.push('heart');
     this.bankKinds = kinds.length;
-    const pipsW = 12 + (UPGRADES.pick.length + 1) * 5;
-    const w = 16 + kinds.length * 28 + pipsW;
+    // big ×2 numbers: one row, or two once there are lots of kinds of ore
+    const rows = kinds.length > 5 ? 2 : 1;
+    const cols = Math.ceil(kinds.length / rows);
+    const SLOT = 44;
+    const LEVEL = 34;
+    const w = 14 + cols * SLOT + UPGRADE_KINDS.length * LEVEL;
+    const h = rows === 2 ? 42 : 26;
     const x = Math.round((this.scale.width - w) / 2);
     const y = 4;
     if (this.bank) this.bank.destroy();
     this.bank = this.add.container(0, 0);
-    this.bank.add(panel(this, x, y, w, 32));
+    this.bank.add(panel(this, x, y, w, h));
     this.bankIcons = {};
     kinds.forEach((ore, i) => {
-      const ox = x + 8 + i * 28;
-      const icon = this.add.image(ox, y + 5, `ore-${ore}`).setOrigin(0);
-      const num = this.add.bitmapText(ox + 12, y + 7, 'pixel', '0').setTint(INK);
+      const ox = x + 8 + (i % cols) * SLOT;
+      const oy = y + 7 + Math.floor(i / cols) * 16;
+      const icon = this.add.image(ox, oy, `ore-${ore}`).setOrigin(0).setScale(1.2);
+      const num = this.add.bitmapText(ox + 15, oy + 1, 'pixel', '0').setScale(2).setTint(INK);
       this.bank.add([icon, num]);
       this.bankIcons[ore] = { icon, num, shown: 0 };
     });
-    // upgrade levels: icon + pips
-    this.levelPips = {};
+    // upgrade levels: each tool with its level as a number (no long rows of pips)
+    this.levelNums = {};
+    const lx = x + 10 + cols * SLOT;
+    this.bank.add(this.add.rectangle(lx - 5, y + 6, 2, h - 12, EDGE, 0.35).setOrigin(0));
     UPGRADE_KINDS.forEach((kind, i) => {
-      const ox = x + 12 + kinds.length * 28;
-      const oy = y + 3 + i * 9;
-      const icon = this.add.image(ox, oy, UPGRADE_ICON[kind]).setOrigin(0).setScale(0.66);
-      this.bank.add(icon);
-      const pips = Array.from({ length: UPGRADES[kind].length + 1 }, (_, p) => p).map((p) => {
-        const pip = this.add.rectangle(ox + 10 + p * 5, oy + 3, 3, 4, 0xd8c49a).setOrigin(0);
-        this.bank.add(pip);
-        return pip;
-      });
-      this.levelPips[kind] = pips;
+      const ox = lx + i * LEVEL;
+      const cy = y + h / 2;
+      this.bank.add(this.add.image(ox + 6, cy, UPGRADE_ICON[kind]));
+      const num = this.add.bitmapText(ox + 14, cy - 5, 'pixel', '1').setScale(2).setTint(INK);
+      this.bank.add(num);
+      this.levelNums[kind] = num;
     });
     this.syncBank(getState(this.registry).bank);
   }
@@ -96,12 +100,17 @@ export class CampHudScene extends Phaser.Scene {
       if (!b) continue;
       b.shown = bank[ore];
       b.num.setText(String(bank[ore]));
-      b.icon.setAlpha(bank[ore] > 0 ? 1 : 0.4);
-      b.num.setAlpha(bank[ore] > 0 ? 1 : 0.4);
+      b.icon.setAlpha(bank[ore] > 0 ? 1 : 0.45);
+      b.num.setAlpha(bank[ore] > 0 ? 1 : 0.45);
     }
     const state = getState(this.registry);
     for (const kind of UPGRADE_KINDS) {
-      this.levelPips[kind].forEach((pip, p) => pip.setFillStyle(p <= state.upgrades[kind] ? 0x6bbf59 : 0xd8c49a));
+      const text = String(state.upgrades[kind] + 1);
+      const num = this.levelNums[kind];
+      if (num.text !== text) {
+        num.setText(text);
+        this.tweens.add({ targets: num, scale: { from: 3, to: 2 }, duration: 250, ease: 'Back.easeOut' });
+      }
     }
   }
 
@@ -112,7 +121,7 @@ export class CampHudScene extends Phaser.Scene {
     b.num.setText(String(b.shown));
     b.icon.setAlpha(1);
     b.num.setAlpha(1);
-    this.tweens.add({ targets: b.icon, scale: { from: 1.6, to: 1 }, duration: 180, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: b.icon, scale: { from: 1.9, to: 1.2 }, duration: 180, ease: 'Back.easeOut' });
   }
 
   // Ores fly from each player into the bank, one by one, counting up.
@@ -138,9 +147,9 @@ export class CampHudScene extends Phaser.Scene {
             const img = this.add.image(sx, sy, `ore-${ore}`).setScale(1.3);
             this.tweens.add({
               targets: img,
-              x: target.x + 5,
-              y: target.y + 5,
-              scale: 1,
+              x: target.x + 6,
+              y: target.y + 6,
+              scale: 1.2,
               duration: 450,
               ease: 'Cubic.easeIn',
               onComplete: () => {
@@ -168,6 +177,7 @@ export class CampHudScene extends Phaser.Scene {
       return;
     }
     const wobble = Math.sin(time / 150) * 3;
+    this.pointer.list[0].setFlipX(side < 0); // (the A never reads backwards)
     this.pointer.setVisible(true)
       .setPosition(side > 0 ? this.scale.width - 14 + wobble : 14 - wobble, this.scale.height * 0.62)
       .setScale(side > 0 ? 1 : -1, 1);
@@ -245,16 +255,16 @@ export class CampHudScene extends Phaser.Scene {
     const w = 170;
     const h = 128;
     const x = Math.round((this.scale.width - w) / 2);
-    const y = 48;
+    const y = 54; // (below the bank, even when it has two rows)
     const c = this.add.container(0, 0);
     this.pickerUi = c;
 
-    // green glow when affordable
+    // a thick, pulsing green glow when you can have it
     if (opt.affordable) {
       const glow = this.add.graphics();
-      glow.fillStyle(GREEN, 0.5).fillRoundedRect(x - 3, y - 3, w + 6, h + 6, 7);
+      glow.fillStyle(GREEN, 1).fillRoundedRect(x - 5, y - 5, w + 10, h + 10, 9);
       c.add(glow);
-      this.tweens.add({ targets: glow, alpha: 0.4, duration: 500, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: glow, alpha: 0.5, duration: 450, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
     c.add(panel(this, x, y, w, h));
 
@@ -305,16 +315,20 @@ export class CampHudScene extends Phaser.Scene {
         if (!have) c.add(this.add.image(bx + 8, y + 32, 'icon-lock').setScale(0.9));
       }
     } else {
-      const icon = this.add.image(midX, y + 36, UPGRADE_ICON[opt.id]).setScale(4);
+      const icon = this.add.image(midX, y + 32, UPGRADE_ICON[opt.id]).setScale(3.5);
       if (!opt.affordable && opt.cost) icon.setAlpha(0.6);
       c.add(icon);
-      // level pips: filled for current, glowing for the next
+      // level pips: filled for current, glowing for the next (in rows of 7, so
+      // even the pick's long list fits inside the panel)
       const levels = UPGRADES[opt.id].length + 1;
+      const perRow = 7;
       for (let l = 0; l < levels; l++) {
         const filled = l <= opt.level;
         const next = l === opt.level + 1;
-        const pip = this.add.rectangle(midX - (levels * 10) / 2 + l * 10 + 1, y + 66, 8, 8, filled ? 0x6bbf59 : next ? 0xf0d070 : 0xd8c49a).setOrigin(0);
-        c.add(pip);
+        const inRow = Math.min(perRow, levels - Math.floor(l / perRow) * perRow);
+        const px = midX - (inRow * 10) / 2 + (l % perRow) * 10 + 1;
+        const py = y + 58 + Math.floor(l / perRow) * 9;
+        c.add(this.add.rectangle(px, py, 8, 7, filled ? 0x6bbf59 : next ? 0xf0d070 : 0xd8c49a).setOrigin(0));
       }
     }
 
@@ -342,8 +356,9 @@ export class CampHudScene extends Phaser.Scene {
       c.add(this.add.image(x + 8, y + h / 2 - 10, 'arrow-l').setScale(2));
       c.add(this.add.image(x + w - 8, y + h / 2 - 10, 'arrow-r').setScale(2));
     }
-    const a = this.add.image(x + w - 14, y + h - 12, 'btn-a').setScale(1.4).setAlpha(opt.affordable ? 1 : 0.35);
+    const a = this.add.image(x + w - 16, y + h - 15, 'btn-a').setScale(opt.affordable ? 2 : 1.6).setAlpha(opt.affordable ? 1 : 0.35);
     c.add(a);
+    if (opt.affordable) this.tweens.add({ targets: a, scale: 2.3, duration: 400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     // page dots
     pk.options.forEach((_, i) => {
       c.add(this.add.rectangle(midX - pk.options.length * 4 + i * 8 + 2, y + h - 8, 4, 4, i === pk.index ? INK : 0xd8c49a).setOrigin(0));
