@@ -4,14 +4,14 @@
 // them!), and down steps off. Landed tricks pop out space gems.
 
 import { createPipe, createSkate, stepSkate } from '../../game/skate.js';
-import { createPickup, addOre } from '../../game/loot.js';
+import { drawRoom, roomLights, flyOres } from './bonusRoom.js';
 import { createEdge } from '../../input/intents.js';
 import { earnSticker } from '../common/stickers.js';
 import { TILE, PLAYER, SKATE } from '../../tuning.js';
 
 const HALF = 8; // half a character's height: tricks spin around the middle
 const NONE = {
-  step() {}, update() {}, draw() {}, stepOff() {}, lights: () => [], framePoints: () => [],
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [],
 };
 
 export function createSkateView(scene) {
@@ -19,11 +19,8 @@ export function createSkateView(scene) {
   if (!park) return NONE;
   const pipe = createPipe(park.x0 * TILE + SKATE.deck, park.floor * TILE);
   const midX = pipe.x0 + SKATE.R + SKATE.F / 2;
-  const room = { x0: park.x0 * TILE, x1: (park.x1 + 1) * TILE, y0: park.top * TILE, y1: park.floor * TILE };
-
   // the park's back wall: a starry night mural with neon stripes
-  const mural = scene.add.graphics().setDepth(0.5);
-  mural.fillGradientStyle(0x10163a, 0x10163a, 0x2a1850, 0x2a1850, 1).fillRect(room.x0, room.y0, room.x1 - room.x0, room.y1 - room.y0);
+  const { room, wall: mural, lamps, inRoom } = drawRoom(scene, park, { top: 0x10163a, bottom: 0x2a1850 });
   for (const [c, dy] of [[0xff7eb6, 44], [0x3affe0, 52], [0xffe066, 60]]) {
     mural.lineStyle(2, c, 0.55).beginPath();
     for (let x = room.x0; x <= room.x1; x += 16) mural.lineTo(x, room.y0 + dy + ((x / 16) % 2 ? 6 : -6));
@@ -31,14 +28,7 @@ export function createSkateView(scene) {
   }
   mural.lineStyle(2, 0xffe066, 0.7).strokeCircle(room.x0 + 60, room.y0 + 24, 12);
   mural.fillStyle(0x10163a, 1).fillCircle(room.x0 + 66, room.y0 + 20, 11);
-  for (let i = 0; i < 26; i++) {
-    const st = scene.add.image(room.x0 + ((i * 97) % (room.x1 - room.x0)), room.y0 + 8 + ((i * 53) % (room.y1 - room.y0 - 40)), 'pixel')
-      .setTint([0xffffff, 0xfff2a0, 0x9ff6ff][i % 3]).setDisplaySize(i % 5 ? 1 : 2, i % 5 ? 1 : 2).setDepth(0.6);
-    scene.tweens.add({ targets: st, alpha: 0.2, duration: 700 + (i % 6) * 250, yoyo: true, repeat: -1 });
-  }
   scene.add.image(room.x0, pipe.floor, 'halfpipe').setOrigin(0, 1).setDepth(1);
-  const lamps = [0.15, 0.38, 0.62, 0.85].map((f) => ({ x: room.x0 + (room.x1 - room.x0) * f, y: room.y0 + 5 }));
-  for (const l of lamps) scene.add.image(l.x, room.y0, 'skate-lamp').setOrigin(0.5, 0).setDepth(2);
   scene.add.image(midX, pipe.floor, 'skate-rack').setOrigin(0.5, 1).setDepth(3);
   const boards = [-6, 6].map((dx) => {
     const home = { x: midX + dx, y: pipe.floor - 3, angle: dx < 0 ? -75 : 75 };
@@ -46,7 +36,6 @@ export function createSkateView(scene) {
   });
 
   const center = (a) => ({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 });
-  const inRoom = ({ x, y }) => x >= room.x0 && x <= room.x1 && y >= room.y0 && y <= room.y1;
 
   function hopOn(a, board) {
     board.rider = a;
@@ -95,24 +84,7 @@ export function createSkateView(scene) {
     if (ev.tricks.length >= 3) scene.cameras.main.flash(120, 200, 255, 240);
     for (const kind of ev.tricks) earnSticker(scene, `trick-${kind}`);
     // the gems pop up out of the landing and into your backpack
-    for (let i = 0; i < ev.gems; i++) {
-      const g = scene.add.image(x, y, 'ore-spacegem').setDepth(45).setScale(1.2);
-      scene.tweens.add({
-        targets: g, x: x + (i - (ev.gems - 1) / 2) * 12, y: y - 26 - (i % 2) * 6, duration: 350, delay: i * 90, ease: 'Quad.easeOut',
-        onComplete: () => scene.tweens.add({
-          targets: g, x: a.sprite.x, y: a.sprite.y - 8, scale: 0.5, duration: 260, ease: 'Quad.easeIn',
-          onComplete: () => {
-            g.destroy();
-            if (addOre(a.pack, 'spacegem')) {
-              scene.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xe0a0ff, 3);
-              scene.events.emit('oreCollected', { slot: a.slot, ore: 'spacegem' });
-            } else {
-              scene.pickups.push(createPickup({ x: a.sprite.x, y: a.sprite.y - 8, ore: 'spacegem', delay: 0.5 }));
-            }
-          },
-        }),
-      });
-    }
+    flyOres(scene, a, x, y, Array(ev.gems).fill('spacegem'));
     scene.trip.skateGems = (scene.trip.skateGems ?? 0) + ev.gems;
   }
 
@@ -226,7 +198,8 @@ export function createSkateView(scene) {
       s.setPosition(Math.round(fx), Math.round(fy)).setAngle(angle);
     },
 
-    stepOff,
+    leave: stepOff,
+    busy: (a) => !!a.skate,
 
     // while anyone skates, the camera keeps the whole pipe in view
     framePoints() {
@@ -236,11 +209,7 @@ export function createSkateView(scene) {
 
     // the lamps light up the whole park
     lights(view, flicker) {
-      if (room.x1 < view.x - 64 || room.x0 > view.right + 64 || room.y1 < view.y - 64 || room.y0 > view.bottom + 64) return [];
-      return [
-        ...lamps.map((l) => ({ x: l.x, y: l.y + 30, r: 5.5 * flicker, glow: 0.12, color: 0xfff6c0 })),
-        { x: midX, y: pipe.floor - 20, r: 5 * flicker, glow: 0.1, color: 0x3affe0 },
-      ];
+      return roomLights(room, lamps, view, flicker, [{ x: midX, y: pipe.floor - 20, r: 5 * flicker, glow: 0.1, color: 0x3affe0 }]);
     },
   };
 }

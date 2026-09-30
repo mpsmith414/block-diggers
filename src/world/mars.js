@@ -132,12 +132,15 @@ export function generateMars(seed, { roverEgg = true } = {}) {
   const eggs = roverEgg ? takeSpots(inLayer('rovers'), 1, 0, clear).map((c) => ({ ...c, kind: 'rover' })) : [];
   for (const e of eggs) grid.set(e.x, e.y, B.EGG);
 
+  // the arcade: a big room right of the Mars Heart's chamber, with a claw machine
+  const { room: arcade, inside: inArcade } = gen.bonusRoom(B.MARS_CORE, 12);
+
   // decorations: little things growing on cave floors and ceilings
-  const decor = gen.decor(DECOR);
+  const decor = gen.decor(DECOR).filter((d) => !inArcade(d));
 
   return {
-    grid, chests, decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
-    geysers, rovers, vaults, ducks: [], cushions: [], hostAt: marsHostAt, layerAt: marsLayerAt,
+    grid, chests: chests.filter((c) => !inArcade(c)), decor, eggs, bigChest: null, boulders: [], fossils: [], heart, teleports: [], ufo: null, chimes: [],
+    geysers, rovers, vaults, ducks: [], cushions: [], arcade, hostAt: marsHostAt, layerAt: marsLayerAt,
     spawn: { x: SHAFT_X, y: -1 }, seed, planet: 'mars',
   };
 }

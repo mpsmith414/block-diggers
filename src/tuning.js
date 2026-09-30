@@ -415,3 +415,11 @@ export const HOME_HOLD_MS = 2000;
 export const SKATE = {
   R: 96, F: 48, deck: 16, g: 405, push: 260, pump: 150, friction: 0.12, max: 440, maxAir: 100, ollie: 210, trickTime: 0.45, gemCap: 15,
 };
+
+// the Mars claw machine (px, inside its 144x128 cabinet): where the claw can
+// go, where the prize pile is, the chute on the left, the claw's speeds, how
+// close it must be to grab, and the chance a prize slips back
+export const CLAW = {
+  glass: [18, 116], pile: [40, 112], chute: 18, top: 22, grabY: 86,
+  move: 60, drop: 55, close: 0.35, open: 0.4, reach: 10, slip: 0.15, prizes: 10,
+};

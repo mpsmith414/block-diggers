@@ -3,10 +3,10 @@ import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '.
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 229 unique stickers over 23 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(23);
-    expect(ALL_STICKERS).toHaveLength(229);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(229);
+  it('has 233 unique stickers over 24 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(24);
+    expect(ALL_STICKERS).toHaveLength(233);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(233);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
