@@ -252,7 +252,7 @@ export class CampHudScene extends Phaser.Scene {
     if (this.pickerUi) this.pickerUi.destroy();
     const pk = this.picker;
     const opt = pk.options[pk.index];
-    const w = 170;
+    const w = 190; // (room for "have/need" prices beside the A)
     const h = 128;
     const x = Math.round((this.scale.width - w) / 2);
     const y = 54; // (below the bank, even when it has two rows)
@@ -339,16 +339,21 @@ export class CampHudScene extends Phaser.Scene {
     } else if (!opt.cost) {
       c.add(this.add.image(midX, rowY + 6, 'star').setScale(2));
     } else {
+      // each ore it costs; when you're short it shows what you have out of what
+      // you need ("3/10", like the backpack count), in red
       const bank = getState(this.registry).bank;
-      const entries = Object.entries(opt.cost);
-      const each = 40;
-      const startX = midX - (entries.length * each) / 2;
-      entries.forEach(([ore, n], i) => {
-        const ox = startX + i * each;
-        c.add(this.add.image(ox + 4, rowY, `ore-${ore}`).setOrigin(0).setScale(1.4));
-        const enough = (bank[ore] ?? 0) >= n;
-        c.add(this.add.bitmapText(ox + 20, rowY + 2, 'pixel', String(n)).setScale(2).setTint(enough ? INK : RED));
+      const entries = Object.entries(opt.cost).map(([ore, n]) => {
+        const have = bank[ore] ?? 0;
+        const text = have >= n ? String(n) : `${have}/${n}`;
+        return { ore, text, enough: have >= n, w: 20 + text.length * 8 };
       });
+      const gap = 10;
+      let ox = midX - (entries.reduce((sum, e) => sum + e.w, 0) + gap * (entries.length - 1)) / 2;
+      for (const e of entries) {
+        c.add(this.add.image(ox, rowY, `ore-${e.ore}`).setOrigin(0).setScale(1.4));
+        c.add(this.add.bitmapText(ox + 16, rowY + 2, 'pixel', e.text).setScale(2).setTint(e.enough ? INK : RED));
+        ox += e.w + gap;
+      }
     }
 
     // arrows and the A button

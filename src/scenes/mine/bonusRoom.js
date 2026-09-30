@@ -4,14 +4,17 @@
 
 import { addOre, createPickup } from '../../game/loot.js';
 import { TILE } from '../../tuning.js';
+import { createRng } from '../../world/rng.js';
 
 // The room in px, with a gradient back wall, stars and four ceiling lamps.
 export function drawRoom(scene, cells, { top, bottom, stars = 26 }) {
   const room = { x0: cells.x0 * TILE, x1: (cells.x1 + 1) * TILE, y0: cells.top * TILE, y1: cells.floor * TILE };
   const wall = scene.add.graphics().setDepth(0.5);
   wall.fillGradientStyle(top, top, bottom, bottom, 1).fillRect(room.x0, room.y0, room.x1 - room.x0, room.y1 - room.y0);
+  // (a seeded scatter: the same wall every time, without stars lining up in rows)
+  const sky = createRng(cells.x0 * 31 + cells.top);
   for (let i = 0; i < stars; i++) {
-    const st = scene.add.image(room.x0 + ((i * 97) % (room.x1 - room.x0)), room.y0 + 8 + ((i * 53) % (room.y1 - room.y0 - 40)), 'pixel')
+    const st = scene.add.image(room.x0 + Math.floor(sky.next() * (room.x1 - room.x0)), room.y0 + 8 + Math.floor(sky.next() * (room.y1 - room.y0 - 40)), 'pixel')
       .setTint([0xffffff, 0xfff2a0, 0x9ff6ff][i % 3]).setDisplaySize(i % 5 ? 1 : 2, i % 5 ? 1 : 2).setDepth(0.6);
     scene.tweens.add({ targets: st, alpha: 0.2, duration: 700 + (i % 6) * 250, yoyo: true, repeat: -1 });
   }

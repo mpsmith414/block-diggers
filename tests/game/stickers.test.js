@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById } from '../../src/game/stickers.js';
+import {
+  STICKER_PAGES, ALL_STICKERS, award, pageProgress, stickerById, CHAPTERS, BOOK_ORDER, chapterOfPage, chapterProgress, bookmarkPage,
+} from '../../src/game/stickers.js';
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
@@ -43,6 +45,26 @@ describe('award', () => {
   it('page progress counts what you have', () => {
     const { state } = award(defaultState(), 'cave-grass');
     expect(pageProgress(state, 2)).toEqual({ have: 1, total: 11 });
+  });
+});
+
+describe('the book chapters', () => {
+  it('every page is in exactly one chapter', () => {
+    expect([...BOOK_ORDER].sort((a, b) => a - b)).toEqual(STICKER_PAGES.map((_, i) => i));
+    expect(CHAPTERS[chapterOfPage(9)].id).toBe('earth'); // the Silly page is an Earth one
+    expect(CHAPTERS[chapterOfPage(25)].id).toBe('fun');
+  });
+  it('a chapter counts all of its pages', () => {
+    const { state } = award(defaultState(), 'cave-grass');
+    expect(chapterProgress(state, 0).have).toBe(1);
+    expect(chapterProgress(state, 0).total).toBe(CHAPTERS[0].pages.reduce((n, p) => n + STICKER_PAGES[p].stickers.length, 0));
+  });
+  it('the book opens at the newest sticker', () => {
+    expect(bookmarkPage(defaultState())).toBe(0); // nothing yet (or an old save): the first page
+    let { state } = award(defaultState(), 'ore-coal');
+    ({ state } = award(state, 'ore-ruby'));
+    expect(state.lastSticker).toBe('ore-ruby');
+    expect(bookmarkPage(state)).toBe(STICKER_PAGES.findIndex((p) => p.name === 'mars'));
   });
 });
 

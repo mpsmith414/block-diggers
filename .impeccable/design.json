@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-30T17:07:16.249Z",
+  "generatedAt": "2026-09-30T17:25:35.062Z",
   "title": "Design System: Block Diggers",
   "extensions": {
     "colorMeta": {
@@ -92,6 +92,21 @@
           "#4bc149",
           "#75e971",
           "#ccffc8"
+        ]
+      },
+      "go-green-deep": {
+        "role": "primary",
+        "displayName": "Go Green Deep",
+        "canonical": "oklch(57.4% 0.156 144.0)",
+        "tonalRamp": [
+          "#001100",
+          "#002e02",
+          "#004f0a",
+          "#007213",
+          "#38973c",
+          "#60bd61",
+          "#87e587",
+          "#cbffc9"
         ]
       },
       "treasure-gold": {
