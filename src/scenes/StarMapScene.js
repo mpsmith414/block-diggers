@@ -87,8 +87,8 @@ export class StarMapScene extends Phaser.Scene {
     this.btnA = this.add.image(0, 0, 'btn-a').setScale(1.6);
     this.btnB = this.add.image(W - 16, 16, 'btn-b').setScale(1.4);
     this.hint = this.add.container(0, 0).setDepth(5).setVisible(false);
-    const next = this.stops.findIndex((s) => s.status === 'open');
-    this.index = next >= 0 ? next : hereAt;
+    // (it starts on the planet you're launching from; left/right to pick where to go)
+    this.index = hereAt;
     this.drawCursor();
 
     earnSticker(this.camp, 'trip-starmap');

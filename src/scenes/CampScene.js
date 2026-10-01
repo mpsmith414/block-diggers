@@ -642,6 +642,9 @@ export class CampScene extends Phaser.Scene {
         if (e.a) this.confirmPick(hud);
         if (e.b) hud.closePicker();
         stepPlayer(a.p, IDLE, this.grid, { dt, canMine: false });
+      } else if (this.summaryOpen) {
+        // the trip card is up: everyone stands still until it closes (A closes it)
+        stepPlayer(a.p, IDLE, this.grid, { dt, canMine: false });
       } else if (!this.leaving) {
         // what A does here, in priority order: place what you carry, help a
         // friend, use the thing you're standing at, pick up a decoration
@@ -922,7 +925,14 @@ export class CampScene extends Phaser.Scene {
     this.perks?.refresh();
     this.visitors?.refreshBubbles();
     const chars = this.registry.get('characters') ?? state.characters ?? CHARACTERS;
-    this.scene.launch('Summary', { summary, packs, chars, deepestBy: this.arrived.deepestBy ?? [], onDone: () => this.depositArrivals() });
+    this.summaryOpen = true;
+    this.scene.launch('Summary', {
+      summary, packs, chars, deepestBy: this.arrived.deepestBy ?? [],
+      onDone: () => {
+        this.summaryOpen = false;
+        this.depositArrivals();
+      },
+    });
   }
 
   depositArrivals() {

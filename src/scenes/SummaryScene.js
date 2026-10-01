@@ -9,11 +9,13 @@ import { layersOf, mineRows } from '../game/planets.js';
 
 // The "how did we do?" card shown when you get home: what each player brought,
 // how deep each of you went (a gold ribbon marks a record), chests, new
-// stickers. It waits for A.
+// stickers. A closes it, or it tidies itself away after a few seconds; nobody
+// can walk around in camp while it's up.
 
 const PAPER = 0xf4e4c1;
 const EDGE = 0x8a5a34;
 const INK = 0x4a3222;
+const SUMMARY_SECONDS = 5;
 
 export class SummaryScene extends Phaser.Scene {
   constructor() {
@@ -128,15 +130,15 @@ export class SummaryScene extends Phaser.Scene {
       });
     }
 
-    // it stays until someone presses A (no rushing a child who is still looking)
+    // A closes it (or it closes by itself, below)
     this.aBtn = this.add.image(x + W - 20, y + H - 18, 'btn-a').setScale(2);
     this.tweens.add({ targets: this.aBtn, scale: 2.4, duration: 450, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     c.setScale(0.85).setAlpha(0);
     c.x = 480 * 0.075;
     c.y = 270 * 0.075;
     this.tweens.add({ targets: c, scale: 1, alpha: 1, x: 0, y: 0, duration: 260, ease: 'Back.easeOut' });
-    // (only if nobody is there at all: tidy away after a long while)
-    this.time.delayedCall(45000, () => this.close());
+    // nobody can move while it's up, so it doesn't stay long
+    this.time.delayedCall(SUMMARY_SECONDS * 1000, () => this.close());
     const audio = this.registry.get('audio');
     if (audio) audio.sfx.play(this.summary.best.deepest || this.summary.best.mostOres ? 'build' : 'upgrade');
   }
