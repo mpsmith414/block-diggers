@@ -434,7 +434,14 @@ export const WHACK = {
 // each with a penguin goalie who hops (shoot while he's up!)
 export const HOCKEY = {
   goal: 26, radius: 7, friction: 0.45, max: 340, shot: 300, nudge: 80, touch: 13, reach: 24,
-  goalieW: 9, stand: 1.3, hop: 0.9, reset: 1.6, cap: 12, trick: 5,
+  goalieW: 9, stand: 1.3, hop: 0.9, reset: 1.6, cap: 12,
+  // the match: first to `target`, a 3-2-1 `countdown` before each faceoff, `overTime` of cheering after
+  target: 3, countdown: 3, overTime: 3, winCap: 3,
+  // the penguin skaters: slower than you (72), a weaker shot, and now and then they slip
+  skaterSpeed: 50, skaterReach: 20, skaterShot: 220, shootRange: 70, shotCooldown: 1.5,
+  slipChance: 0.12, slipTime: 0.8,
+  // after a player touches the puck, the penguins can't for a moment (so a steal sticks)
+  stealTime: 0.6,
 };
 
 // Dino Planet's Egg Catch: a pterodactyl drops eggs; catch them in a basket.
