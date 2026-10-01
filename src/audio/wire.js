@@ -140,6 +140,8 @@ const BUILD = {
   jump: (s) => s.play('jump'),
   joined: (s) => s.play('join'),
   spring: (s) => s.play('boing'),
+  cloudOn: (s) => s.play('whoosh'),
+  cloudOff: (s) => s.play('pop'),
 };
 
 const MENU = {

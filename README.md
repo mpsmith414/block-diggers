@@ -227,6 +227,11 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   a tower under yourself. A see-through block with a green A shows where it
   goes; a red outline with a B shows what you'd take away. At the gate, A goes
   back to camp. Two players can build together, and whatever you build stays.
+  - **The magic cloud:** jump, then press **Y** again in the air to hop on a
+    cloud. Fly anywhere, even through your builds: **A** puts a block in the
+    square you're in, **B** takes it away, and holding A (or B) while you fly
+    paints a line. **Y** hops off (and if you're inside a build, you pop up on
+    top of it).
 - **Music for every place:** each planet has its own theme at its camp and in
   its mines (a twinkly Moon, spacey Mars, snowy Saturn with sleigh bells,
   jungle drums on Dino Planet, a triumphant Sun), and the bonus rooms play a

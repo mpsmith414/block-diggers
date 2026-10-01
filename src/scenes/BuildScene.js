@@ -5,11 +5,14 @@
 // B takes it away, and Y jumps (to climb what you've built). A green A shows
 // where your block goes, a red B what you can take away. At the gate on the
 // left, A goes back to camp. Whatever you build stays.
+// The magic cloud: jump, then Y again in the air to hop on. Fly anywhere, even
+// through your builds: A and B work on the square you're in (hold them to
+// paint a line), and Y hops off (popping you up on top if you're inside a build).
 
 import Phaser from 'phaser';
 import { B } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt } from '../game/player.js';
-import { createYard, yardEdits, placeBlock, removeBlock, aimCell, unlockedBlocks, tallest, kindsUsed, canEdit } from '../game/build.js';
+import { createYard, yardEdits, placeBlock, removeBlock, aimCell, unlockedBlocks, tallest, kindsUsed, canEdit, flyStep, cellOf, popUp } from '../game/build.js';
 import { createEdge } from '../input/intents.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
@@ -121,9 +124,17 @@ export class BuildScene extends Phaser.Scene {
       // gate), red B (take this one away)
       promptA: this.add.image(0, 0, 'btn-a').setDepth(32).setVisible(false),
       promptB: this.add.image(0, 0, 'btn-b').setDepth(32).setVisible(false),
-      edges: { a: createEdge(), b: createEdge(), prev: createEdge(), next: createEdge() },
+      // the magic cloud under a rider, and the "Y again for a cloud" hint over a jumper
+      cloud: this.add.image(0, 0, 'yard-cloud').setOrigin(0.5, 0).setDepth(29.5).setVisible(false),
+      hint: this.add.container(0, 0, [this.add.image(-7, 0, 'btn-y'), this.add.image(8, 1, 'yard-cloud').setScale(0.6)])
+        .setDepth(33).setVisible(false),
+      edges: { a: createEdge(), b: createEdge(), prev: createEdge(), next: createEdge(), y: createEdge() },
       sel: 0,
       walkT: 0,
+      riding: false, // on the cloud
+      rodeCloud: false, // (this visit: once you have, no more hints)
+      yLock: false, // a Y still held from hopping off doesn't jump
+      paintKey: null, // the square a held A or B last did
     };
     this.avatars[slot] = a;
     animateCharacter(a.sprite, a.p, a, 0, 0);
@@ -152,22 +163,44 @@ export class BuildScene extends Phaser.Scene {
         b: a.edges.b(!!i.home),
         prev: a.edges.prev(!!i.prev),
         next: a.edges.next(!!i.next),
+        y: a.edges.y(!!i.bubble),
       };
       const n = this.blocks.length;
       if (e.prev) { a.sel = (a.sel - 1 + n) % n; this.events.emit('pickerMove'); }
       if (e.next) { a.sel = (a.sel + 1) % n; this.events.emit('pickerMove'); }
-      const aim = aimCell(a.p, i.moveX, i.moveY);
-      // standing at the gate (left of the building ground): A goes back to camp
-      const atGate = a.p.x + PLAYER.w / 2 < BUILD.gate * TILE;
-      if (!this.leaving) {
+      if (!i.bubble) a.yLock = false;
+      // the magic cloud: Y in the air (or on a ladder) hops on; Y on the cloud hops off
+      if (!this.leaving && e.y) {
+        if (a.riding) this.hopOff(a);
+        else if (!a.p.grounded) this.hopOn(a);
+      }
+      // where A and B work: the square you're in on the cloud; beside, above or
+      // under you on foot
+      const aim = a.riding ? cellOf(a.p) : aimCell(a.p, i.moveX, i.moveY);
+      // at the gate (left of the building ground, near the grass): A goes back to camp
+      const atGate = a.p.x + PLAYER.w / 2 < BUILD.gate * TILE && a.p.y + PLAYER.h >= GROUND_Y - 2 * TILE;
+      if (!this.leaving && a.riding) {
+        // hold A (or B) and fly: a line of blocks (or a gap), one per square
+        const key = `${aim.x},${aim.y}`;
+        if (e.a && atGate) this.goBack();
+        else if (i.jump && key !== a.paintKey) {
+          a.paintKey = key;
+          this.place(a, aim, !e.a);
+        } else if (i.home && !i.jump && key !== a.paintKey) {
+          a.paintKey = key;
+          this.dig(aim);
+        }
+        if (!i.jump && !i.home) a.paintKey = null;
+        flyStep(a.p, i.moveX, i.moveY, dt);
+      } else if (!this.leaving) {
         if (e.a) {
           if (atGate) this.goBack();
           else this.place(a, aim);
         }
         if (e.b) this.dig(aim);
         // (here A builds, so Y is the jump: for climbing what you've built)
-        const move = { ...i, jump: !!i.bubble };
-        const r = stepPlayer(a.p, this.leaving ? IDLE : move, this.grid, { dt, canMine: false, walkMul: this.walkMul });
+        const move = { ...i, jump: !!i.bubble && !a.yLock };
+        const r = stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: this.walkMul });
         if (r.jumped) this.events.emit('jump', a);
         if (r.sprung) {
           this.events.emit('spring', a);
@@ -175,7 +208,12 @@ export class BuildScene extends Phaser.Scene {
         }
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
-      animateCharacter(a.sprite, a.p, a, dt, time);
+      // (a rider stands on the cloud, which bobs under them)
+      animateCharacter(a.sprite, a.riding ? { ...a.p, vx: 0, vy: 0, grounded: true, climbing: false } : a.p, a, dt, time);
+      a.cloud.setVisible(a.riding);
+      if (a.riding) a.cloud.setPosition(a.sprite.x, a.sprite.y - 1 + Math.sin(time / 300));
+      a.hint.setVisible(!this.leaving && !a.rodeCloud && !a.riding && !a.p.grounded && !a.p.climbing)
+        .setPosition(a.sprite.x, a.sprite.y - 30);
       // where the block would go: an outline and a see-through block, with a
       // green A over it; a block you could take away gets a red outline and a B
       const free = !atGate && canEdit(aim.x, aim.y) && this.grid.get(aim.x, aim.y) === B.AIR;
@@ -200,11 +238,13 @@ export class BuildScene extends Phaser.Scene {
     }
   }
 
-  place(a, aim) {
+  // (`painting`: a held A on the cloud; a square that's taken is skipped quietly)
+  place(a, aim, painting = false) {
     const id = this.blocks[a.sel];
-    const bodies = this.avatars.filter(Boolean).map((o) => o.p);
+    // a cloud rider is never in the way: they float in front of the blocks
+    const bodies = this.avatars.filter((o) => o && !o.riding).map((o) => o.p);
     if (!placeBlock(this.grid, aim.x, aim.y, id, bodies)) {
-      this.events.emit('nope');
+      if (!painting) this.events.emit('nope');
       return;
     }
     this.drawCell(aim.x, aim.y);
@@ -224,6 +264,31 @@ export class BuildScene extends Phaser.Scene {
     if (placed >= 100) earnSticker(this, 'build-100');
     if (tallest(this.grid) >= 12) earnSticker(this, 'build-tower');
     if (kindsUsed(this.grid) >= 8) earnSticker(this, 'build-rainbow');
+  }
+
+  // Y in the air: a cloud puffs up under you.
+  hopOn(a) {
+    a.riding = true;
+    a.rodeCloud = true;
+    a.paintKey = null;
+    a.p.vx = 0;
+    a.p.vy = 0;
+    a.cloud.setScale(0.2);
+    this.tweens.add({ targets: a.cloud, scale: 1, duration: 180, ease: 'Back.easeOut' });
+    this.effects.sparkle(a.sprite.x, a.sprite.y, 0xffffff, 8);
+    this.events.emit('cloudOn', a);
+  }
+
+  // Y on the cloud: off you hop (and up on top, if you're inside a build).
+  hopOff(a) {
+    a.riding = false;
+    a.yLock = true;
+    a.paintKey = null;
+    a.p.vx = 0;
+    a.p.vy = 0;
+    this.effects.sparkle(a.sprite.x, a.sprite.y, 0xffffff, 6);
+    if (popUp(this.grid, a.p)) this.effects.sparkle(a.p.x + PLAYER.w / 2, a.p.y + PLAYER.h, 0xfff2a0, 6);
+    this.events.emit('cloudOff', a);
   }
 
   dig(aim) {

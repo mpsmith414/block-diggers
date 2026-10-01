@@ -460,4 +460,4 @@ export const FIREWORKS = {
 
 // the Build Yard (past the gate at the end of Earth camp): a meadow of w x h
 // cells; grass on row `ground`; the first `gate` columns stay clear for the gate
-export const BUILD = { w: 72, h: 30, ground: 26, gate: 3 };
+export const BUILD = { w: 72, h: 30, ground: 26, gate: 3, flySpeed: 90 };
