@@ -115,7 +115,9 @@ function stepSkaters(r, dt, rng, out) {
     if (r.phase === 'idle') target = benchX(r, i);
     else if (r.phase === 'over') target = s.x;
     else if (!playing) target = r.mid + 18 + i * 14;
-    else if (i === chaser) target = p.x + HOCKEY.touch - 2;
+    // close to your net with its shot not ready yet, it waits just behind the
+    // puck (in reach, not pushing) instead of dribbling into the goalie
+    else if (i === chaser) target = p.x + (s.cool > 0 && p.x - r.mouthL < HOCKEY.shootRange ? HOCKEY.skaterReach - 4 : HOCKEY.touch - 2);
     else target = (p.x + r.mouthL) / 2;
     const dx = target - s.x;
     s.vx = Math.abs(dx) < 0.5 ? 0 : Math.sign(dx) * Math.min(HOCKEY.skaterSpeed, Math.abs(dx) / dt);

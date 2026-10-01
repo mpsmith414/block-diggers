@@ -52,7 +52,7 @@
 
 - **You win:**
   - the horn sounds, confetti falls and the screen flashes;
-  - a big **trophy** pops up over the right-hand net;
+  - a big **trophy** pops up over the middle of the ice;
   - your blue-scarf goalie dances, and their goalie flops;
   - then you get the win prize (below).
 - **The penguins win:**

@@ -141,12 +141,17 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Saturn Core:** snowflake sprites and the **Saturn Heart**. Bring it home
     for the **Gloves**, the third Sun Suit piece: you dig faster everywhere,
     and you never slip on ice.
-  - **The Ice Rink:** right next to the Saturn Heart, **Ice Hockey!** A giant
-    snowball puck slides between two goals, each with a penguin goalie who hops
-    up and down. Skate into the puck to knock it along, and jump right by it
-    for a big shot. Shoot while the penguin is up and it's a **GOAL** (a horn,
-    a flashing lamp, pearls and a comet for your backpack, up to 12 a trip);
-    while he's down, he saves it. Any goal counts for everyone.
+  - **The Ice Rink:** right next to the Saturn Heart, **Ice Hockey!** A real
+    match against the penguins, first to **3**. Step onto the ice for a 3-2-1
+    faceoff. You defend the left net (your goalie wears a blue scarf) and shoot
+    at the right one. Penguin skaters in red scarves (one, or two in co-op)
+    chase the puck, push it at your net and shoot, and sometimes slip: skate
+    into the puck to steal it, and jump right by it for a big shot. Each goalie
+    hops up and down: a shot that gets there while he's up is a **GOAL**, and
+    while he's standing, he saves it. Each of your goals gives pearls and a comet
+    (up to 12 a trip); win the match for a trophy and a big prize of pearls and
+    comets (up to 3 wins a trip). If the penguins win, they dance, and a
+    rematch starts.
 
   New drills: Frost Drill, Pearl Drill, Comet Drill.
 - **Ring Station** (Saturn's camp): snow, igloos, a snowman, giant Saturn in
