@@ -155,8 +155,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Ice Lighthouse:** chests show on the depth meter;
   - **Ski Lift:** Saturn's elevator;
   - **Dino Rocket:** needs the Gloves; Dino Planet is "coming soon".
-- **The Yeti Cub** digs with you: when you dig sideways, it digs the block
-  above too, so your tunnels come out tall.
+- **The Yeti Cub** digs with you: every block comes away a little faster.
 - **Dino Planet** (planet 4) has **living dinosaurs**. Its five layers:
   - **Fern Jungle:** jade, dragonflies, and friendly **parasaurs**: walk into
     one to hop on and **ride** it (faster, higher jumps, and creatures scatter);

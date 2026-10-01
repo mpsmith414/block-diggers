@@ -1,7 +1,6 @@
 // Pets: hatched from eggs brought home. Each helps in its own way.
 
-import { dropOf, isSolid } from '../world/blocks.js';
-import { mineTime, mineCell } from '../world/grid.js';
+import { dropOf } from '../world/blocks.js';
 import { PETS } from '../tuning.js';
 
 // cave pets come from cave eggs (and the owl); dinosaurs from dino eggs
@@ -15,18 +14,6 @@ export const SUN_KINDS = ['sundragon'];
 export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS, ...DINO_PLANET_KINDS, ...SUN_KINDS];
 // pets that walk along the ground (the rest fly)
 export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck'];
-
-// The Yeti Cub digs with you: a block dug sideways, and it digs the one above
-// too (if your drill can), so tunnels come out two tall. The cell it dug, or null.
-export function yetiDig(grid, mined, pickLevel) {
-  if (mined.ladder) return null;
-  const x = mined.x;
-  const y = mined.y - 1;
-  const id = grid.get(x, y);
-  if (!isSolid(id) || mineTime(id, pickLevel) === Infinity) return null;
-  const { drop } = mineCell(grid, x, y, { ladder: false });
-  return { x, y, id, drop };
-}
 
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {

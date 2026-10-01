@@ -35,8 +35,10 @@ export const winSunHeart = (state) => ({ ...winSuitPiece(state, 'crown'), sunHea
 // the Boots: faster everywhere (and dust storms can't push you)
 export const walkMul = (state) => (hasSuit(state, 'boots') ? PERKS.bootsSpeed : 1);
 export const stormProof = (state) => hasSuit(state, 'boots');
-// the Gloves: digging is faster everywhere (and you never slip on ice)
-export const digMul = (state) => (hasSuit(state, 'gloves') ? PERKS.glovesDig : 1);
+// the Gloves: digging is faster everywhere (and you never slip on ice);
+// the Yeti Cub helps too, a little
+export const digMul = (state) => (hasSuit(state, 'gloves') ? PERKS.glovesDig : 1)
+  * ((state.pets ?? []).includes('yeti') ? PERKS.yetiDig : 1);
 export const iceGrip = (state) => hasSuit(state, 'gloves');
 // the Jetpack: hold jump in the air to fly
 export const jetpack = (state) => hasSuit(state, 'jetpack');
