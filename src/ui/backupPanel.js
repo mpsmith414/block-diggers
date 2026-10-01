@@ -32,7 +32,10 @@ export function createBackupPanel({ doc = document, win = window, getState }) {
   button.title = 'Game backup';
   button.setAttribute('aria-label', 'Game backup');
   button.textContent = '💾';
-  button.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:30;width:44px;height:44px;border-radius:50%;border:2px solid #8a5a34;background:#f4e4c1;font-size:22px;cursor:pointer;opacity:.8;';
+  // (on a phone the bottom-right is the A button, so it sits top-left instead)
+  const coarse = !!win.matchMedia?.('(pointer: coarse)').matches;
+  const corner = coarse ? 'left:12px;top:10px;' : 'right:12px;bottom:12px;';
+  button.style.cssText = `position:fixed;${corner}z-index:30;width:44px;height:44px;border-radius:50%;border:2px solid #8a5a34;background:#f4e4c1;font-size:22px;cursor:pointer;opacity:.8;`;
 
   const panel = doc.createElement('div');
   panel.id = 'backup-panel';

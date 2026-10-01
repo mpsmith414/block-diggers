@@ -56,6 +56,23 @@ export function drawBuildArt(scene, canvasTexture, rect) {
     }
   });
 
+  // the shoulder buttons that flip through the blocks: a grey bumper with
+  // LB / RB on it (16x9)
+  const L = ['1..', '1..', '1..', '1..', '111'];
+  const R = ['11.', '1.1', '11.', '1.1', '1.1'];
+  const Bk = ['11.', '1.1', '11.', '1.1', '11.'];
+  const letter = (ctx, map, x0) => map.forEach((row, y) => [...row].forEach((c, x) => { if (c === '1') rect(ctx, '#ffffff', x0 + x, 2 + y, 1, 1); }));
+  for (const [key, first] of [['btn-lb', L], ['btn-rb', R]]) {
+    one(key, 16, 9, (ctx) => {
+      rect(ctx, '#1f1f28', 1, 0, 14, 9);
+      rect(ctx, '#1f1f28', 0, 1, 16, 7);
+      rect(ctx, '#5a5a6a', 1, 1, 14, 7);
+      rect(ctx, '#7a7a8c', 2, 1, 12, 1);
+      letter(ctx, first, 4);
+      letter(ctx, Bk, 9);
+    });
+  }
+
   // stickers
   one('icon-yard', 16, 16, (ctx) => {
     rect(ctx, '#5aa63c', 0, 13, 16, 3);

@@ -197,7 +197,7 @@ Soft rounded rectangles built from nested fills: shadow, then leather rim, then 
 *A toy tray.* A Parchment strip at 92% opacity with a 2px leather stroke and 8px radius, 36px tall, centred at the bottom. It shows the chosen block large in the middle with its neighbours on either side, and LB/RB flip through them.
 
 ### Scoreboard (Bonus Rooms)
-*A little arcade marquee.* A 64×36 Twilight board with a ×2 Marquee Yellow score and a row of 20 tiny bulbs underneath that act as the timer. Lit bulbs alternate yellow with a room accent (orange, pink or red); spent bulbs dim to a dark tone.
+*A little arcade marquee.* A 64×36 Twilight board with a ×2 Marquee Yellow score and a row of 10 chunky bulbs (6px) underneath that act as the timer. Lit bulbs alternate yellow with a room accent (orange, pink or red); spent bulbs dim to a dark tone.
 
 ### Motion
 Motion is soft and bouncy. Idle bobs and floats use Sine easeInOut. Things arriving (panels, rewards, stickers) pop in with Back easeOut. Flying ores and quick moves use Quad easeOut. Every reward pairs motion with a sound and a sparkle.

@@ -179,7 +179,8 @@ export class CampHudScene extends Phaser.Scene {
     const wobble = Math.sin(time / 150) * 3;
     this.pointer.list[0].setFlipX(side < 0); // (the A never reads backwards)
     this.pointer.setVisible(true)
-      .setPosition(side > 0 ? this.scale.width - 14 + wobble : 14 - wobble, this.scale.height * 0.62)
+      // (high enough to stay clear of a phone's A button in the corner)
+      .setPosition(side > 0 ? this.scale.width - 14 + wobble : 14 - wobble, this.scale.height * 0.5)
       .setScale(side > 0 ? 1 : -1, 1);
   }
 

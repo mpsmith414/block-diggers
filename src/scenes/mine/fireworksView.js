@@ -14,7 +14,7 @@ import { TILE, PLAYER, FIREWORKS } from '../../tuning.js';
 const NONE = {
   busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
 };
-const BULBS = 20;
+const BULBS = 10; // (big enough to read from the sofa)
 const FRAME = { red: 0, blue: 1, green: 2, pink: 3, gold: 4 };
 const hex = (c) => parseInt(c.slice(1), 16);
 
@@ -32,7 +32,7 @@ export function createFireworksView(scene) {
   const boardY = room.y0 + 14;
   scene.add.image(boardX, boardY, 'fw-board').setOrigin(0.5, 0).setDepth(1);
   const scoreText = scene.add.bitmapText(boardX + 12, boardY + 16, 'pixel', '0').setOrigin(0.5).setScale(2).setDepth(1.1).setTint(0xffe066);
-  const bulbs = Array.from({ length: BULBS }, (_, i) => scene.add.image(boardX - 38 + i * 4, boardY + 40, 'pixel').setDisplaySize(3, 3).setDepth(1.1));
+  const bulbs = Array.from({ length: BULBS }, (_, i) => scene.add.image(boardX - 35 + i * 8, boardY + 40, 'pixel').setDisplaySize(6, 6).setDepth(1.1));
   const topY = boardY + 50; // rockets burst here if they hit nothing
 
   let game = null;

@@ -92,7 +92,12 @@ export class TitleScene extends Phaser.Scene {
       const r = this.add.image(-10, 190, 'icon-rocket').setAngle(37).setDepth(2);
       this.tweens.add({
         targets: r, x: 78, y: 72, duration: 2200, ease: 'Sine.easeIn',
-        onUpdate: () => { if (Math.random() < 0.4) this.effects.sparkle(r.x - 6, r.y + 6, 0xffb34a, 1); },
+        // (its trail stays behind the join cards, like the rocket itself)
+        onUpdate: () => {
+          if (Math.random() > 0.4) return;
+          const puff = this.add.image(r.x - 6, r.y + 6, 'pixel').setTint(0xffb34a).setDisplaySize(2, 2).setDepth(1);
+          this.tweens.add({ targets: puff, alpha: 0, y: puff.y + 4, duration: 500, onComplete: () => puff.destroy() });
+        },
         onComplete: () => { this.effects.sparkle(84, 66, 0xffffff, 6); r.destroy(); },
       });
     };

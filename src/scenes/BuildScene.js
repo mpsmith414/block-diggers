@@ -1,14 +1,15 @@
 // The Build Yard: a sunny meadow past the gate at the end of Earth camp.
 // Build with every block you've found on your adventures, as many as you
-// like: LB/RB pick a block, Y puts it where you're pointing (beside you,
+// like: LB/RB pick a block, A puts it where you're pointing (beside you,
 // above your head with the stick up, under your feet with the stick down),
-// B takes it away. Walk out through the gate on the left to go back to camp.
-// Whatever you build stays.
+// B takes it away, and Y jumps (to climb what you've built). A green A shows
+// where your block goes, a red B what you can take away. At the gate on the
+// left, A goes back to camp. Whatever you build stays.
 
 import Phaser from 'phaser';
 import { B } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt } from '../game/player.js';
-import { createYard, yardEdits, placeBlock, removeBlock, aimCell, unlockedBlocks, tallest, kindsUsed } from '../game/build.js';
+import { createYard, yardEdits, placeBlock, removeBlock, aimCell, unlockedBlocks, tallest, kindsUsed, canEdit } from '../game/build.js';
 import { createEdge } from '../input/intents.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
@@ -116,7 +117,11 @@ export class BuildScene extends Phaser.Scene {
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
       aim: this.add.image(0, 0, 'build-aim').setOrigin(0).setDepth(31),
       ghost: this.add.image(0, 0, 'tiles', B.DIRT).setOrigin(0).setDepth(9).setAlpha(0.45),
-      edges: { y: createEdge(), b: createEdge(), prev: createEdge(), next: createEdge() },
+      // what your buttons do right now: green A (put it here / go through the
+      // gate), red B (take this one away)
+      promptA: this.add.image(0, 0, 'btn-a').setDepth(32).setVisible(false),
+      promptB: this.add.image(0, 0, 'btn-b').setDepth(32).setVisible(false),
+      edges: { a: createEdge(), b: createEdge(), prev: createEdge(), next: createEdge() },
       sel: 0,
       walkT: 0,
     };
@@ -143,7 +148,7 @@ export class BuildScene extends Phaser.Scene {
       const a = this.avatarFor(slot);
       const i = intent ?? IDLE;
       const e = {
-        y: a.edges.y(!!i.bubble),
+        a: a.edges.a(!!i.jump),
         b: a.edges.b(!!i.home),
         prev: a.edges.prev(!!i.prev),
         next: a.edges.next(!!i.next),
@@ -152,24 +157,39 @@ export class BuildScene extends Phaser.Scene {
       if (e.prev) { a.sel = (a.sel - 1 + n) % n; this.events.emit('pickerMove'); }
       if (e.next) { a.sel = (a.sel + 1) % n; this.events.emit('pickerMove'); }
       const aim = aimCell(a.p, i.moveX, i.moveY);
+      // standing at the gate (left of the building ground): A goes back to camp
+      const atGate = a.p.x + PLAYER.w / 2 < BUILD.gate * TILE;
       if (!this.leaving) {
-        if (e.y) this.place(a, aim);
+        if (e.a) {
+          if (atGate) this.goBack();
+          else this.place(a, aim);
+        }
         if (e.b) this.dig(aim);
-        const r = stepPlayer(a.p, this.leaving ? IDLE : i, this.grid, { dt, canMine: false, walkMul: this.walkMul });
+        // (here A builds, so Y is the jump: for climbing what you've built)
+        const move = { ...i, jump: !!i.bubble };
+        const r = stepPlayer(a.p, this.leaving ? IDLE : move, this.grid, { dt, canMine: false, walkMul: this.walkMul });
         if (r.jumped) this.events.emit('jump', a);
         if (r.sprung) {
           this.events.emit('spring', a);
           this.effects.sparkle(a.sprite.x, a.sprite.y, 0x6ae07a, 6);
         }
-        // out through the gate: back to camp
-        if (a.p.x <= 3 && i.moveX < -0.5) this.goBack();
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
       animateCharacter(a.sprite, a.p, a, dt, time);
-      // where the block would go: an outline and a see-through block
-      const free = this.grid.inside(aim.x, aim.y) && aim.x >= BUILD.gate && this.grid.get(aim.x, aim.y) === B.AIR && aim.y < BUILD.h - 1;
-      a.aim.setVisible(free && !this.leaving).setPosition(aim.x * TILE, aim.y * TILE).setAlpha(0.6 + Math.sin(time / 150) * 0.3);
-      a.ghost.setVisible(free && !this.leaving).setPosition(aim.x * TILE, aim.y * TILE).setFrame(this.blocks[a.sel]);
+      // where the block would go: an outline and a see-through block, with a
+      // green A over it; a block you could take away gets a red outline and a B
+      const free = !atGate && canEdit(aim.x, aim.y) && this.grid.get(aim.x, aim.y) === B.AIR;
+      const removable = !atGate && canEdit(aim.x, aim.y) && this.grid.get(aim.x, aim.y) !== B.AIR;
+      const show = !this.leaving;
+      const pulse = 0.6 + Math.sin(time / 150) * 0.3;
+      a.aim.setVisible(show && (free || removable)).setPosition(aim.x * TILE, aim.y * TILE).setAlpha(pulse)
+        .setTint(removable ? 0xff6a5a : 0xffffff);
+      a.ghost.setVisible(show && free).setPosition(aim.x * TILE, aim.y * TILE).setFrame(this.blocks[a.sel]);
+      const bob = Math.sin(time / 200) * 1.5;
+      const px = aim.x * TILE + TILE / 2;
+      a.promptA.setVisible(show && (free || atGate))
+        .setPosition(atGate ? 1.5 * TILE : px, (atGate ? GROUND_Y - 58 : aim.y * TILE - 8) + bob);
+      a.promptB.setVisible(show && removable && !free).setPosition(px, aim.y * TILE - 8 + bob);
     }
     this.suits.update();
     this.updateCamera(dt);

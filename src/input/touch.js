@@ -16,7 +16,21 @@ const BUTTON_CSS = [
   'user-select:none', '-webkit-user-select:none', 'box-shadow:0 3px 0 rgba(0,0,0,.35)',
 ].join(';');
 
-export function createTouch({ doc, win, radius = 60 }) {
+// A button face from the game's own pixel art (a data URL), drawn crisp;
+// without art (tests) the button keeps its text.
+function paint(el, url, size) {
+  if (!url) return;
+  el.textContent = '';
+  el.style.backgroundImage = `url(${url})`;
+  el.style.backgroundRepeat = 'no-repeat';
+  el.style.backgroundPosition = 'center';
+  el.style.backgroundSize = size;
+  el.style.imageRendering = 'pixelated';
+}
+
+// icons: { a, home, pause, book } data URLs of the game's textures (from the
+// Boot scene), so the phone buttons match the pixel art on screen.
+export function createTouch({ doc, win, radius = 60, icons = {} }) {
   const root = doc.createElement('div');
   root.id = 'touch-controls';
   root.style.cssText = 'position:fixed;inset:0;z-index:20;pointer-events:none;';
@@ -33,19 +47,27 @@ export function createTouch({ doc, win, radius = 60 }) {
   const a = doc.createElement('div');
   a.id = 'touch-a';
   a.textContent = 'A';
-  a.style.cssText = `${BUTTON_CSS};right:24px;bottom:30px;width:96px;height:96px;font-size:34px;background:#4cc24a;`;
+  a.style.cssText = `${BUTTON_CSS};right:24px;bottom:30px;width:96px;height:96px;font-size:34px;background-color:#4cc24a;`;
+  // (the A button *is* the game's green A, drawn big)
+  if (icons.a) { a.style.backgroundColor = 'transparent'; a.style.boxShadow = 'none'; }
+  paint(a, icons.a, '100% 100%');
   const home = doc.createElement('div');
   home.id = 'touch-home';
   home.textContent = '⌂';
-  home.style.cssText = `${BUTTON_CSS};right:132px;bottom:18px;width:70px;height:70px;background:#8a5a34;`;
+  home.style.cssText = `${BUTTON_CSS};right:132px;bottom:18px;width:70px;height:70px;background-color:#8a5a34;border:3px solid #f4e4c1;`;
+  paint(home, icons.home, '36px 36px');
+  // pause and the book sit together in the top-right corner, clear of the
+  // camp bank (top middle) and the player's card (top left)
   const pause = doc.createElement('div');
   pause.id = 'touch-pause';
   pause.textContent = 'II';
-  pause.style.cssText = `${BUTTON_CSS};left:50%;top:8px;width:40px;height:40px;margin-left:-20px;font-size:16px;background:rgba(0,0,0,.35);`;
+  pause.style.cssText = `${BUTTON_CSS};right:12px;top:10px;width:44px;height:44px;font-size:16px;background-color:rgba(27,20,40,.55);`;
+  paint(pause, icons.pause, '24px 24px');
   const book = doc.createElement('div');
   book.id = 'touch-book';
   book.textContent = '📖';
-  book.style.cssText = `${BUTTON_CSS};left:10px;top:10px;width:44px;height:44px;font-size:22px;background:rgba(0,0,0,.35);`;
+  book.style.cssText = `${BUTTON_CSS};right:64px;top:10px;width:44px;height:44px;font-size:22px;background-color:rgba(27,20,40,.55);`;
+  paint(book, icons.book, '28px 28px');
   // the book opens straight from here (scenes listen for this event)
   book.addEventListener('pointerdown', (e) => {
     if (e.preventDefault) e.preventDefault();

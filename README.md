@@ -216,11 +216,13 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
 - **The Build Yard:** walk out through the gate at the right end of Earth camp
   into a big sunny meadow and **build with every block you've found**, as many
   as you like (Lego-style). Reaching a layer on any planet unlocks its rock and
-  treasure for building. **LB / RB** (or Q / E) pick a block, **Y** (or the B
-  key) puts it where you're pointing (beside you, above your head with the stick
-  up, or under your feet with the stick down, so jump and build a tower under
-  yourself), and **B** (or H) takes it away. A see-through block shows where it
-  goes. Two players can build together, and whatever you build stays.
+  treasure for building. **LB / RB** (or Q / E) pick a block, **A** (or Space)
+  puts it where you're pointing (beside you, above your head with the stick up,
+  or under your feet with the stick down), **B** (or Backspace) takes it away,
+  and **Y** (or Shift) jumps, so you can climb what you build or jump and build
+  a tower under yourself. A see-through block with a green A shows where it
+  goes; a red outline with a B shows what you'd take away. At the gate, A goes
+  back to camp. Two players can build together, and whatever you build stays.
 - **Music for every place:** each planet has its own theme at its camp and in
   its mines (a twinkly Moon, spacey Mars, snowy Saturn with sleigh bells,
   jungle drums on Dino Planet, a triumphant Sun), and the bonus rooms play a

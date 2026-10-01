@@ -1,6 +1,6 @@
 // The Build Yard's block bar, in screen space: each player's blocks in a row
 // along the bottom, the chosen one in the middle (bigger, with a frame), and
-// LB/RB arrows either side. Icons only.
+// the LB / RB bumpers either side. Icons only.
 
 import Phaser from 'phaser';
 import { CHARACTER_COLORS } from '../art/characters.js';
@@ -36,8 +36,9 @@ export class BuildHudScene extends Phaser.Scene {
     bg.fillStyle(0xf4e4c1, 0.94).fillRoundedRect(-half - 24, -18, shown * SLOT + 48, 36, 8);
     bg.lineStyle(3, color, 1).strokeRoundedRect(-half - 24, -18, shown * SLOT + 48, 36, 8);
     c.add(bg);
-    c.add(this.add.image(-half - 12, 0, 'arrow-r').setFlipX(true).setScale(1.3));
-    c.add(this.add.image(half + 12, 0, 'arrow-r').setScale(1.3));
+    // the shoulder buttons that flip the blocks, at each end
+    c.add(this.add.image(-half - 12, 0, 'btn-lb').setScale(1.25));
+    c.add(this.add.image(half + 12, 0, 'btn-rb').setScale(1.25));
     const icons = Array.from({ length: shown }, (_, k) => {
       const img = this.add.image((k - (shown - 1) / 2) * SLOT, 0, 'tiles', 2).setScale(1.3);
       c.add(img);

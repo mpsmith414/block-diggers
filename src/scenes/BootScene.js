@@ -18,7 +18,10 @@ export class BootScene extends Phaser.Scene {
     if (!this.registry.get('input')) {
       // phones and tablets get on-screen controls (as player 1 when they tap A)
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-      const extras = navigator.maxTouchPoints > 0 && coarse ? [createTouch({ doc: document, win: window })] : [];
+      // (the buttons wear the game's own pixel icons)
+      const icon = (key) => (this.textures.exists(key) ? this.textures.getBase64(key) : null);
+      const icons = { a: icon('btn-a'), home: icon('icon-home'), pause: icon('icon-pause'), book: icon('icon-book') };
+      const extras = navigator.maxTouchPoints > 0 && coarse ? [createTouch({ doc: document, win: window, icons })] : [];
       const devices = createDevices({ nav: navigator, target: window, extras });
       const session = createInputSession({ win: window, doc: document, devices });
       this.registry.set('input', session);
