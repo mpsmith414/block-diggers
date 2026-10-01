@@ -15,6 +15,7 @@ export function createBonusViews(scene) {
     createFireworksView(scene)];
   const using = (a) => views.find((v) => v.busy(a));
   return {
+    views, // (for the dev harness)
     busy: (a) => !!using(a),
     update: (dt, time) => views.forEach((v) => v.update(dt, time)),
     step(a, intent, dt) { using(a)?.step(a, intent, dt); },
