@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { unlockedBlocks, createYard, yardEdits, placeBlock, removeBlock, aimCell, tallest, kindsUsed } from '../../src/game/build.js';
+import { unlockedBlocks, createYard, yardEdits, placeBlock, removeBlock, aimCell, tallest, kindsUsed, canEdit } from '../../src/game/build.js';
 import { B } from '../../src/world/blocks.js';
 import { defaultState } from '../../src/save/save.js';
 import { BUILD, TILE, PLAYER } from '../../src/tuning.js';
@@ -77,5 +77,14 @@ describe('the build yard: building', () => {
     for (let k = 1; k <= 5; k++) placeBlock(g, 15, BUILD.ground - k, k % 2 ? B.BRICKS : B.STONE);
     expect(tallest(g)).toBe(5);
     expect(kindsUsed(g)).toBe(2);
+  });
+});
+
+describe('where you can build', () => {
+  it('everywhere past the gate, except the bottom row', () => {
+    expect(canEdit(BUILD.gate - 1, 10)).toBe(false); // the gate itself (A there goes back to camp)
+    expect(canEdit(BUILD.gate, 10)).toBe(true);
+    expect(canEdit(BUILD.w - 1, BUILD.ground)).toBe(true); // the meadow's ground can be dug
+    expect(canEdit(10, BUILD.h - 1)).toBe(false);
   });
 });

@@ -89,7 +89,7 @@ export function yardEdits(grid) {
 }
 
 // the bottom row (and the gate at the left edge) can't be changed
-const canEdit = (x, y) => x >= BUILD.gate && x < BUILD.w && y >= 0 && y < BUILD.h - 1;
+export const canEdit = (x, y) => x >= BUILD.gate && x < BUILD.w && y >= 0 && y < BUILD.h - 1;
 
 // Put a block in an empty cell (not inside anyone). Returns true if it went in.
 export function placeBlock(grid, x, y, id, bodies = []) {
