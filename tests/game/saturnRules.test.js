@@ -9,7 +9,7 @@ import { chestLoot } from '../../src/game/loot.js';
 import { globeLoot, cometLoot, snowmanLoot, boulderPairMeet, wheelsMeet, heartLeft, HEARTS } from '../../src/game/finds.js';
 import { UPGRADES, SATURN_BLUEPRINTS, blueprintsFor, plotsOf, buildOnPlot, blueprintOk } from '../../src/game/economy.js';
 import { campGift, elevatorStops, revealsChests, digMul, winSuitPiece } from '../../src/game/perks.js';
-import { PET_KINDS, SATURN_KINDS, WALKING_PETS, hatch, yetiDig } from '../../src/game/pets.js';
+import { PET_KINDS, SATURN_KINDS, WALKING_PETS, hatch } from '../../src/game/pets.js';
 import { createPlayer, stepPlayer, standAt } from '../../src/game/player.js';
 import { nextGoal, oreTopRow } from '../../src/game/goals.js';
 import { defaultState } from '../../src/save/save.js';
@@ -245,17 +245,9 @@ describe('the Gloves and the Yeti Cub', () => {
     expect(hatch(defaultState(), 'yeti').state.pets).toEqual(['yeti']);
   });
 
-  it('the Yeti digs the block above a sideways dig, if the drill can', () => {
-    const grid = createGrid(10, 10);
-    grid.set(5, 4, B.ICE);
-    grid.set(6, 4, B.COMET_ROCK);
-    expect(yetiDig(grid, { x: 5, y: 5, ladder: false }, 11)).toEqual({ x: 5, y: 4, id: B.ICE, drop: null });
-    expect(grid.get(5, 4)).toBe(B.AIR);
-    // too hard for this drill, or a dig straight up/down: nothing
-    expect(yetiDig(grid, { x: 6, y: 5, ladder: false }, 11)).toBe(null);
-    expect(grid.get(6, 4)).toBe(B.COMET_ROCK);
-    grid.set(3, 4, B.ICE);
-    expect(yetiDig(grid, { x: 3, y: 5, ladder: true }, 11)).toBe(null);
-    expect(yetiDig(grid, { x: 1, y: 5, ladder: false }, 11)).toBe(null); // air above
+  it('the Yeti Cub helps you dig a little faster (and stacks with the Gloves)', () => {
+    const yeti = hatch(defaultState(), 'yeti').state;
+    expect(digMul(yeti)).toBeCloseTo(1.1);
+    expect(digMul(winSuitPiece(yeti, 'gloves'))).toBeCloseTo(1.25 * 1.1);
   });
 });

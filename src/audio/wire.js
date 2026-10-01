@@ -56,7 +56,6 @@ const MINE = {
   snowman: (s) => s.play('party'),
   globe: (s) => s.play('chime', 4),
   frozenComet: (s) => s.play('crack'),
-  yeti: (s) => s.play('hammer'),
   ride: (s) => s.play('rawr'),
   nest: (s) => s.play('hatch'),
   skull: (s) => s.play('roar'),

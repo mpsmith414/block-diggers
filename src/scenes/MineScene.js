@@ -9,7 +9,7 @@ import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
-import { CAVE_KINDS, DINO_KINDS, yetiDig } from '../game/pets.js';
+import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
 import { planetById } from '../game/planets.js';
 import { createStorm, stepStorm, windOf } from '../game/storms.js';
 import { heartOf } from '../game/finds.js';
@@ -99,10 +99,9 @@ export class MineScene extends Phaser.Scene {
     this.walkMul = walkMul(saved);
     this.stormProof = stormProof(saved);
     this.stormRubies = stormRubies(saved);
-    // the Gloves: faster digging, and no slipping on Saturn's ice; the Yeti Cub digs with you
+    // the Gloves: faster digging, and no slipping on Saturn's ice; the Yeti Cub helps you dig a little faster
     this.digMul = digMul(saved);
     this.grip = iceGrip(saved);
-    this.yeti = pets.includes('yeti');
     // the Jetpack (hold jump in the air) and the Longneck's boost (2-block ledges)
     this.jet = jetpack(saved);
     this.stepUp = stepUp(saved);
@@ -716,16 +715,7 @@ export class MineScene extends Phaser.Scene {
     if (r.jumped) this.events.emit('jump', a);
     if (r.doubleJumped) this.doubleJump(a);
     if (r.jetting) this.jetFlame(a, dt);
-    for (const m of r.mined) {
-      this.afterMined(a, m);
-      // the Yeti Cub digs the block above a sideways dig too
-      const extra = this.yeti ? yetiDig(this.grid, m, this.upgrades.pick) : null;
-      if (extra) {
-        this.afterMined(a, extra);
-        this.effects.sparkle(extra.x * TILE + 8, extra.y * TILE + 8, 0xe0f0ff, 4);
-        this.events.emit('yeti', extra);
-      }
-    }
+    for (const m of r.mined) this.afterMined(a, m);
     // sliding on Saturn's ice: whee!
     if (a.p.sliding && Math.abs(a.p.vx) > 20) earnSticker(this, 'saturn-slide');
     const target = a.p.mining ? this.grid.get(a.p.mining.cx, a.p.mining.cy) : null;
