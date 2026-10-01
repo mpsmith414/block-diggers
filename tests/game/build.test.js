@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { unlockedBlocks, createYard, yardEdits, placeBlock, removeBlock, aimCell, tallest, kindsUsed, canEdit } from '../../src/game/build.js';
+import { unlockedBlocks, createYard, yardEdits, placeBlock, removeBlock, aimCell, tallest, kindsUsed, canEdit, flyStep, cellOf, popUp } from '../../src/game/build.js';
+import { createPlayer, standAt } from '../../src/game/player.js';
 import { B } from '../../src/world/blocks.js';
 import { defaultState } from '../../src/save/save.js';
 import { BUILD, TILE, PLAYER } from '../../src/tuning.js';
@@ -86,5 +87,63 @@ describe('where you can build', () => {
     expect(canEdit(BUILD.gate, 10)).toBe(true);
     expect(canEdit(BUILD.w - 1, BUILD.ground)).toBe(true); // the meadow's ground can be dug
     expect(canEdit(10, BUILD.h - 1)).toBe(false);
+  });
+});
+
+describe('the build yard: the magic cloud', () => {
+  const at = (cx, cy) => createPlayer(standAt(cx, cy));
+
+  it('flies any way the stick points, at the fly speed (diagonals no faster)', () => {
+    const p = at(20, 20);
+    const x0 = p.x;
+    const y0 = p.y;
+    flyStep(p, 1, 0, 1);
+    expect(p.x - x0).toBeCloseTo(BUILD.flySpeed);
+    const q = at(20, 20);
+    flyStep(q, 1, -1, 1);
+    expect(Math.hypot(q.x - x0, q.y - y0)).toBeCloseTo(BUILD.flySpeed);
+    expect(q.y).toBeLessThan(y0);
+    expect(q.facing).toBe(1);
+    const r = at(20, 20);
+    flyStep(r, -1, 0, 0.1);
+    expect(r.facing).toBe(-1);
+  });
+
+  it('stays inside the yard: not off the ends, not above the sky, never into the bedrock', () => {
+    const p = at(10, 10);
+    flyStep(p, -1, -1, 100);
+    expect(p.x).toBeGreaterThanOrEqual(0);
+    expect(p.y).toBeGreaterThanOrEqual(0);
+    flyStep(p, 1, 1, 100);
+    expect(p.x + PLAYER.w).toBeLessThanOrEqual(BUILD.w * TILE);
+    expect(p.y + PLAYER.h).toBeLessThanOrEqual((BUILD.h - 1) * TILE);
+  });
+
+  it('knows which square you are in (your middle)', () => {
+    expect(cellOf(at(12, 7))).toEqual({ x: 12, y: 7 });
+  });
+
+  it('hopping off inside a build pops you up on top of it', () => {
+    const g = createYard();
+    const p = at(10, BUILD.ground - 1);
+    g.set(10, BUILD.ground - 1, B.STONE);
+    expect(popUp(g, p)).toBe(true);
+    expect(cellOf(p)).toEqual({ x: 10, y: BUILD.ground - 2 });
+    // a tall pillar: all the way to the top of it
+    for (let y = BUILD.ground - 6; y < BUILD.ground; y++) g.set(20, y, B.BRICKS);
+    const q = at(20, BUILD.ground - 3);
+    expect(popUp(g, q)).toBe(true);
+    expect(cellOf(q)).toEqual({ x: 20, y: BUILD.ground - 7 });
+    // in open air: left alone
+    const r = at(30, 10);
+    const y = r.y;
+    expect(popUp(g, r)).toBe(false);
+    expect(r.y).toBe(y);
+  });
+
+  it('a ladder or water is not "inside" anything', () => {
+    const g = createYard();
+    g.set(10, BUILD.ground - 1, B.LADDER);
+    expect(popUp(g, at(10, BUILD.ground - 1))).toBe(false);
   });
 });

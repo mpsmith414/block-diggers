@@ -121,6 +121,47 @@ export function aimCell(p, moveX = 0, moveY = 0) {
   return { x: cx + dir, y: cy };
 }
 
+// ---- the magic cloud: fly anywhere (even through your builds) and build
+// right where you are ----
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// Fly a cloud rider the way the stick points (diagonals no faster), inside
+// the yard: not off the ends, not above the sky, never into the bedrock.
+export function flyStep(p, moveX, moveY, dt) {
+  const len = Math.hypot(moveX, moveY);
+  const k = len > 1 ? 1 / len : 1;
+  p.vx = moveX * k * BUILD.flySpeed;
+  p.vy = moveY * k * BUILD.flySpeed;
+  p.x = clamp(p.x + p.vx * dt, 0, BUILD.w * TILE - PLAYER.w);
+  p.y = clamp(p.y + p.vy * dt, 0, (BUILD.h - 1) * TILE - PLAYER.h);
+  if (Math.abs(moveX) > 0.3) p.facing = Math.sign(moveX);
+  p.grounded = false;
+  p.climbing = false;
+}
+
+// The square a player's middle is in.
+export const cellOf = (p) => ({ x: Math.floor((p.x + PLAYER.w / 2) / TILE), y: Math.floor((p.y + PLAYER.h / 2) / TILE) });
+
+// Hopping off inside a build: up to stand in the nearest free square above.
+// Returns true if it moved you.
+export function popUp(grid, p) {
+  const x0 = Math.floor(p.x / TILE);
+  const x1 = Math.floor((p.x + PLAYER.w - 1) / TILE);
+  const solidRow = (y0, y1) => {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (isSolid(grid.get(x, y))) return true;
+    return false;
+  };
+  const top = Math.floor(p.y / TILE);
+  const feet = Math.floor((p.y + PLAYER.h - 1) / TILE);
+  if (!solidRow(top, feet)) return false;
+  let row = feet;
+  while (row > 0 && solidRow(row, row)) row--;
+  p.y = (row + 1) * TILE - PLAYER.h;
+  p.vy = 0;
+  return true;
+}
+
 // How tall is the tallest thing you've built (in blocks above the grass)?
 export function tallest(grid) {
   for (let y = 0; y < BUILD.ground; y++) {
