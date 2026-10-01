@@ -1,5 +1,6 @@
 // Art for the Build Yard: the wooden gate (at the end of Earth camp, and at
-// the yard's edge to go back), its sign with a stack of blocks, and the
+// the yard's edge to go back), its sign with a stack of blocks, the magic
+// cloud you ride (and a Y button for its hint), and the
 // stickers' icons (the yard, a tall tower, a rainbow build, a hundred blocks).
 
 import { drawMap } from './pixelmap.js';
@@ -24,6 +25,32 @@ export function drawBuildArt(scene, canvasTexture, rect) {
     fn(ctx, tex);
     tex.refresh();
   };
+
+  // the magic cloud you ride to build anywhere (22x9)
+  one('yard-cloud', 22, 9, (ctx) => {
+    for (const [x, y, r] of [[5, 5, 4], [11, 4, 5], [17, 5, 4]]) {
+      ctx.fillStyle = '#9ab4d8';
+      ctx.beginPath(); ctx.arc(x, y + 0.5, r, 0, Math.PI * 2); ctx.fill();
+    }
+    for (const [x, y, r] of [[5, 5, 3.4], [11, 4, 4.4], [17, 5, 3.4]]) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    rect(ctx, '#dce8f8', 3, 7, 16, 1);
+  });
+  // a yellow Y button, for the hint (10x10)
+  one('btn-y', 10, 10, (ctx) => drawMap(ctx, 0, 0, [
+    '..oooooo..',
+    '.oyyyyyyo.',
+    'oywyyyywyo',
+    'oyywyywyyo',
+    'oyyywwyyyo',
+    'oyyywwyyyo',
+    'oyyywwyyyo',
+    'oyyyyyyyYo',
+    '.oYYYYYYo.',
+    '..oooooo..',
+  ], { o: '#5a4a10', y: '#ffd84a', Y: '#d8a820', w: '#ffffff' }));
 
   // the gate (40x48): two posts, an arch, and a sign with blocks on it
   one('yard-gate', 40, 48, (ctx) => {
