@@ -19,8 +19,8 @@ export function createHuntView(scene) {
   const chest = scene.add.sprite(chestX, chestY, 'hunt-chest', 0).setOrigin(0.5, 1).setDepth(11);
   // the X: over the middle of the cave, above the dark (it glows when you're near)
   const midY = px(c.cave.y0 + c.cave.y1 + 1) / 2;
-  const mark = scene.add.image(chestX, midY, 'hunt-x').setDepth(52).setAlpha(0).setScale(0.75);
-  if (golden) mark.setTint(0xffe066);
+  // (a golden map's X is gold)
+  const mark = scene.add.image(chestX, midY, golden ? 'hunt-x-gold' : 'hunt-x').setDepth(52).setAlpha(0).setScale(0.75);
   let open = false;
   let near = false;
   let t = 0;

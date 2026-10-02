@@ -13,7 +13,7 @@
 - **The map stays until found.** Going home early never wastes it.
 - **The Treasure Hall sells the maps** (Polly the parrot by the door) and is **a room you walk into**.
 - **The 12 treasures** are the draft list below, unchanged. They come out in random order.
-- **The grand prize** is a golden statue of your own character.
+- **The grand prize** is a golden statue of **the robot** (the owner's son always plays the robot; changed during the build at the owner's request).
 
 ## The Treasure Hall (Rainbow Village)
 
@@ -24,7 +24,7 @@
   - **One map at a time.** If you already have one, Polly shakes her head and the toast shows the map icon (no sale).
   - **Not enough sparkles:** the normal red-number "not yet" price, as at the shops.
   - **After all 12 treasures**, she sells the **golden map** instead (same price), until the grand prize is found.
-- **Press up at the hall's door** to go inside: the camera fades and `TreasureHallScene` starts, like the Build Yard. Walking out of the door (or B) fades back to the village, standing at the hall.
+- **Press A (or up) at the hall's door** to go inside: the camera fades and `TreasureHallScene` starts, like the Build Yard. A (or up) at the door inside fades back to the village, standing at the hall.
 
 ## Inside the hall (`TreasureHallScene`)
 
@@ -72,12 +72,13 @@
 | `globe` | treasure globe |
 | `duck` | golden rubber duck |
 
-- Each one also earns a sticker on a new **"Rainbow Treasures"** page in the sticker book (12 treasures + the grand prize = 13 stickers).
+- Each one earns a sticker on a new **"Rainbow Treasures"** page (12 stickers: a page holds at most 12).
+- A second new page, **"Rainbow Village"**, has the four shops, the Treasure Hall, your first map, your golden map and the statue (8 stickers). Both pages sit in a new Rainbow chapter of the book.
 
 ### The grand prize
 
-- A **giant golden statue of your character**, on the big plinth. In co-op, both players' characters stand side by side.
-- It's drawn from the live character art, wearing whatever gear that player is wearing now, all tinted gold with a shine sweeping across it now and then.
+- A **giant golden statue of the robot**, on the big plinth.
+- It's the robot's own art turned to gold (every pixel mapped onto a gold ramp by its brightness), wearing whatever gear the robot's player is wearing now (player 1's if nobody is the robot), also in gold, with a shine sweeping across it now and then.
 
 ## Saving
 
@@ -85,7 +86,7 @@
   - `state.hunt = { map: null | { row, col, golden }, found: [], grand: false }`;
   - `bases.rainbow.plots` grows to 5 entries.
 - **Migration:** older saves get the defaults; nothing is lost.
-- **When things save:** buying a map saves at once. A treasure found is saved when the trip ends, with the sparkles (like the jar). Ending a trip any other way also keeps the map.
+- **When things save:** buying a map saves at once, and so does a treasure the moment its chest opens (like stickers). The chest's sparkles go in the jar and bank when the trip ends. A trip that ends without finding the X keeps the map.
 
 ## Code
 

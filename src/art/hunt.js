@@ -245,8 +245,9 @@ export function drawHuntArt(scene, canvasTexture, rect) {
     }
   });
 
-  // the big red X painted on the rock (it glows when you're near)
-  one('hunt-x', 48, 32, (ctx) => {
+  // the big red X painted on the rock (it glows when you're near), and a
+  // golden map's gold one
+  for (const [key, paint, shine] of [['hunt-x', '#e0403a', '#ff7a6a'], ['hunt-x-gold', GOLD, GOLD_L]]) one(key, 48, 32, (ctx) => {
     const stroke = (flip, color, w) => {
       ctx.fillStyle = color;
       for (let i = 0; i <= 40; i++) {
@@ -257,9 +258,25 @@ export function drawHuntArt(scene, canvasTexture, rect) {
       }
     };
     for (const flip of [false, true]) stroke(flip, OUT, 9);
-    for (const flip of [false, true]) stroke(flip, '#e0403a', 6);
-    for (const flip of [false, true]) stroke(flip, '#ff7a6a', 2);
+    for (const flip of [false, true]) stroke(flip, paint, 6);
+    for (const flip of [false, true]) stroke(flip, shine, 2);
   });
+
+  // the map's compass arrow on the HUD: a fat red arrow pointing right (it turns to the X)
+  one('hunt-arrow', 14, 12, (ctx) => drawMap(ctx, 0, 0, [
+    '.......oo.....',
+    '.......oro....',
+    '.......orro...',
+    'oooooooorrro..',
+    'orrrrrrrrrrro.',
+    'orrrrrrrrrrrro',
+    'orrrrrrrrrrrro',
+    'orrrrrrrrrrro.',
+    'oooooooorrro..',
+    '.......orro...',
+    '.......oro....',
+    '.......oo.....',
+  ], { o: OUT, r: '#e0403a' }));
 
   // a rolled-out treasure map with a red X (and a golden one)
   for (const [key, paper, edge] of [['hunt-map', '#f4e4c1', '#c8a070'], ['hunt-map-golden', '#ffe066', GOLD_D]]) {

@@ -307,7 +307,7 @@ export class HudScene extends Phaser.Scene {
   treasureCard(prize) {
     const w = 190;
     const cx = this.scale.width / 2;
-    const c = this.add.container(cx, 124).setDepth(100);
+    const c = this.add.container(cx, 150).setDepth(100);
     const g = this.add.graphics();
     g.fillStyle(0x4a3222, 1).fillRoundedRect(-w / 2 - 2, -42, w + 4, 84, 8);
     g.fillStyle(0xf5c629, 1).fillRoundedRect(-w / 2, -40, w, 80, 7);
@@ -338,7 +338,7 @@ export class HudScene extends Phaser.Scene {
     });
     const hunt = this.source.huntView?.target();
     this.huntMark.setVisible(!!hunt);
-    if (hunt) this.huntMark.setPosition(x - 5, top + hunt.row * scale).setScale(0.22 + Math.sin(time / 200) * 0.03).setTint(hunt.golden ? 0xffe066 : 0xffffff);
+    if (hunt) this.huntMark.setPosition(x - 5, top + hunt.row * scale).setScale(0.22 + Math.sin(time / 200) * 0.03).setTexture(hunt.golden ? 'hunt-x-gold' : 'hunt-x');
     const reveal = this.source.revealAll;
     this.source.finds.eggs.forEach((e, i) => this.eggDots[i].setVisible(reveal && !e.taken));
     if (this.bigDot) {
@@ -404,7 +404,7 @@ export class HudScene extends Phaser.Scene {
     if (this.source.planet === 'rainbow') for (const o of [bag, barBg, bar, count]) o.setVisible(false);
     // ...but a treasure map shows there instead, with an arrow pointing to its X
     const map = this.add.image(30, 25, 'hunt-map').setVisible(false);
-    const arrow = this.add.image(50, 25, 'arrow-r').setScale(1.8).setVisible(false);
+    const arrow = this.add.image(50, 25, 'hunt-arrow').setVisible(false);
     c.add([map, arrow]);
     const panel = { c, ores, bar, count, full, key, map, arrow };
     this.panels[a.slot] = panel;
