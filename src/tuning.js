@@ -399,9 +399,11 @@ export const SATURN_CAMP = { ...MOON_CAMP };
 // solar panels still fit past it)
 export const SUN_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
 
-// ---- Rainbow Village (cells): the same shape as Moon Base (its plots come with
-// its buildings, later) ----
-export const RAINBOW_CAMP = { ...MOON_CAMP, plots: [] };
+// ---- Rainbow Village (cells): the same shape as Moon Base; its four plots hold the shops ----
+export const RAINBOW_CAMP = { ...MOON_CAMP };
+
+// ---- gear powers (px/s, px/s², seconds, cells) ----
+export const GEAR_TUNE = { bouncyJump: 1.42, glideFall: 40, balloonUp: 55, balloonLift: 500, skatesWalk: 1.25, magnetEvery: 3, magnetR: 3, luckyMul: 1.5 };
 
 // ---- solar flares: the storm cycle, but a shower of sunstones (seconds) ----
 export const FLARE = { first: [15, 25], calm: [35, 55], warn: 2, blow: 6, every: 0.5 };

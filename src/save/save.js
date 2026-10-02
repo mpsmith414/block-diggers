@@ -4,9 +4,10 @@
 import { ORES } from '../world/blocks.js';
 import { layersReached } from '../game/trip.js';
 import { MOON_PLOTS, PLOTS_AT } from '../game/economy.js';
+import { emptyWorn, wornFromSuit } from '../game/gear.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 11;
+export const VERSION = 12;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -31,13 +32,16 @@ export function defaultState() {
     visitors: { met: [], requests: {}, seen: [] },
     // the planets: where you are, each planet's camp, and the Sun Suit pieces you have
     planet: 'earth',
-    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(PLOTS_AT.sun).fill(null) } },
+    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(PLOTS_AT.sun).fill(null) }, rainbow: { plots: Array(PLOTS_AT.rainbow).fill(null), decor: { stock: {}, placed: [] } } },
     sunHeart: false, // the finale: the Sun's Heart came home (a mini-sun over Earth camp)
     suit: [],
     // the Build Yard: every cell that differs from the meadow, as [x, y, block]
     build: { edits: [] },
     // Rainbow Planet: the deepest row you've reached (every trip starts there)
     rainbow: { deepest: 0 },
+    // gear: what you've bought (the Sun Suit pieces you own through `suit`),
+    // and what each player is wearing
+    gear: { owned: [], worn: [emptyWorn(), emptyWorn()] },
   };
 }
 
@@ -85,6 +89,11 @@ export function migrate(raw) {
     // Rainbow Planet: not reached yet, no sparkles (filled in below); the Solar Station grows a fifth plot
     s = { ...s, version: 11 };
   }
+  if (s.version === 11) {
+    // gear: both players start out wearing the Sun Suit pieces they had
+    const worn = wornFromSuit(s.suit || []);
+    s = { ...s, version: 12, gear: { owned: [], worn: [{ ...worn }, { ...worn }] } };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -107,10 +116,18 @@ export function migrate(raw) {
       saturn: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.saturn?.plots?.[i] || null) },
       dino: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.dino?.plots?.[i] || null) },
       sun: { plots: Array.from({ length: PLOTS_AT.sun }, (_, i) => s.bases?.sun?.plots?.[i] || null) },
+      rainbow: {
+        plots: Array.from({ length: PLOTS_AT.rainbow }, (_, i) => s.bases?.rainbow?.plots?.[i] || null),
+        decor: { stock: {}, placed: [], ...(s.bases?.rainbow?.decor || {}) },
+      },
     },
     suit: [...new Set(s.suit || [])],
     build: { ...(s.build || {}), edits: Array.isArray(s.build?.edits) ? s.build.edits : [] },
     rainbow: { ...d.rainbow, ...(s.rainbow || {}) },
+    gear: {
+      owned: Array.isArray(s.gear?.owned) ? [...new Set(s.gear.owned)] : [],
+      worn: [0, 1].map((i) => ({ ...emptyWorn(), ...(s.gear?.worn?.[i] || {}) })),
+    },
   };
 }
 
