@@ -230,7 +230,14 @@ export const FINDS = { geodes: 5, fossils: 4, booms: 6, boulders: 4, bigChests: 
 // 11 mega drill, 12 frost drill, 13 pearl drill, 14 comet drill, 15 jungle drill,
 // 16 tooth drill, 17 obsidian drill, 18 sun drill, 19 flare drill, 20 nova drill.
 const X = Infinity;
+// ---- Rainbow Planet: the endless mine past the Sun ----
+// Layers of `layerRows`; each trip builds `stretch` layers below your deepest
+// point (`above` rows of rock over the little starting cave). Every rainbow
+// block digs in `digTime` with any drill: no upgrades needed here.
+export const RAINBOW = { seed: 0x7a1b0b, layerRows: 30, stretch: 10, digTime: 0.15, above: 4, cave: { w: 7, h: 3 } };
+
 export const MINE_TIME = {
+  rainbow: Array(21).fill(RAINBOW.digTime),
   soft: [0.25, 0.2, 0.12, 0.1, 0.08, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04],
   stone: [0.6, 0.4, 0.25, 0.2, 0.16, 0.13, 0.12, 0.11, 0.1, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
   deep: [X, 0.7, 0.4, 0.3, 0.25, 0.2, 0.18, 0.16, 0.14, 0.13, 0.12, 0.11, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.05, 0.05, 0.05],
@@ -388,7 +395,10 @@ export const STORM = { first: [20, 30], calm: [40, 70], warn: 3, blow: 8, push: 
 export const SATURN_CAMP = { ...MOON_CAMP };
 
 // ---- Solar Station (cells): the same shape as Moon Base ----
-export const SUN_CAMP = { ...MOON_CAMP };
+export const SUN_CAMP = { ...MOON_CAMP, plots: [26, 33, 40, 47, 54] };
+
+// ---- Rainbow Village (cells): the same shape as Moon Base ----
+export const RAINBOW_CAMP = { ...MOON_CAMP };
 
 // ---- solar flares: the storm cycle, but a shower of sunstones (seconds) ----
 export const FLARE = { first: [15, 25], calm: [35, 55], warn: 2, blow: 6, every: 0.5 };

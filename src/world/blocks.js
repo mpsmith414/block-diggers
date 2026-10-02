@@ -117,6 +117,15 @@ export const B = {
   SUN_HEART: 106,
   FIRE_FLOWER: 107,
   FORGE: 108,
+  // Rainbow Planet, the endless mine: its rock and gems are drawn tinted in
+  // each layer's own colours
+  RAINBOW_ROCK: 109,
+  RAINBOW_GEM: 110, // a tiny 1-block gem
+  RAINBOW_GEM_PART: 111, // a block of a bigger gem (2x2 up to 8x8)
+  RAINBOW_FLOOR: 112, // the glowing floor at the bottom of a trip's stretch (and the side walls)
+  RAINBOW_TOP: 113, // Rainbow Village's candy ground
+  RAINBOW_SOIL: 114,
+  RAINBOW_SHINY: 115, // a shiny slippery floor (the "shiny" twist)
 };
 
 export const ORES = ['coal', 'iron', 'gold', 'diamond', 'emerald', 'amber', 'brick', 'star', 'moonstone', 'cheese', 'spacegem', 'gizmo', 'ruby', 'bolt', 'opal', 'coin', 'frost', 'icecream', 'pearl', 'comet', 'jade', 'bone', 'tooth', 'obsidian', 'sunstone', 'flare', 'plasma', 'nova'];
@@ -232,6 +241,13 @@ def(B.NOVA, 'nova gem', true, 'radiant', 'nova');
 def(B.SUN_HEART, "the sun's heart", true, 'suncore');
 def(B.FIRE_FLOWER, 'fire flower', false, null);
 def(B.FORGE, 'solar forge', false, null);
+def(B.RAINBOW_ROCK, 'rainbow rock', true, 'rainbow');
+def(B.RAINBOW_GEM, 'rainbow gem', true, 'rainbow');
+def(B.RAINBOW_GEM_PART, 'big rainbow gem', true, 'rainbow');
+def(B.RAINBOW_FLOOR, 'rainbow floor', true, null);
+def(B.RAINBOW_TOP, 'candy grass', true, 'soft');
+def(B.RAINBOW_SOIL, 'candy soil', true, 'soft');
+def(B.RAINBOW_SHINY, 'shiny rainbow rock', true, 'rainbow');
 
 export const BLOCK_COUNT = TABLE.length;
 export const blockInfo = (id) => TABLE[id];
@@ -241,4 +257,4 @@ export const dropOf = (id) => (TABLE[id] ? TABLE[id].drop : null);
 // boulders you push around (cheese wheels on the Moon)
 export const isBoulder = (id) => id === B.BOULDER || id === B.CHEESE_WHEEL || id === B.SNOWBALL;
 // Saturn's ice: you slide on it
-export const isSlippery = (id) => id === B.ICE || id === B.FROST;
+export const isSlippery = (id) => id === B.ICE || id === B.FROST || id === B.RAINBOW_SHINY;
