@@ -399,8 +399,20 @@ export const SATURN_CAMP = { ...MOON_CAMP };
 // solar panels still fit past it)
 export const SUN_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
 
-// ---- Rainbow Village (cells): the same shape as Moon Base; its four plots hold the shops ----
-export const RAINBOW_CAMP = { ...MOON_CAMP };
+// ---- Rainbow Village (cells): the same shape as Moon Base; four plots hold
+// the shops and a fifth the Treasure Hall (10 more cells, like the Solar
+// Station, keep the patch at the end clear) ----
+export const RAINBOW_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
+
+// ---- the treasure hunt (sparkles; layers, rows and cells) ----
+// the hall and a map cost; the X goes 3-5 layers below your deepest, inside
+// its layer and away from the mine's sides; what a chest gives (the golden
+// range is the grand prize's chest, and every chest after it); how near the
+// X glows on the rock; the X cave's size
+// the Treasure Hall's room (cells): its size, the door, the first pedestal
+// and the gap between them, and the grand plinth
+export const HALL = { w: 46, h: 14, ground: 11, door: 3, first: 8, step: 2.5, plinth: 41 };
+export const HUNT = { hall: 500, map: 100, layers: [3, 5], inLayer: [8, 24], edge: 4, chest: [150, 250], golden: [300, 500], glow: 8, cave: { w: 5, h: 3 } };
 
 // ---- gear powers (px/s, px/s², seconds, cells) ----
 export const GEAR_TUNE = { bouncyJump: 1.42, glideFall: 40, balloonUp: 55, balloonLift: 500, skatesWalk: 1.25, magnetEvery: 3, magnetR: 3, luckyMul: 1.5 };

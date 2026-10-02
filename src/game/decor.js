@@ -6,7 +6,7 @@
 import { canAfford, spend } from './economy.js';
 import { TILE, CAMP, RAINBOW_CAMP } from '../tuning.js';
 
-export const TROPHY_COUNT = 26;
+export const TROPHY_COUNT = 28;
 
 export const DECOR_ITEMS = [
   { id: 'lamp', cost: { coal: 3, iron: 1 }, w: 10 },

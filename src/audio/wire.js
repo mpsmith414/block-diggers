@@ -137,6 +137,7 @@ const CAMP = {
   party: (s) => s.play('party'),
   gearSqueak: (s) => s.play('squeak'),
   wear: (s) => s.play('upgrade'),
+  squawk: (s) => s.play('caw'),
 };
 
 const BUILD = {
@@ -160,8 +161,17 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU, Gear: MENU };
-const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp' };
+// the Treasure Hall: footsteps, fanfares for new treasures, a party for the statue
+const HALL = {
+  jump: (s) => s.play('jump'),
+  joined: (s) => s.play('join'),
+  fanfare: (s) => s.play('fanfare'),
+  party: (s) => s.play('party'),
+  tripStart: (s) => s.play('whoosh'),
+};
+
+const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Hall: HALL, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU, Gear: MENU };
+const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp', Hall: 'rainbow' };
 
 // Which song plays: every planet has its own theme (at its camp and in its
 // mines); Earth keeps the camp and mine songs.

@@ -260,6 +260,24 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Decorations** for the village: a candy tree, lollipops, gumdrops, a
     candy-cane fence, a sparkle fountain, a cloud lamp, a giant ice cream, a
     rainbow dino statue, balloons, a gem pile, a jelly pond and a cupcake house.
+- **The treasure hunt** (Rainbow Village's fifth plot): build the **Treasure
+  Hall** (500 sparkles), and **Polly the pirate parrot** on her perch by the
+  door sells **treasure maps** (100 sparkles, one at a time). A map marks an
+  **X** 3–5 layers below your deepest point: it shows on the depth strip, a
+  red arrow in your panel points the way, and close up a big X glows on the
+  rock. Dig into the little cave under it for a **pirate chest**: one of
+  **twelve treasures** (a golden crown, a ship in a bottle, a giant pearl, a
+  dragon egg, pirate gold, a rainbow trophy, a crystal skull, a golden dino
+  bone, a magic lamp, a unicorn horn, a treasure globe and a golden duck) plus
+  150–250 sparkles. The map waits for you between trips; dig past the X and it
+  moves below you.
+  - **Inside the hall** (A or up at its door): a pedestal for every treasure.
+    New ones drop onto their pedestals with a fanfare when you walk in.
+  - **The grand prize:** after all twelve, Polly sells a **golden map**. Its
+    chest holds a **golden statue of the robot**, wearing the robot player's
+    gear, on the big plinth at the end of the hall. After that, maps keep
+    giving big piles of sparkles (300–500).
+  - Two new sticker pages: **Rainbow Treasures** and **Rainbow Village**.
 - **The Build Yard:** walk out through the gate at the right end of Earth camp
   into a big sunny meadow and **build with every block you've found**, as many
   as you like (Lego-style). Reaching a layer on any planet unlocks its rock and

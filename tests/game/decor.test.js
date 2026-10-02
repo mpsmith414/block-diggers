@@ -99,14 +99,14 @@ describe('Rainbow Village decorations', async () => {
   });
   it('placed only in the village, clear of the lift, the pad and empty plots', () => {
     const s = buyDecor(sparkly(), 'gumdrop', 'rainbow');
-    const open = (RAINBOW_CAMP.plots[3] + RAINBOW_CAMP.plotW + 2) * TILE;
+    const open = (RAINBOW_CAMP.plots[RAINBOW_CAMP.plots.length - 1] + RAINBOW_CAMP.plotW + 2) * TILE;
     expect(canPlace(s, 'gumdrop', open, 'rainbow')).toBe(true);
     expect(canPlace(s, 'gumdrop', open)).toBe(false); // not at Earth camp
     for (const cell of [RAINBOW_CAMP.shaftX, RAINBOW_CAMP.padX, RAINBOW_CAMP.benchX, 1]) {
       expect(canPlace(s, 'gumdrop', cell * TILE + 8, 'rainbow')).toBe(false);
     }
     expect(canPlace(s, 'gumdrop', RAINBOW_CAMP.plots[0] * TILE + 40, 'rainbow')).toBe(false);
-    const built = { ...s, bases: { ...s.bases, rainbow: { ...s.bases.rainbow, plots: ['hatshop', null, null, null] } } };
+    const built = { ...s, bases: { ...s.bases, rainbow: { ...s.bases.rainbow, plots: ['hatshop', null, null, null, null] } } };
     expect(blockedRanges(built, 'rainbow').length).toBe(blockedRanges(s, 'rainbow').length - 1);
     let t = placeDecor(takeFromStock(s, 'gumdrop', 'rainbow'), 'gumdrop', open, 'rainbow');
     expect(decorOf(t, 'rainbow').placed).toEqual([{ id: 'gumdrop', x: open }]);
