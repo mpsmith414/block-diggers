@@ -1,9 +1,11 @@
 // Pets on a trip. The mole trots after player 1 and sniffs out ore, the
 // glow-bug circles player 1's head and lights the way, the bat buddy flutters
 // by player 2 (or 1), fetching loose ore. The baby T-rex roars creatures away;
-// the baby Triceratops helps push boulders and headbutts boom blocks.
+// the baby Triceratops helps push boulders and headbutts boom blocks. The
+// Longneck stretches its neck up and nibbles ore out of the ceiling.
 
-import { sniff, follow, nearestPickup, roarTargets, WALKING_PETS } from '../../game/pets.js';
+import { sniff, follow, nearestPickup, roarTargets, nibbleTarget, WALKING_PETS } from '../../game/pets.js';
+import { HOST, layerAt } from '../../world/worldgen.js';
 import { addOre } from '../../game/loot.js';
 import { playerCell } from '../../game/player.js';
 import { B } from '../../world/blocks.js';
@@ -19,6 +21,7 @@ export function createPetsView(scene, kinds) {
     t: Math.random() * 10,
     sniffT: 2,
     roarT: 0,
+    nibbleT: 2,
     carrying: null,
   }));
 
@@ -43,6 +46,37 @@ export function createPetsView(scene, kinds) {
       scene.tweens.add({ targets: ping, scale: 2.4, alpha: 0, duration: 700, onComplete: () => ping.destroy() });
     });
     scene.events.emit('sniff');
+  }
+
+  // The Longneck's nibble: its neck stretches up to the ore, and the ore comes
+  // out (the block stays, as its layer's plain rock: no holes)
+  function nibble(pet, a, n) {
+    const from = { x: pet.pos.x, y: pet.pos.y - 4 };
+    const to = { x: n.x * TILE + TILE / 2, y: n.y * TILE + TILE / 2 };
+    const neck = scene.add.graphics().setDepth(30.5);
+    const draw = (k) => {
+      const x = from.x + (to.x - from.x) * k;
+      const y = from.y + (to.y - from.y) * k;
+      neck.clear();
+      neck.lineStyle(5, 0x1a4a2a, 1).lineBetween(from.x, from.y, x, y);
+      neck.lineStyle(3, 0x7ad07a, 1).lineBetween(from.x, from.y, x, y);
+      neck.fillStyle(0x1a4a2a, 1).fillCircle(x, y, 4);
+      neck.fillStyle(0x7ad07a, 1).fillCircle(x, y, 3);
+    };
+    scene.tweens.addCounter({
+      from: 0, to: 1, duration: 260, yoyo: true, hold: 160, ease: 'Quad.easeOut',
+      onUpdate: (tw) => draw(tw.getValue()),
+      onYoyo: () => {
+        if (scene.grid.get(n.x, n.y) !== n.id) return; // (dug out meanwhile)
+        scene.grid.set(n.x, n.y, scene.world.hostAt?.(n.y) ?? HOST[layerAt(n.y)]);
+        scene.mapView.sync(n.x, n.y);
+        scene.effects.chunks(n.x, n.y, n.id);
+        scene.effects.sparkle(to.x, to.y, 0xfff2a0, 6);
+        scene.events.emit('nibble', pet);
+        scene.giveOre(a, n.drop, n.x, n.y);
+      },
+      onComplete: () => neck.destroy(),
+    });
   }
 
   function roar(pet, near) {
@@ -174,6 +208,17 @@ export function createPetsView(scene, kinds) {
               pet.sprite.setAngle(dx * 15);
               scene.time.delayedCall(200, () => pet.sprite.setAngle(0));
             }
+          }
+        }
+
+        // Longneck: nibble ore out of the ceiling every few seconds
+        if (pet.kind === 'longneck' && !a.bubbling) {
+          pet.nibbleT -= dt;
+          if (pet.nibbleT <= 0) {
+            pet.nibbleT = PETS.nibbleEvery;
+            const { cx, cy } = playerCell(a.p);
+            const n = nibbleTarget(scene.grid, cx, cy, scene.upgrades.pick);
+            if (n) nibble(pet, a, n);
           }
         }
 

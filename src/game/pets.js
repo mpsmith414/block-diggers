@@ -1,6 +1,7 @@
 // Pets: hatched from eggs brought home. Each helps in its own way.
 
 import { dropOf } from '../world/blocks.js';
+import { mineTime } from '../world/grid.js';
 import { PETS } from '../tuning.js';
 
 // cave pets come from cave eggs (and the owl); dinosaurs from dino eggs
@@ -14,6 +15,22 @@ export const SUN_KINDS = ['sundragon'];
 export const PET_KINDS = [...CAVE_KINDS, ...DINO_KINDS, ...MOON_KINDS, ...MARS_KINDS, ...SATURN_KINDS, ...DINO_PLANET_KINDS, ...SUN_KINDS];
 // pets that walk along the ground (the rest fly)
 export const WALKING_PETS = ['mole', 'rex', 'trike', 'moonpup', 'rover', 'yeti', 'longneck'];
+
+// The Longneck's nibble: ore in the ceiling above you (up to `nibbleUp` rows
+// up, your column or one either side) that your drill could dig. The lowest
+// first, straight above before a diagonal. { x, y, id, drop }, or null.
+export function nibbleTarget(grid, cx, cy, pickLevel) {
+  for (let dy = 1; dy <= PETS.nibbleUp; dy++) {
+    for (const dx of [0, -1, 1]) {
+      const x = cx + dx;
+      const y = cy - dy;
+      const id = grid.get(x, y);
+      const drop = dropOf(id);
+      if (drop && mineTime(id, pickLevel) !== Infinity) return { x, y, id, drop };
+    }
+  }
+  return null;
+}
 
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {

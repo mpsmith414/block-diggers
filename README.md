@@ -186,7 +186,8 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Treehouse:** chests show on the depth meter;
   - **Ptero Perch:** a pterodactyl flies you down (the elevator);
   - **Sun Rocket:** needs the Jetpack, and flies you to the Sun.
-- **The Longneck** gives you a boost: step up ledges two blocks high.
+- **The Longneck** nibbles ore out of the ceiling above you: its long neck
+  stretches up, the ore drops into your backpack, and the block stays as rock.
 - **The Sun** (the finale). Everyone is always a **golden lava monster** here:
   you dig twice as fast, lava is safe, and creatures poof away. Every so often a
   **solar flare** makes the screen glow gold and rains sunstones down. Its six

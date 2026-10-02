@@ -28,7 +28,7 @@ import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
 import {
-  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip, jetpack, stepUp,
+  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip, jetpack,
 } from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
@@ -102,9 +102,8 @@ export class MineScene extends Phaser.Scene {
     // the Gloves: faster digging, and no slipping on Saturn's ice; the Yeti Cub helps you dig a little faster
     this.digMul = digMul(saved);
     this.grip = iceGrip(saved);
-    // the Jetpack (hold jump in the air) and the Longneck's boost (2-block ledges)
+    // the Jetpack (hold jump in the air)
     this.jet = jetpack(saved);
-    this.stepUp = stepUp(saved);
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
@@ -701,7 +700,7 @@ export class MineScene extends Phaser.Scene {
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       {
         pickLevel: this.upgrades.pick, dt, digMul: mul.dig * this.digMul, walkMul: mul.walk * this.walkMul, grip: this.grip,
-        jumpMul: mul.jump, jetpack: this.jet, stepUp: this.stepUp,
+        jumpMul: mul.jump, jetpack: this.jet,
         gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
       });
     this.stepSilly(a, dt, floaty);
