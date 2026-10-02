@@ -3,7 +3,7 @@
 
 import { B, isSolid, isBoulder, isSlippery } from '../world/blocks.js';
 import { mineTime, mineCell } from '../world/grid.js';
-import { TILE, PLAYER, ICE, JET } from '../tuning.js';
+import { TILE, PLAYER, ICE, JET, GEAR_TUNE } from '../tuning.js';
 
 const T = TILE;
 const EPS = 0.001;
@@ -50,8 +50,10 @@ const rowsOf = (y) => {
 
 export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false,
   jumpMul = 1, jetpack = false, chip = null,
+  // gear (see gear.js): the Glider Cape, the Balloon Pack, Gecko Socks, Ice Skates
+  glide = false, balloon = false, gecko = false, skates = false,
 }) {
-  const out = { mined: [], chipped: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false };
+  const out = { mined: [], chipped: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false, floating: false, gliding: false, wallClimb: false };
   const jumpSpeed = PLAYER.jumpSpeed * jumpMul;
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
@@ -126,16 +128,26 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     p.vy = Math.max(-JET.maxUp, p.vy - JET.thrust * dt);
     p.fuel = Math.max(0, p.fuel - dt);
     out.jetting = true;
+  } else if (balloon && !p.grounded && !p.climbing && !inLadder && !knocked && intent.jump && p.jumpHeldT > JET.hold) {
+    // the Balloon Pack: keep holding jump and you float gently up (it never runs out)
+    p.vy = p.vy < -GEAR_TUNE.balloonUp ? p.vy + gravity * dt : Math.max(-GEAR_TUNE.balloonUp, p.vy - GEAR_TUNE.balloonLift * dt);
+    out.floating = true;
   } else if (p.climbing) {
     p.vy = iy * PLAYER.climbSpeed;
   } else if (inLadder && p.vy >= 0) {
     p.vy = 0; // hang on the ladder (also catches a fall)
   } else {
     p.vy = Math.min(maxFall, p.vy + gravity * dt);
+    // the Glider Cape: hold jump while falling and you float down slowly
+    if (glide && intent.jump && p.vy > GEAR_TUNE.glideFall && !p.grounded) {
+      p.vy = GEAR_TUNE.glideFall;
+      out.gliding = true;
+    }
   }
   const want = ix * PLAYER.walkSpeed * walkMul * (inWater ? PLAYER.swimSlow : 1);
   // standing on Saturn's ice: slow to speed up, slow to stop (the Gloves grip)
-  const onIce = !grip && !knocked && !inWater && p.grounded && columnsOf(p.x).some((c) => isSlippery(grid.get(c, footRow)));
+  // (Ice Skates: every floor is ice, Gloves or not)
+  const onIce = !knocked && !inWater && p.grounded && (skates || (!grip && columnsOf(p.x).some((c) => isSlippery(grid.get(c, footRow)))));
   p.sliding = onIce && Math.abs(p.vx - want) > 1;
   if (knocked) p.vx = p.knock.vx;
   else if (onIce) {
@@ -161,6 +173,12 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     } else {
       p.x = nx;
     }
+  }
+
+  // Gecko Socks: in the air, push into a wall and you climb straight up it
+  if (gecko && blockedX && Math.sign(ix) === blockedX && !p.grounded && !inLadder && !knocked && !inWater) {
+    p.vy = -PLAYER.climbSpeed;
+    out.wallClimb = true;
   }
 
   // blocked sideways: step up a 1-block ledge, or mine it (not when only the wind pushed you there)
