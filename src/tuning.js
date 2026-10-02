@@ -343,7 +343,7 @@ export const POWERUPS = {
 };
 
 // ---- pets ----
-export const PETS = { scale: 0.7, goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2 };
+export const PETS = { scale: 0.7, goldenEggGold: 6, sniffEvery: 6, sniffRange: 10, bugLight: 2.6, fetchRange: 80, speed: 160, roarEvery: 8, roarRange: 5, parkAmber: 2, nibbleEvery: 3, nibbleUp: 3 };
 
 // ---- bubble to partner ----
 export const BUBBLE = { speed: 220, minDistance: 32 };

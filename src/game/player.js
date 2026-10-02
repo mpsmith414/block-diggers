@@ -49,7 +49,7 @@ const rowsOf = (y) => {
 };
 
 export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false,
-  jumpMul = 1, jetpack = false, stepUp = 1,
+  jumpMul = 1, jetpack = false,
 }) {
   const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false };
   const jumpSpeed = PLAYER.jumpSpeed * jumpMul;
@@ -170,11 +170,8 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
     if (isSolid(grid.get(tc, row))) {
       const leanOn = isBoulder(grid.get(tc, row)) || grid.get(tc, row) === B.BOOM; // push or light it instead
       const canStep = !leanOn && p.grounded && !isSolid(grid.get(tc, row - 1)) && !isSolid(grid.get(cx, row - 1));
-      // the Longneck's boost: up a ledge two blocks high
-      const canStep2 = !leanOn && !canStep && stepUp >= 2 && p.grounded && !isBoulder(grid.get(tc, row - 1))
-        && !isSolid(grid.get(tc, row - 2)) && !isSolid(grid.get(cx, row - 1)) && !isSolid(grid.get(cx, row - 2));
-      if (canStep || canStep2) {
-        p.y = (canStep ? row : row - 1) * T - PLAYER.h;
+      if (canStep) {
+        p.y = row * T - PLAYER.h;
         p.x = blockedX > 0 ? tc * T + 4 - PLAYER.w : (tc + 1) * T - 4;
         p.vy = 0;
         out.stepped = true;

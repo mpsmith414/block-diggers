@@ -8,8 +8,8 @@ import { discovery, BADGE_LAYERS } from '../../src/game/trip.js';
 import { chestLoot } from '../../src/game/loot.js';
 import { nestLoot, skullLoot, stegoLoot, heartLeft, HEARTS } from '../../src/game/finds.js';
 import { UPGRADES, DINO_BLUEPRINTS, blueprintsFor, plotsOf, buildOnPlot, blueprintOk } from '../../src/game/economy.js';
-import { campGift, elevatorStops, revealsChests, jetpack, stepUp, winSuitPiece } from '../../src/game/perks.js';
-import { PET_KINDS, DINO_PLANET_KINDS, WALKING_PETS, hatch } from '../../src/game/pets.js';
+import { campGift, elevatorStops, revealsChests, jetpack, winSuitPiece } from '../../src/game/perks.js';
+import { PET_KINDS, DINO_PLANET_KINDS, WALKING_PETS, hatch, nibbleTarget } from '../../src/game/pets.js';
 import { createPowerups, startRide, stepPowerups, multipliers } from '../../src/game/powerups.js';
 import { createPlayer, stepPlayer, standAt } from '../../src/game/player.js';
 import { nextGoal, oreTopRow } from '../../src/game/goals.js';
@@ -217,25 +217,45 @@ describe('the Longneck', () => {
     expect(PET_KINDS).toContain('longneck');
     expect(WALKING_PETS).toContain('longneck');
     expect(hatch(defaultState(), 'longneck').state.pets).toEqual(['longneck']);
-    expect(stepUp(defaultState())).toBe(1);
-    expect(stepUp({ ...defaultState(), pets: ['longneck'] })).toBe(2);
   });
 
-  it('lets you step up a 2-block ledge (without it, you dig instead)', () => {
-    const make = () => {
+  it('a 2-block ledge is a wall: walking into it, you dig (no stepping up)', () => {
+    const grid = createGrid(12, 12);
+    for (let x = 0; x < 12; x++) grid.set(x, 10, B.JUNGLE_SOIL);
+    for (let x = 6; x < 12; x++) { grid.set(x, 9, B.JUNGLE_SOIL); grid.set(x, 8, B.JUNGLE_SOIL); }
+    const p = createPlayer(standAt(4, 9));
+    for (let i = 0; i < 60; i++) stepPlayer(p, { moveX: 1, moveY: 0, jump: false }, grid, { dt: 1 / 60, pickLevel: 0 });
+    expect(p.y).toBe(standAt(5, 9).y);
+    expect(PLAYER.h).toBeLessThan(TILE);
+  });
+
+  describe('nibbles ore out of the ceiling above you', () => {
+    // you stand in cell (5, 9); up to 3 rows above, one column either side
+    const ceiling = (cells) => {
       const grid = createGrid(12, 12);
-      for (let x = 0; x < 12; x++) grid.set(x, 10, B.JUNGLE_SOIL);
-      for (let x = 6; x < 12; x++) { grid.set(x, 9, B.JUNGLE_SOIL); grid.set(x, 8, B.JUNGLE_SOIL); }
+      for (const [x, y, id] of cells) grid.set(x, y, id);
       return grid;
     };
-    const walk = (up) => {
-      const grid = make();
-      const p = createPlayer(standAt(4, 9));
-      for (let i = 0; i < 60; i++) stepPlayer(p, { moveX: 1, moveY: 0, jump: false }, grid, { dt: 1 / 60, stepUp: up, pickLevel: 0 });
-      return p;
-    };
-    expect(walk(2).y).toBe(standAt(7, 7).y);
-    expect(walk(1).y).toBe(standAt(5, 9).y);
-    expect(PLAYER.h).toBeLessThan(TILE);
+
+    it('the lowest ore first, straight above before a diagonal', () => {
+      expect(nibbleTarget(ceiling([[5, 6, B.COAL_DIRT], [4, 8, B.COAL_DIRT], [5, 8, B.JADE]]), 5, 9, 20))
+        .toEqual({ x: 5, y: 8, id: B.JADE, drop: 'jade' });
+      expect(nibbleTarget(ceiling([[5, 6, B.COAL_DIRT], [6, 7, B.COAL_DIRT]]), 5, 9, 20))
+        .toEqual({ x: 6, y: 7, id: B.COAL_DIRT, drop: 'coal' });
+      expect(nibbleTarget(ceiling([[5, 6, B.COAL_DIRT]]), 5, 9, 20)).toEqual({ x: 5, y: 6, id: B.COAL_DIRT, drop: 'coal' });
+    });
+
+    it('never beside you, below you, or more than 3 up', () => {
+      expect(nibbleTarget(ceiling([[6, 9, B.COAL_DIRT], [5, 10, B.COAL_DIRT], [4, 10, B.COAL_DIRT], [5, 5, B.COAL_DIRT], [7, 8, B.COAL_DIRT]]), 5, 9, 20)).toBe(null);
+    });
+
+    it('only ore: never plain rock, a Heart or a chest', () => {
+      expect(nibbleTarget(ceiling([[5, 8, B.STONE], [5, 7, B.DINO_HEART], [4, 8, B.CHEST], [6, 7, B.JUNGLE_SOIL]]), 5, 9, 20)).toBe(null);
+    });
+
+    it('only ore your drill could dig', () => {
+      expect(nibbleTarget(ceiling([[5, 8, B.JADE], [5, 7, B.COAL_DIRT]]), 5, 9, 0)).toEqual({ x: 5, y: 7, id: B.COAL_DIRT, drop: 'coal' });
+      expect(nibbleTarget(ceiling([[5, 8, B.DIAMOND]]), 5, 9, 0)).toBe(null);
+    });
   });
 });
