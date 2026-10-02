@@ -92,12 +92,13 @@ export function powersOf(state, slot, { off = false } = {}) {
 }
 export const anyoneWears = (state, power) => [0, 1].some((i) => powersOf(state, i).has(power));
 
-// A piece just won (a Sun Suit piece, the crown): everyone puts it on.
+// A piece just won (a Sun Suit piece, the crown): everyone with that slot
+// free puts it on (the crown never knocks the Helmet's light off).
 export function wearWon(state, id) {
   const item = gearById(id);
   if (!item || !ownsGear(state, id)) return state;
   let next = state;
-  for (const slot of [0, 1]) next = wearGear(next, slot, item.slot, id) ?? next;
+  for (const slot of [0, 1]) if (!wornBy(next, slot)[item.slot]) next = wearGear(next, slot, item.slot, id) ?? next;
   return next;
 }
 

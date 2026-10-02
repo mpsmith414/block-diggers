@@ -3,6 +3,7 @@
 import { BACKPACK, LANTERN, PERKS } from '../tuning.js';
 import { plotsOf } from './economy.js';
 import { layersOf, planetById } from './planets.js';
+import { powersOf, anyoneWears, wearWon } from './gear.js';
 
 const has = (state, id) => state.plots.includes(id);
 export const hasBuilt = (state, id, planet = 'earth') => plotsOf(state, planet).includes(id);
@@ -23,25 +24,28 @@ export const revealsChests = (state, planet = 'earth') => perkBuilt(state, 'reve
 // ---- the Sun Suit: one piece from the bottom of each planet ----
 
 export const hasSuit = (state, piece) => (state.suit ?? []).includes(piece);
-export const winSuitPiece = (state, piece) => (hasSuit(state, piece) ? state : { ...state, suit: [...(state.suit ?? []), piece] });
+// (a piece you win goes on straight away, for anyone with that slot free)
+export const winSuitPiece = (state, piece) => (hasSuit(state, piece) ? state : wearWon({ ...state, suit: [...(state.suit ?? []), piece] }, piece));
+// what player `slot` is wearing does the rest (see gear.js)
+const wears = (state, slot, power) => powersOf(state, slot).has(power);
 
-// the Helmet's headlamp: 2 more blocks of light, in every mine
+// the Helmet's headlamp: 2 more blocks of light, in every mine, if anyone's wearing it
 // (and the Baby Sun Dragon glows: 4 more)
-export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (hasSuit(state, 'helmet') ? PERKS.headlamp : 0)
+export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (anyoneWears(state, 'light') ? PERKS.headlamp : 0)
   + ((state.pets ?? []).includes('sundragon') ? PERKS.dragonLight : 0);
 
 // The Sun's Heart came home: the finale, and a crown for everyone.
 export const winSunHeart = (state) => ({ ...winSuitPiece(state, 'crown'), sunHeart: true });
 // the Boots: faster everywhere (and dust storms can't push you)
-export const walkMul = (state) => (hasSuit(state, 'boots') ? PERKS.bootsSpeed : 1);
-export const stormProof = (state) => hasSuit(state, 'boots');
+export const walkMul = (state, slot = 0) => (wears(state, slot, 'boots') ? PERKS.bootsSpeed : 1);
+export const stormProof = (state, slot = 0) => wears(state, slot, 'boots');
 // the Gloves: digging is faster everywhere (and you never slip on ice);
 // the Yeti Cub helps too, a little
-export const digMul = (state) => (hasSuit(state, 'gloves') ? PERKS.glovesDig : 1)
+export const digMul = (state, slot = 0) => (wears(state, slot, 'gloves') ? PERKS.glovesDig : 1)
   * ((state.pets ?? []).includes('yeti') ? PERKS.yetiDig : 1);
-export const iceGrip = (state) => hasSuit(state, 'gloves');
+export const iceGrip = (state, slot = 0) => wears(state, slot, 'gloves');
 // the Jetpack: hold jump in the air to fly
-export const jetpack = (state) => hasSuit(state, 'jetpack');
+export const jetpack = (state, slot = 0) => wears(state, slot, 'jetpack');
 // the Weather Station: storms on Mars carry rubies
 export const stormRubies = (state) => (hasBuilt(state, 'weather', 'mars') ? PERKS.stormRubies : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);

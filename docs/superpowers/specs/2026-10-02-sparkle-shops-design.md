@@ -111,7 +111,7 @@
 - **The bonus mini games:** inside a bonus room (whack-a-mole, the skate park, the claw machine, hockey, egg catch, fireworks), the wearer has no powers. The looks stay on.
 - **The Moon Pup's double jump** works with any gear, as before.
 - **Story locks** (rockets that need a suit piece, landing on the Sun) still read `state.suit`, which is what you own.
-- **Winning a Sun Suit piece** (or the crown) puts it on both players, replacing whatever was in that slot. It's a story moment.
+- **Winning a Sun Suit piece** (or the crown) puts it on every player whose slot is free. So the crown never knocks the Helmet's light off; he can swap it on from the Gear page.
 
 ### The Gear page
 
@@ -162,7 +162,7 @@ These are sold by the Decoration Workshop, and you can buy as many of each as yo
   - `GEAR` (the catalogue), `SLOTS`, `gearById`, `shopItems(shop)`;
   - `ownsGear(state, id)`, `buyGear(state, id)`, `wearGear(state, slot, id)` (`id = null` takes it off), `wornBy(state, slot)`;
   - `powersOf(state, slot, { off })` → a `Set` of power names;
-  - `wearWon(state, id)` (both players put on a won piece).
+  - `wearWon(state, id)` (a won piece goes on every player whose slot is free).
 - **`perks.js`:** `lanternRadius`, `walkMul`, `stormProof`, `digMul`, `iceGrip` and `jetpack` read the worn gear.
   - The per-player ones take a player slot.
   - The light reads whether anyone wears the Helmet.

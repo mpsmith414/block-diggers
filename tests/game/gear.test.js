@@ -68,12 +68,38 @@ describe('wearing', () => {
     expect(anyoneWears(s, 'confetti')).toBe(true);
     expect(anyoneWears(s, 'light')).toBe(false);
   });
-  it('a piece just won goes on both players', () => {
+  it('a piece just won goes on everyone with that slot free', () => {
     let s = buyGear(rich(), 'glider');
     s = wearGear(s, 0, 'back', 'glider');
     s = wearWon({ ...s, suit: ['jetpack'] }, 'jetpack');
-    expect(wornBy(s, 0).back).toBe('jetpack');
+    expect(wornBy(s, 0).back).toBe('glider');
     expect(wornBy(s, 1).back).toBe('jetpack');
     expect(wearWon(defaultState(), 'jetpack')).toEqual(defaultState()); // not owned: nothing
+  });
+});
+
+describe('the Sun Suit perks follow what you wear', async () => {
+  const { walkMul, digMul, jetpack, lanternRadius, stormProof, iceGrip, winSuitPiece } = await import('../../src/game/perks.js');
+  const { buildOnPlot, plotsOf } = await import('../../src/game/economy.js');
+  it('taking a piece off switches its perk off, for that player only', () => {
+    let s = ['helmet', 'boots', 'gloves', 'jetpack'].reduce(winSuitPiece, defaultState());
+    expect(jetpack(s, 0) && jetpack(s, 1)).toBe(true);
+    s = wearGear(s, 0, 'back', null);
+    s = wearGear(s, 1, 'feet', null);
+    expect(jetpack(s, 0)).toBe(false);
+    expect(jetpack(s, 1)).toBe(true);
+    expect(walkMul(s, 1)).toBe(1);
+    expect(stormProof(s, 0)).toBe(true);
+    expect(digMul(s, 0)).toBeCloseTo(1.25);
+    expect(iceGrip(s, 1)).toBe(true);
+    // the Helmet's light: if anyone wears it
+    const lit = lanternRadius(s);
+    expect(lanternRadius(wearGear(s, 0, 'head', null))).toBe(lit);
+    expect(lanternRadius(wearGear(wearGear(s, 0, 'head', null), 1, 'head', null))).toBe(lit - 2);
+  });
+  it('story locks read what you own, not what you wear', () => {
+    let s = ['helmet', 'boots', 'gloves', 'jetpack'].reduce(winSuitPiece, { ...defaultState(), bank: { ...defaultState().bank, obsidian: 99, tooth: 99, jade: 99 } });
+    s = wearGear(wearGear(s, 0, 'back', null), 1, 'back', null);
+    expect(plotsOf(buildOnPlot(s, 3, 'sunrocket', 'dino'), 'dino')[3]).toBe('sunrocket');
   });
 });
