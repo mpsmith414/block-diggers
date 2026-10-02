@@ -84,15 +84,21 @@ const TREASURES = {
     r('#c8ffd0', 5, 5, 1, 3);
   },
 
-  // a pile of pirate gold coins
+  // pirate gold: three stacks of coins, the tall one in front
   goldcoins: (ctx, r) => {
-    const coin = (x, y) => {
-      ell(ctx, x, y, 3, 2, OUT);
-      ell(ctx, x, y, 2, 1, GOLD);
-      r(GOLD_L, x - 1, y - 1, 1, 1);
+    const stack = (x, n) => {
+      const top = 15 - n * 2 - 2;
+      r(OUT, x, top, 7, n * 2 + 3);
+      r(GOLD_L, x + 1, top + 1, 5, 1);
+      for (let k = 0; k < n; k++) {
+        r(GOLD, x + 1, top + 2 + k * 2, 5, 1);
+        r(GOLD_L, x + 1, top + 2 + k * 2, 1, 1);
+        r(GOLD_D, x + 1, top + 3 + k * 2, 5, 1);
+      }
     };
-    for (const [x, y] of [[3, 13], [8, 13], [13, 13], [5, 10], [10, 10], [8, 7], [4, 6], [12, 7], [8, 4]]) coin(x, y);
-    r(GOLD_D, 2, 14, 13, 1);
+    stack(0, 4);
+    stack(9, 3);
+    stack(4, 6);
   },
 
   // a golden cup with rainbow stripes
