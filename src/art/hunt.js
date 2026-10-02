@@ -5,6 +5,7 @@
 // pieces of its room: pedestals, the big plinth, banners, columns and the door.
 
 import { drawMap } from './pixelmap.js';
+import { goldify } from './gold.js';
 
 const OUT = '#2a1d2e';
 const GOLD = '#ffd84a';
@@ -278,23 +279,17 @@ export function drawHuntArt(scene, canvasTexture, rect) {
     ], { o: OUT, p: paper, e: edge, d: edge, x: '#e0403a' }));
   }
 
-  // a little golden statue on a plinth (the sticker for the grand prize)
-  one('hunt-statue-icon', 12, 14, (ctx) => drawMap(ctx, 0, 0, [
-    '...oooooo...',
-    '..oyyyyyyo..',
-    '..oylyyoyo..',
-    '..oyyyyyyo..',
-    '..oyyyyyyo..',
-    '...oooooo...',
-    '..oyyyyyyo..',
-    '.oyoyyyyoyo.',
-    '..oyyyyyyo..',
-    '...oyooyo...',
-    '...oyooyo...',
-    '.oooooooooo.',
-    'oddddddddddo',
-    'oooooooooooo',
-  ], { o: OUT, y: GOLD, l: GOLD_L, d: '#9a7aff' }));
+  // the grand prize's sticker: a little golden robot on a plinth (the robot's
+  // first frame, turned to gold)
+  one('hunt-statue-icon', 16, 20, (ctx, r) => {
+    if (scene.textures.exists('char-robot')) {
+      ctx.drawImage(scene.textures.get('char-robot').getSourceImage(), 0, 0, 16, 16, 0, 0, 16, 16);
+      goldify(ctx, 16, 16);
+    }
+    r(OUT, 1, 16, 14, 4);
+    r('#9a7aff', 2, 17, 12, 2);
+    r(GOLD, 2, 17, 12, 1);
+  });
 
   // Polly the pirate parrot (16x16, 2 frames: sitting, then wings up)
   one('polly', 32, 16, (ctx, r, tex) => {
@@ -366,14 +361,15 @@ export function drawHuntArt(scene, canvasTexture, rect) {
     r(OUT, 2, 34, 13, 3);
     r('#c8904e', 3, 35, 11, 1);
     // the price board on its own little post (the price is drawn on top)
-    r(OUT, 3, 54, 20, 13);
-    r('#f4e4c1', 4, 55, 18, 11);
+    r(OUT, 3, 47, 21, 20);
+    r('#f4e4c1', 4, 48, 19, 18);
+    r('#c8a070', 4, 65, 19, 1);
     r(OUT, 12, 67, 2, 13);
     // grass tufts
     for (const x of [1, 18, 24, 90]) drawMap(ctx, x, 77, ['g.g', '.g.'], { g: '#6ad07a' });
   });
 
-  // the room: a pedestal (16x20), the big plinth (56x16), a banner (12x28),
+  // the room: a pedestal (16x20), the big plinth (96x16), a banner (12x28),
   // a column (12x72) and the door (32x48)
   one('hall-pedestal', 16, 20, (ctx, r) => {
     r(OUT, 2, 0, 12, 4);
@@ -385,13 +381,13 @@ export function drawHuntArt(scene, canvasTexture, rect) {
     r('#fff6e0', 2, 17, 12, 2);
     r(GOLD, 3, 1, 10, 1);
   });
-  one('hall-plinth', 56, 16, (ctx, r) => {
-    r(OUT, 0, 0, 56, 16);
-    r('#9a5ad0', 1, 1, 54, 14);
-    r('#b07ae0', 1, 1, 54, 4);
-    r(GOLD, 1, 5, 54, 1);
-    r(GOLD, 1, 12, 54, 1);
-    for (let x = 4; x < 52; x += 8) r(GOLD_L, x, 8, 3, 2);
+  one('hall-plinth', 96, 16, (ctx, r) => {
+    r(OUT, 0, 0, 96, 16);
+    r('#9a5ad0', 1, 1, 94, 14);
+    r('#b07ae0', 1, 1, 94, 4);
+    r(GOLD, 1, 5, 94, 1);
+    r(GOLD, 1, 12, 94, 1);
+    for (let x = 4; x < 92; x += 8) r(GOLD_L, x, 8, 3, 2);
   });
   one('hall-banner', 12, 28, (ctx, r) => {
     r(OUT, 0, 0, 12, 22);

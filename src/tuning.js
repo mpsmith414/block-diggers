@@ -409,6 +409,9 @@ export const RAINBOW_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] }
 // its layer and away from the mine's sides; what a chest gives (the golden
 // range is the grand prize's chest, and every chest after it); how near the
 // X glows on the rock; the X cave's size
+// the Treasure Hall's room (cells): its size, the door, the first pedestal
+// and the gap between them, and the grand plinth
+export const HALL = { w: 46, h: 14, ground: 11, door: 3, first: 8, step: 2.5, plinth: 41 };
 export const HUNT = { hall: 500, map: 100, layers: [3, 5], inLayer: [8, 24], edge: 4, chest: [150, 250], golden: [300, 500], glow: 8, cave: { w: 5, h: 3 } };
 
 // ---- gear powers (px/s, px/s², seconds, cells) ----

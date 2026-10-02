@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ORES } from '../world/blocks.js';
 import { UPGRADE_KINDS, UPGRADES } from '../game/economy.js';
 import { getState } from '../save/store.js';
+import { huntOf } from '../game/hunt.js';
 import { shownOres } from '../game/ores.js';
 import { B } from '../world/blocks.js';
 import { LAYER_COLORS } from '../tuning.js';
@@ -90,6 +91,9 @@ export class CampHudScene extends Phaser.Scene {
       this.bank.add(num);
       this.levelNums[kind] = num;
     });
+    // Rainbow Village: the treasure map you hold, beside the bank
+    if (this.mapBadge) this.mapBadge.destroy();
+    this.mapBadge = this.add.image(x + w + 14, y + h / 2, 'hunt-map').setScale(2).setVisible(false);
     this.syncBank(getState(this.registry).bank);
   }
 
@@ -107,6 +111,9 @@ export class CampHudScene extends Phaser.Scene {
       b.num.setAlpha(bank[ore] > 0 ? 1 : 0.45);
     }
     const state = getState(this.registry);
+    const map = this.camp.planet === 'rainbow' ? huntOf(state).map : null;
+    if (map && !this.mapBadge.visible) this.tweens.add({ targets: this.mapBadge, scale: { from: 4, to: 2 }, duration: 350, ease: 'Back.easeOut' });
+    this.mapBadge.setVisible(!!map).setTexture(map?.golden ? 'hunt-map-golden' : 'hunt-map');
     for (const kind of UPGRADE_KINDS) {
       const text = String(state.upgrades[kind] + 1);
       const num = this.levelNums[kind];

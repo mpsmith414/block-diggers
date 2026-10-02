@@ -7,6 +7,7 @@
 import { getState } from '../../save/store.js';
 import { SLOTS, wornBy } from '../../game/gear.js';
 import { gearLook } from '../../art/gear.js';
+import { goldKey } from '../../art/gold.js';
 
 // drawn bottom to top: backs (behind), feet, hands, then the hat
 const ORDER = ['back', 'feet', 'hands', 'head'];
@@ -29,7 +30,9 @@ export function createGearView(scene) {
       const look = gearLook(id);
       if (!scene.textures.exists(look.key)) return;
       const depth = a.sprite.depth + (look.behind ? -0.5 : 0.2 + i * 0.1);
-      list.push({ id, look, img: scene.add.image(0, 0, look.key, look.framed ? 0 : undefined).setOrigin(0.5, 1).setDepth(depth) });
+      // (the Treasure Hall's golden statues wear golden gear)
+      const key = a.gold ? goldKey(scene, look.key) : look.key;
+      list.push({ id, look, img: scene.add.image(0, 0, key, look.framed ? 0 : undefined).setOrigin(0.5, 1).setDepth(depth) });
     });
     worn.set(a, list);
   };

@@ -36,8 +36,9 @@ import { planetById, rocketTo, PLANETS } from '../game/planets.js';
 import { createGearView } from './common/gearView.js';
 import { createGearFx } from './common/gearFx.js';
 import { summarizeTrip } from '../game/trip.js';
-import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
+import { TILE, CAMP, PLAYER, SKY_ROWS, HUNT } from '../tuning.js';
 import { charFor } from '../game/cast.js';
+import { huntOf, mapStatus, buyMap as buyHuntMap } from '../game/hunt.js';
 
 const GROUND_Y = CAMP.ground * TILE;
 const HUD_STRIP = 48;
@@ -71,6 +72,7 @@ export class CampScene extends Phaser.Scene {
     this.landing = !!data?.landing;
     this.from = data?.from ?? null;
     this.fromYard = !!data?.fromYard;
+    this.fromHall = !!data?.fromHall;
   }
 
   create() {
@@ -139,7 +141,7 @@ export class CampScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, -SKY_ROWS * TILE, this.W, (this.L.h + SKY_ROWS) * TILE);
     cam.setRoundPixels(true);
-    const startX = this.landing ? this.rocketX(this.from) : this.fromYard ? this.W - 4 * TILE : this.L.shaftX * TILE;
+    const startX = this.landing ? this.rocketX(this.from) : this.fromYard ? this.W - 4 * TILE : this.fromHall ? this.hallDoorX() : this.L.shaftX * TILE;
     this.cam = { zoom: 1.5, x: startX, y: GROUND_Y - 40 };
     cam.setZoom(this.cam.zoom).centerOn(this.cam.x, this.cam.y);
     cam.fadeIn(400, 20, 12, 30);
@@ -328,6 +330,7 @@ export class CampScene extends Phaser.Scene {
 
   // Life for each building: smoke, animals, a waving flag, the minecart.
   addExtras(b) {
+    if (b.id === 'treasurehall') this.addPolly(b);
     const { x, id } = b;
     if (id === 'house' && PHASES[this.phase].night) {
       for (const wx of [26, 70]) {
@@ -576,13 +579,15 @@ export class CampScene extends Phaser.Scene {
     // arriving by rocket: you start inside it (hidden until the door opens)
     // (back from the Build Yard: you come in through its gate, at the right end)
     const start = this.landingNow ? { ...standAt(0, this.L.ground - 1), x: this.rocketX(this.from) - PLAYER.w / 2 }
-      : this.fromYard ? standAt(this.L.w - 3 - slot, this.L.ground - 1) : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
+      : this.fromYard ? standAt(this.L.w - 3 - slot, this.L.ground - 1)
+        : this.fromHall ? standAt(Math.floor(this.hallDoorX() / TILE) - 1 + slot, this.L.ground - 1)
+          : standAt(this.L.shaftX + 1 + slot, this.L.ground - 1);
     const a = {
       slot,
       char,
       p: createPlayer(start),
       sprite: this.add.sprite(0, 0, `char-${char}`, 0).setOrigin(0.5, 1).setDepth(30),
-      edges: { a: createEdge(), b: createEdge(), y: createEdge(), left: createEdge(), right: createEdge(), down: createEdge() },
+      edges: { a: createEdge(), b: createEdge(), y: createEdge(), left: createEdge(), right: createEdge(), down: createEdge(), up: createEdge() },
       walkT: 0,
     };
     a.powers = powersOf(getState(this.registry), slot);
@@ -612,6 +617,8 @@ export class CampScene extends Phaser.Scene {
     if (ROCKETS.includes(here) && ready) return { kind: 'rocket', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     // Rainbow Village's shops
     if (SHOP_BUILDINGS.includes(here) && ready) return { kind: 'shop', plot, shop: here };
+    // the Treasure Hall: Polly on her perch at the left, the door at the right
+    if (here === 'treasurehall' && ready) return { kind: cx - L.plots[plot] <= 1 ? 'polly' : 'halldoor', plot };
     // the Hall of Heroes: press A to play the finale again
     if (here === 'hall' && ready) return { kind: 'hall', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     return null;
@@ -647,6 +654,7 @@ export class CampScene extends Phaser.Scene {
         left: a.edges.left(i.moveX < -0.5),
         right: a.edges.right(i.moveX > 0.5),
         down: a.edges.down(i.moveY > 0.5),
+        up: a.edges.up(i.moveY < -0.5),
         y: a.edges.y(!!i.bubble),
       };
       if (e.y && !this.leaving) this.campPets.trick(a);
@@ -692,6 +700,14 @@ export class CampScene extends Phaser.Scene {
         } else if (zone && zone.kind === 'rocket') {
           action = { x: zone.x, key: 'btn-a', y: GROUND_Y - 90 };
           if (e.a && !hud.picker) this.openStarMap(a);
+        } else if (zone && zone.kind === 'polly') {
+          // Polly sells you a treasure map
+          action = { x: this.L.plots[zone.plot] * TILE + 8, key: 'btn-a', y: GROUND_Y - 66 };
+          if (e.a && !hud.picker && !this.arriving) this.buyMap(a);
+        } else if (zone && zone.kind === 'halldoor') {
+          // into the Treasure Hall (A, or up)
+          action = { x: this.hallDoorX(), key: 'btn-a', y: GROUND_Y - 40 };
+          if ((e.a || e.up) && !hud.picker && !this.arriving) this.goToHall();
         } else if (zone && zone.kind === 'hall' && !this.partying) {
           action = { x: zone.x, key: 'btn-a', y: GROUND_Y - 92 };
           if (e.a && !hud.picker && !this.partying && !this.arriving && !this.leaving) this.finaleParty();
@@ -750,6 +766,7 @@ export class CampScene extends Phaser.Scene {
     this.downPrompt.setVisible(!!downPrompt || (this.newPlanet && !this.arriving)).setPosition(this.L.shaftX * TILE + TILE / 2, GROUND_Y - 40 + bob);
 
     this.updateStars(time, prompts);
+    this.updatePolly(time);
     this.perks?.update(time);
     this.campPets.update(dt, time);
     this.decor?.update(time);
@@ -1248,6 +1265,92 @@ export class CampScene extends Phaser.Scene {
       this.partying = false;
       done();
     });
+  }
+
+  // ---------- the Treasure Hall ----------
+
+  // Polly the pirate parrot on her perch, and her price board.
+  addPolly(b) {
+    const sprite = this.add.sprite(b.x + 8, GROUND_Y - 45, 'polly', 0).setOrigin(0.5, 1).setDepth(4);
+    // (the board is drawn on the building: the sparkle over the price)
+    const boardX = b.x + 13.5;
+    const boardY = GROUND_Y - 80 + 56;
+    const icon = this.add.image(boardX, boardY - 3, 'ore-sparkle').setDepth(4);
+    const num = this.add.bitmapText(boardX + 0.5, boardY + 6, 'pixel', String(HUNT.map)).setOrigin(0.5).setTint(0x4a3222).setDepth(4);
+    const map = this.add.image(boardX, boardY, 'hunt-map').setDepth(4).setVisible(false);
+    this.tweens.add({ targets: sprite, y: sprite.y - 1, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    // now and then she flaps her wings
+    this.time.addEvent({ delay: 3200, loop: true, callback: () => this.flapPolly() });
+    this.polly = { sprite, icon, num, map, x: b.x + 8, boardY };
+  }
+
+  flapPolly(times = 2) {
+    const p = this.polly;
+    if (!p) return;
+    for (let i = 0; i < times; i++) {
+      this.time.delayedCall(i * 240, () => p.sprite.setFrame(1));
+      this.time.delayedCall(i * 240 + 120, () => p.sprite.setFrame(0));
+    }
+  }
+
+  // Her board: the price (red when you haven't got enough), or your map if you've got one.
+  updatePolly(time) {
+    const p = this.polly;
+    if (!p) return;
+    const state = getState(this.registry);
+    const map = huntOf(state).map;
+    p.icon.setVisible(!map);
+    p.num.setVisible(!map).setTint(canAfford(state.bank, { sparkle: HUNT.map }) ? 0x4a3222 : 0xe0403a);
+    p.map.setVisible(!!map).setTexture(map?.golden ? 'hunt-map-golden' : 'hunt-map').setY(p.boardY + Math.sin(time / 300));
+  }
+
+  // A at Polly: a treasure map (one at a time), if you've the sparkles.
+  buyMap(a) {
+    const state = getState(this.registry);
+    const p = this.polly;
+    const status = mapStatus(state);
+    if (status !== 'ok') {
+      this.events.emit('nope');
+      // she shakes her head (you've a map already), or the price jumps (not enough yet)
+      if (p && status === 'have') this.tweens.add({ targets: p.sprite, angle: { from: -14, to: 14 }, duration: 90, yoyo: true, repeat: 2, onComplete: () => p.sprite.setAngle(0) });
+      if (p && status === 'poor') this.tweens.add({ targets: p.num, scale: { from: 2, to: 1 }, duration: 300, ease: 'Back.easeOut' });
+      return;
+    }
+    const next = buyHuntMap(state, createRng((Date.now() ^ (Math.random() * 1e9)) >>> 0));
+    setState(this.registry, next);
+    this.scene.get('CampHud').syncBank(next.bank);
+    this.events.emit('squawk');
+    this.flapPolly(3);
+    // the map flies from Polly to you
+    if (p) {
+      const fly = this.add.image(p.x, GROUND_Y - 52, next.hunt.map.golden ? 'hunt-map-golden' : 'hunt-map').setDepth(60);
+      this.tweens.add({
+        targets: fly, x: a.sprite.x, y: a.sprite.y - 24, scale: 2, angle: 360, duration: 600, ease: 'Quad.easeOut',
+        onComplete: () => {
+          this.effects.sparkle(fly.x, fly.y, next.hunt.map.golden ? 0xffe066 : 0xfff2a0, 10);
+          this.tweens.add({ targets: fly, alpha: 0, y: fly.y - 10, duration: 400, delay: 300, onComplete: () => fly.destroy() });
+        },
+      });
+    }
+    earnSticker(this, 'hunt-map');
+    if (next.hunt.map.golden) earnSticker(this, 'hunt-golden');
+  }
+
+  // The middle of the Treasure Hall's door (where you come back out).
+  hallDoorX() {
+    const plot = plotsOf(getState(this.registry), this.planet).indexOf('treasurehall');
+    return plot >= 0 ? this.L.plots[plot] * TILE + 74 : this.L.shaftX * TILE;
+  }
+
+  // Into the Treasure Hall.
+  goToHall() {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.campPets.flush();
+    this.scene.get('CampHud').closePicker();
+    this.events.emit('tripStart');
+    this.cameras.main.fadeOut(400, 20, 12, 30);
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Hall'));
   }
 
   // Standing at the Build Yard gate (the right end of Earth camp).
