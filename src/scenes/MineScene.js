@@ -401,6 +401,7 @@ export class MineScene extends Phaser.Scene {
     a.magnetT = GEAR_TUNE.magnetEvery;
     this.avatars[slot] = a;
     this.gearView.add(a);
+    this.teamGear();
     // a little poof as they appear
     this.drawAvatar(a, 0, this.time.now);
     a.sprite.setScale(0.2);
@@ -415,10 +416,17 @@ export class MineScene extends Phaser.Scene {
   refreshGear() {
     const st = getState(this.registry);
     for (const a of this.avatars) if (a) a.powers = powersOf(st, a.slot);
-    this.light = lanternRadius({ ...st, upgrades: this.upgrades });
-    this.xray = anyoneWears(st, 'xray');
-    this.revealAll = revealsChests(st, this.planet) || this.xray;
+    this.teamGear();
     this.gearView.refresh();
+  }
+
+  // What gear does for the whole team, from whoever's here: the Helmet's light, X-Ray Goggles.
+  teamGear() {
+    const st = getState(this.registry);
+    const here = this.avatars.filter(Boolean).map((a) => a.slot);
+    this.light = lanternRadius({ ...st, upgrades: this.upgrades }, here);
+    this.xray = anyoneWears(st, 'xray', here);
+    this.revealAll = revealsChests(st, this.planet) || this.xray;
   }
 
   // A player's gear powers right now (none inside a bonus room).

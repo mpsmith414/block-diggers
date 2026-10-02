@@ -90,7 +90,8 @@ export function powersOf(state, slot, { off = false } = {}) {
   }
   return out;
 }
-export const anyoneWears = (state, power) => [0, 1].some((i) => powersOf(state, i).has(power));
+// (`slots`: the players who are here)
+export const anyoneWears = (state, power, slots = [0, 1]) => slots.some((i) => powersOf(state, i).has(power));
 
 // A piece just won (a Sun Suit piece, the crown): everyone with that slot
 // free puts it on (the crown never knocks the Helmet's light off).

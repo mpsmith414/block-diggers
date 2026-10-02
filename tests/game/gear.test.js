@@ -67,6 +67,8 @@ describe('wearing', () => {
     expect(powersOf(s, 0, { off: true }).size).toBe(0);
     expect(anyoneWears(s, 'confetti')).toBe(true);
     expect(anyoneWears(s, 'light')).toBe(false);
+    // only the players who are here count
+    expect(anyoneWears(s, 'confetti', [0])).toBe(false);
   });
   it('a piece just won goes on everyone with that slot free', () => {
     let s = buyGear(rich(), 'glider');

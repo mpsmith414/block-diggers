@@ -31,7 +31,7 @@ const wears = (state, slot, power) => powersOf(state, slot).has(power);
 
 // the Helmet's headlamp: 2 more blocks of light, in every mine, if anyone's wearing it
 // (and the Baby Sun Dragon glows: 4 more)
-export const lanternRadius = (state) => LANTERN[state.upgrades.lantern] + (anyoneWears(state, 'light') ? PERKS.headlamp : 0)
+export const lanternRadius = (state, slots = [0, 1]) => LANTERN[state.upgrades.lantern] + (anyoneWears(state, 'light', slots) ? PERKS.headlamp : 0)
   + ((state.pets ?? []).includes('sundragon') ? PERKS.dragonLight : 0);
 
 // The Sun's Heart came home: the finale, and a crown for everyone.

@@ -4,7 +4,8 @@ import { CHARACTER_COLORS, CHARACTERS } from '../art/characters.js';
 import { getState, setState } from '../save/store.js';
 import { attachAudio } from '../audio/wire.js';
 
-// Pause menu: icons only. ▶ resume, 📖 book, 🔊 sound on/off, then in the mine
+// Pause menu: icons only. ▶ resume, 📖 book, the coat hanger (the Gear page:
+// swap what you're wearing), 🔊 sound on/off, then in the mine
 // the rope (go home, which banks the trip) or at camp the door (back to the
 // title to swap characters). In "disconnect" mode it shows the missing
 // controller and closes itself when it comes back, or the other player can
@@ -79,6 +80,7 @@ export class PauseScene extends Phaser.Scene {
     this.options = [
       { id: 'resume', icon: 'icon-play' },
       { id: 'book', icon: 'icon-book' },
+      { id: 'gear', icon: 'icon-hanger' },
       { id: 'sound', icon: this.audio?.core.muted ? 'icon-mute' : 'icon-sound' },
       // (in the mine the only way out is home, so the trip is always banked)
       inMine ? { id: 'home', icon: 'icon-home' } : { id: 'title', icon: 'icon-door' },
@@ -160,6 +162,10 @@ export class PauseScene extends Phaser.Scene {
     }
     if (id === 'book') {
       this.scene.start('Book', { target: this.target });
+      return;
+    }
+    if (id === 'gear') {
+      this.scene.start('Gear', { target: this.target });
       return;
     }
     if (id === 'home') {
