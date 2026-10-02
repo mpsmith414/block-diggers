@@ -25,6 +25,7 @@ const MINE = {
   splash: (s) => s.play('splash'),
   egg: (s) => s.play('egg'),
   sniff: (s) => s.play('sniff'),
+  nibble: (s) => s.play('crack'),
   lavaMonster: (s) => s.play('roar'),
   cooldown: (s) => s.play('hiss'),
   glug: (s) => s.play('glug'),

@@ -14,7 +14,7 @@
 
 ### Task 1: The rules (and removing the step-up)
 - [ ] **Tests.** In `tests/game/dinoRules.test.js`:
-  - replace the two `stepUp` lines with `expect(stepUp)` gone, so stop importing `stepUp`;
+  - drop the two `stepUp` expectations and stop importing `stepUp`;
   - replace the "2-block ledge" test with one that checks the Longneck no longer steps you up: the same grid, walking with a Longneck save, ends up at `standAt(5, 9)`;
   - add the `nibbleTarget` tests listed in the spec.
 - [ ] **Watch them fail.** Run `npx vitest run tests/game/dinoRules.test.js` and expect it to fail because `nibbleTarget` isn't exported.
