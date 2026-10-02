@@ -57,7 +57,8 @@ export class CampHudScene extends Phaser.Scene {
     // big ×2 numbers: one row, or two once there are lots of kinds of ore
     const rows = kinds.length > 5 ? 2 : 1;
     const cols = Math.ceil(kinds.length / rows);
-    const SLOT = 44;
+    // (Rainbow Planet's sparkles run into the thousands: a wider slot)
+    const SLOT = kinds.includes('sparkle') ? 64 : 44;
     const LEVEL = 34;
     const w = 14 + cols * SLOT + UPGRADE_KINDS.length * LEVEL;
     const h = rows === 2 ? 42 : 26;
@@ -94,7 +95,7 @@ export class CampHudScene extends Phaser.Scene {
     // a newly found ore makes the bank panel grow
     const heart = (getState(this.registry).bank.heart ?? 0) > 0 ? 1 : 0;
     if (shownOres(getState(this.registry), this.camp.planet).length + heart !== this.bankKinds) this.buildBank();
-    for (const ore of [...ORES, 'heart']) {
+    for (const ore of [...ORES, 'heart', 'sparkle']) {
       if (only && ore !== only) continue;
       const b = this.bankIcons[ore];
       if (!b) continue;
@@ -114,10 +115,10 @@ export class CampHudScene extends Phaser.Scene {
     }
   }
 
-  bump(ore) {
+  bump(ore, n = 1) {
     const b = this.bankIcons[ore];
     if (!b) return;
-    b.shown++;
+    b.shown += n;
     b.num.setText(String(b.shown));
     b.icon.setAlpha(1);
     b.num.setAlpha(1);
@@ -128,16 +129,23 @@ export class CampHudScene extends Phaser.Scene {
   flyOres(packs, avatars, finalBank) {
     const cam = this.camp.cameras.main;
     this.counting = true;
+    // (Rainbow Planet's sparkles come in by the handful: at most 24 flights a player)
+    const KINDS = [...ORES, 'sparkle'];
+    const flights = (pack, ore) => {
+      const n = pack[ore] ?? 0;
+      if (ore !== 'sparkle' || n <= 24) return Array(n).fill(1);
+      return Array.from({ length: 24 }, (_, i) => Math.floor((n * (i + 1)) / 24) - Math.floor((n * i) / 24));
+    };
     const start = {};
-    for (const ore of ORES) start[ore] = finalBank[ore] - packs.reduce((n, p) => n + (p[ore] ?? 0), 0);
-    for (const ore of ORES) { if (this.bankIcons[ore]) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); } }
+    for (const ore of KINDS) start[ore] = (finalBank[ore] ?? 0) - packs.reduce((n, p) => n + (p[ore] ?? 0), 0);
+    for (const ore of KINDS) { if (this.bankIcons[ore]) { this.bankIcons[ore].shown = start[ore]; this.bankIcons[ore].num.setText(String(start[ore])); } }
     let delay = 0;
     let count = 0;
-    const step = Math.max(35, Math.min(120, 2400 / Math.max(1, packs.reduce((n, p) => n + ORES.reduce((m, o) => m + (p[o] ?? 0), 0), 0))));
+    const step = Math.max(35, Math.min(120, 2400 / Math.max(1, packs.reduce((n, p) => n + KINDS.reduce((m, o) => m + flights(p, o).length, 0), 0))));
     packs.forEach((pack, slot) => {
       const a = avatars[slot];
-      for (const ore of ORES) {
-        for (let k = 0; k < (pack[ore] ?? 0); k++) {
+      for (const ore of KINDS) {
+        for (const amount of flights(pack, ore)) {
           const idx = count++;
           this.time.delayedCall(delay, () => {
             const sx = a ? (a.sprite.x - cam.worldView.x) * cam.zoom : this.scale.width / 2;
@@ -154,7 +162,7 @@ export class CampHudScene extends Phaser.Scene {
               ease: 'Cubic.easeIn',
               onComplete: () => {
                 img.destroy();
-                this.bump(ore);
+                this.bump(ore, amount);
                 this.camp.events.emit('deposit', ore, idx);
               },
             });

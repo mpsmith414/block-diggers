@@ -32,8 +32,9 @@ export function createEffects(scene) {
 
   return {
     // A block breaks into a few chunks that hop out and fall.
-    chunks(cx, cy, blockId) {
-      const color = BLOCK_CHUNK_COLORS[blockId] ?? 0x8a5a34;
+    // (`tint`: the bits' colour, for blocks drawn tinted, like Rainbow Planet's)
+    chunks(cx, cy, blockId, tint = null) {
+      const color = tint ?? BLOCK_CHUNK_COLORS[blockId] ?? 0x8a5a34;
       for (let i = 0; i < 5; i++) {
         const x = cx * TILE + 4 + Math.random() * 8;
         const y = cy * TILE + 4 + Math.random() * 8;

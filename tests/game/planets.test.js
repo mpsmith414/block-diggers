@@ -6,7 +6,7 @@ import { MOON_LAYERS, MOON_H, MINE_H, LAYER_COLORS, BACKPACK, LANTERN } from '..
 
 describe('the planets', () => {
   it('the journey runs Earth, Moon, Mars, Saturn, Dino Planet, the Sun', () => {
-    expect(PLANETS.map((p) => p.id)).toEqual(['earth', 'moon', 'mars', 'saturn', 'dino', 'sun']);
+    expect(PLANETS.map((p) => p.id)).toEqual(['earth', 'moon', 'mars', 'saturn', 'dino', 'sun', 'rainbow']);
     expect(planetById('moon').suit).toBe('helmet');
     expect(planetById('earth').comingSoon).toBeFalsy();
     expect(planetById('moon').comingSoon).toBeFalsy();
@@ -95,14 +95,14 @@ describe('the star map', () => {
   const status = (stops) => Object.fromEntries(stops.map((s) => [s.id, s.status]));
 
   it('at first only Earth is open (you are here)', () => {
-    expect(status(starMapStops(base(), 'earth'))).toEqual({ earth: 'here', moon: 'locked', mars: 'locked', saturn: 'locked', dino: 'locked', sun: 'locked' });
+    expect(status(starMapStops(base(), 'earth'))).toEqual({ earth: 'here', moon: 'locked', mars: 'locked', saturn: 'locked', dino: 'locked', sun: 'locked', rainbow: 'locked' });
   });
 
   it('the Rocket Ship opens the Moon; the Mars Rocket opens Mars', () => {
     const s = { ...base(), plots: ['rocket', null, null, null, null, null, null, null, null] };
     expect(status(starMapStops(s, 'earth')).moon).toBe('open');
     const t = { ...s, bases: { moon: { plots: [null, null, null, 'marsrocket'] } } };
-    expect(status(starMapStops(t, 'moon'))).toEqual({ earth: 'open', moon: 'here', mars: 'open', saturn: 'locked', dino: 'locked', sun: 'locked' });
+    expect(status(starMapStops(t, 'moon'))).toEqual({ earth: 'open', moon: 'here', mars: 'open', saturn: 'locked', dino: 'locked', sun: 'locked', rainbow: 'locked' });
   });
 
   it('each planet shows its suit piece, lit once you have it', () => {

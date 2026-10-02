@@ -132,7 +132,9 @@ export class HudScene extends Phaser.Scene {
       if (!known.includes(name)) g.fillStyle(0x000000, 0.55).fillRect(x - 2, top + l.top * this.meter.scale, 5, (l.bottom - l.top + 1) * this.meter.scale);
     }
     // a little flag at the deepest you've ever been
-    const best = planet === 'earth' ? records.deepest ?? 0 : records.planetDeepest?.[planet] ?? 0;
+    // (Rainbow Planet: your record, in this trip's rows)
+    const best = planet === 'rainbow' ? (getState(this.registry).rainbow?.deepest ?? 0) - this.source.world.top
+      : planet === 'earth' ? records.deepest ?? 0 : records.planetDeepest?.[planet] ?? 0;
     if (best > 0) {
       const fy = top + best * this.meter.scale;
       g.fillStyle(0xffffff, 1).fillRect(x - 7, fy - 5, 1, 6);
@@ -270,6 +272,33 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
+  // Rainbow Planet: a new layer. A banner in its own colours with its number
+  // (and a ribbon when it's the deepest you've ever been).
+  rainbowBanner(look, n, record) {
+    const w = 170;
+    const cx = this.scale.width / 2;
+    const c = this.add.container(cx, 78).setDepth(100);
+    const g = this.add.graphics();
+    g.fillStyle(0x4a3222, 1).fillRoundedRect(-w / 2 - 2, -30, w + 4, 60, 8);
+    g.fillStyle(look.colors[0], 1).fillRoundedRect(-w / 2, -28, w, 56, 7);
+    g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-w / 2 + 4, -24, w - 8, 48, 5);
+    // the layer's colours, top to bottom, as a swatch
+    look.colors.forEach((col, i) => g.fillStyle(col, 1).fillRect(-w / 2 + 12, -18 + i * (36 / look.colors.length), 26, 36 / look.colors.length));
+    g.lineStyle(2, 0x4a3222, 1).strokeRect(-w / 2 + 12, -18, 26, 36);
+    c.add(g);
+    c.add(this.add.image(-12, 0, `rgem-${look.gem.shape}-chunky`).setTint(look.gem.color).setScale(1.1));
+    const num = this.add.bitmapText(36, 0, 'pixel', String(n)).setOrigin(0.5).setScale(4).setTint(0x4a3222);
+    c.add(num);
+    if (record) {
+      const ribbon = this.add.image(w / 2 - 14, -18, 'ribbon').setScale(1.6);
+      c.add(ribbon);
+      this.tweens.add({ targets: ribbon, angle: { from: -10, to: 10 }, duration: 300, yoyo: true, repeat: 5 });
+    }
+    c.setScale(0);
+    this.tweens.add({ targets: c, scale: 1, duration: 450, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: c, y: -60, alpha: 0, delay: 2800, duration: 500, ease: 'Quad.easeIn', onComplete: () => c.destroy() });
+  }
+
   updateDepthMeter(time) {
     const { x, top, scale } = this.meter;
     this.source.world.chests.forEach((c, i) => {
@@ -338,6 +367,8 @@ export class HudScene extends Phaser.Scene {
     const count = this.add.bitmapText(91, 19, 'pixel', '0/20').setScale(2).setTint(INK);
     const full = this.add.image(4, 19, 'icon-full').setOrigin(0).setVisible(false);
     c.add([bag, barBg, bar, count, full]);
+    // (Rainbow Planet's sparkles go in a jar, not the backpack: no backpack meter there)
+    if (this.source.planet === 'rainbow') for (const o of [bag, barBg, bar, count]) o.setVisible(false);
     const panel = { c, ores, bar, count, full, key };
     this.panels[a.slot] = panel;
     return panel;

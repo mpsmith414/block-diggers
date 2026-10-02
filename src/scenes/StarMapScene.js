@@ -15,10 +15,11 @@ import { CHARACTERS } from '../art/characters.js';
 
 const W = 480;
 const H = 270;
+// (Rainbow Planet, past the Sun, at the end)
 const SPOTS = [
-  { x: 48, y: 150 }, { x: 118, y: 118 }, { x: 190, y: 146 }, { x: 262, y: 112 }, { x: 334, y: 142 }, { x: 420, y: 118 },
+  { x: 40, y: 150 }, { x: 100, y: 118 }, { x: 162, y: 146 }, { x: 224, y: 112 }, { x: 286, y: 142 }, { x: 360, y: 118 }, { x: 442, y: 150 },
 ];
-const LOOK = { earth: 'earth', moon: 'planet-moon', mars: 'planet-mars', saturn: 'planet-saturn', dino: 'planet-dino', sun: 'planet-sun' };
+const LOOK = { earth: 'earth', moon: 'planet-moon', mars: 'planet-mars', saturn: 'planet-saturn', dino: 'planet-dino', sun: 'planet-sun', rainbow: 'planet-rainbow' };
 const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack' };
 
 export class StarMapScene extends Phaser.Scene {

@@ -1,6 +1,7 @@
 // Blueprints, upgrades and the shared ore bank. Immutable: state in, new state out.
 
 import { ORES } from '../world/blocks.js';
+import { SUN_CAMP, RAINBOW_CAMP } from '../tuning.js';
 
 export const PLOTS = 9;
 
@@ -84,16 +85,23 @@ export const SUN_BLUEPRINTS = [
   { id: 'sundial', cost: { sunstone: 40, plasma: 15 } },
   { id: 'sunbeam', cost: { nova: 30, plasma: 30 } },
   { id: 'hall', cost: { nova: 45, plasma: 40, sunstone: 45 }, needs: { sunHeart: true } },
+  // the fifth plot: the Rainbow Rocket, to the endless Rainbow Planet
+  { id: 'rainbowrocket', cost: { nova: 60, plasma: 60, sunstone: 60 }, needs: { sunHeart: true } },
 ];
 
-const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS, sun: SUN_BLUEPRINTS };
+// (Rainbow Village's buildings come later)
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS, sun: SUN_BLUEPRINTS, rainbow: [] };
 export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 
 // The plots of a planet's camp (Earth's are `state.plots`).
+// how many plots each camp has (the Solar Station grew a fifth, for the Rainbow Rocket)
+export const PLOTS_AT = { moon: MOON_PLOTS, mars: MOON_PLOTS, saturn: MOON_PLOTS, dino: MOON_PLOTS, sun: SUN_CAMP.plots.length, rainbow: RAINBOW_CAMP.plots.length };
+
 export function plotsOf(state, planet = 'earth') {
   if (planet === 'earth') return state.plots;
-  return state.bases?.[planet]?.plots ?? Array(MOON_PLOTS).fill(null);
+  const have = state.bases?.[planet]?.plots ?? [];
+  return Array.from({ length: PLOTS_AT[planet] ?? MOON_PLOTS }, (_, i) => have[i] ?? null);
 }
 function withPlots(state, planet, plots) {
   if (planet === 'earth') return { ...state, plots };
@@ -138,6 +146,8 @@ export function buildOnPlot(state, plot, id, planet = 'earth') {
 export function depositPacks(state, packs, { hearts = 0 } = {}) {
   const bank = { ...state.bank };
   for (const pack of packs) for (const ore of ORES) bank[ore] = (bank[ore] ?? 0) + (pack[ore] ?? 0);
+  // Rainbow Planet's sparkles (never in the ore list: they don't take backpack space)
+  for (const pack of packs) bank.sparkle = (bank.sparkle ?? 0) + (pack.sparkle ?? 0);
   bank.heart = (bank.heart ?? 0) + hearts;
   return { ...state, bank };
 }

@@ -40,7 +40,7 @@ describe('the Sun', () => {
   it('the Sun Rocket opens the Sun', () => {
     const st = { plots: ['rocket'], suit: [], bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: [null, null, null, 'saturnrocket'] }, saturn: { plots: [null, null, null, 'dinorocket'] }, dino: { plots: [null, null, null, 'sunrocket'] }, sun: { plots: [null, null, null, null] } } };
     const status = Object.fromEntries(starMapStops(st, 'dino').map((x) => [x.id, x.status]));
-    expect(status).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'open', dino: 'here', sun: 'open' });
+    expect(status).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'open', dino: 'here', sun: 'open', rainbow: 'locked' });
   });
 });
 
@@ -118,7 +118,7 @@ describe('Sun creatures, trips and treasure', () => {
 
 describe('Solar Station', () => {
   it('has four buildings; the Hall of Heroes needs the Sun’s Heart', () => {
-    expect(SUN_BLUEPRINTS.map((b) => b.id)).toEqual(['sunflowers', 'sundial', 'sunbeam', 'hall']);
+    expect(SUN_BLUEPRINTS.map((b) => b.id)).toEqual(['sunflowers', 'sundial', 'sunbeam', 'hall', 'rainbowrocket']);
     expect(blueprintsFor('sun')).toBe(SUN_BLUEPRINTS);
     const hall = SUN_BLUEPRINTS.find((b) => b.id === 'hall');
     expect(blueprintOk(rich(), hall)).toBe(false);

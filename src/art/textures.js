@@ -33,6 +33,7 @@ import { drawHockeyArt } from './hockey.js';
 import { drawEggCatchArt } from './eggcatch.js';
 import { drawFireworksArt } from './fireworks.js';
 import { drawBuildArt } from './build.js';
+import { drawRainbowTiles, drawRainbowArt } from './rainbow.js';
 
 const T = 16;
 
@@ -77,7 +78,10 @@ export const BACK = {
   jungle: BLOCK_COUNT + 24, bonebeds: BLOCK_COUNT + 25, swamp: BLOCK_COUNT + 26, lavalands: BLOCK_COUNT + 27, dinocore: BLOCK_COUNT + 28,
   corona: BLOCK_COUNT + 29, sunspots: BLOCK_COUNT + 30, plasmasea: BLOCK_COUNT + 31, radiance: BLOCK_COUNT + 32, fusion: BLOCK_COUNT + 33, suncore: BLOCK_COUNT + 34,
 };
-const TILE_FRAMES = BLOCK_COUNT + 35;
+// Rainbow Planet's tintable rock: 6 patterns x 4 variants, then each pattern's back wall
+const RAINBOW_BASE = BLOCK_COUNT + 35;
+export const RAINBOW_TILES = { pattern: (p, v) => RAINBOW_BASE + p * 4 + v, back: (p) => RAINBOW_BASE + 24 + p };
+const TILE_FRAMES = RAINBOW_BASE + 30;
 
 const HOSTS = {
   [B.DIRT]: { base: '#8a5a34', dark: '#6b4424', light: '#a3703f' },
@@ -270,6 +274,8 @@ function drawTiles(scene) {
   drawDinoTiles(ctx, at, createRng(1111), B, rect, speckle);
   // and the Sun's
   drawSunTiles(ctx, at, createRng(2222), B, rect, speckle);
+  // and Rainbow Planet's (with its tintable patterns)
+  drawRainbowTiles(ctx, at, rect, B, RAINBOW_TILES);
 
   // back walls: darker, low-contrast versions of each host rock
   const back = (frame, pal) => {
@@ -732,4 +738,5 @@ export function drawTextures(scene) {
   drawEggCatchArt(scene, canvasTexture, rect);
   drawFireworksArt(scene, canvasTexture, rect);
   drawBuildArt(scene, canvasTexture, rect);
+  drawRainbowArt(scene, canvasTexture, rect);
 }

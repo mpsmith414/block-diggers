@@ -42,7 +42,7 @@ describe('Saturn, the planet', () => {
     expect(status(base, 'mars').saturn).toBe('open');
     expect(status(base, 'mars').dino).toBe('locked');
     const t = { ...base, bases: { ...base.bases, saturn: { plots: [null, null, null, 'dinorocket'] } } };
-    expect(status(t, 'saturn')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'here', dino: 'open', sun: 'locked' });
+    expect(status(t, 'saturn')).toEqual({ earth: 'open', moon: 'open', mars: 'open', saturn: 'here', dino: 'open', sun: 'locked', rainbow: 'locked' });
   });
 });
 

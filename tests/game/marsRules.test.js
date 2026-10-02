@@ -68,7 +68,7 @@ describe('the star map with Mars', () => {
     expect(status(starMapStops(s, 'moon')).mars).toBe('open');
     expect(status(starMapStops(s, 'moon')).saturn).toBe('locked');
     const t = { ...s, bases: { ...s.bases, mars: { plots: [null, null, null, 'saturnrocket'] } } };
-    expect(status(starMapStops(t, 'mars'))).toEqual({ earth: 'open', moon: 'open', mars: 'here', saturn: 'open', dino: 'locked', sun: 'locked' });
+    expect(status(starMapStops(t, 'mars'))).toEqual({ earth: 'open', moon: 'open', mars: 'here', saturn: 'open', dino: 'locked', sun: 'locked', rainbow: 'locked' });
   });
 });
 
