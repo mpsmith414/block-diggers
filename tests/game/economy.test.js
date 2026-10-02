@@ -111,3 +111,17 @@ describe('the deeper world buildings', () => {
     expect(built.bank.heart).toBe(0);
   });
 });
+
+describe('Rainbow Village shops', async () => {
+  const { blueprintsFor, buildOnPlot, plotsOf, PLOTS_AT } = await import('../../src/game/economy.js');
+  const { defaultState } = await import('../../src/save/save.js');
+  it('four shops on four plots, bought with sparkles', () => {
+    expect(blueprintsFor('rainbow').map((b) => [b.id, b.cost.sparkle])).toEqual([['hatshop', 300], ['shoeshop', 600], ['gadgetlab', 1000], ['decoshop', 1500]]);
+    expect(PLOTS_AT.rainbow).toBe(4);
+    const s = { ...defaultState(), bank: { ...defaultState().bank, sparkle: 700 } };
+    const built = buildOnPlot(s, 2, 'shoeshop', 'rainbow');
+    expect(plotsOf(built, 'rainbow')).toEqual([null, null, 'shoeshop', null]);
+    expect(built.bank.sparkle).toBe(100);
+    expect(buildOnPlot(built, 0, 'gadgetlab', 'rainbow')).toBeNull();
+  });
+});

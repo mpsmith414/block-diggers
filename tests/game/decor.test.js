@@ -82,3 +82,36 @@ describe('brick decorations', () => {
     expect(TROPHY_COUNT).toBe(STICKER_PAGES.length);
   });
 });
+
+describe('Rainbow Village decorations', async () => {
+  const { RAINBOW_DECOR, decorOf, blockedRanges } = await import('../../src/game/decor.js');
+  const { RAINBOW_CAMP } = await import('../../src/tuning.js');
+  const sparkly = (n = 2000) => ({ ...defaultState(), bank: { ...defaultState().bank, sparkle: n } });
+  it('twelve of them, bought with sparkles, into the village bag', () => {
+    expect(RAINBOW_DECOR.length).toBe(12);
+    const s = buyDecor(sparkly(), 'fountain', 'rainbow');
+    expect(s.bank.sparkle).toBe(1600);
+    expect(decorOf(s, 'rainbow').stock.fountain).toBe(1);
+    expect(s.decor).toEqual(defaultState().decor); // Earth's bag untouched
+    expect(buyDecor(sparkly(), 'fountain')).toBeNull(); // not at the Earth stall
+    expect(buyDecor(sparkly(), 'lamp', 'rainbow')).toBeNull(); // nor Earth's at the workshop
+    expect(buyDecor(sparkly(10), 'fountain', 'rainbow')).toBeNull();
+  });
+  it('placed only in the village, clear of the lift, the pad and empty plots', () => {
+    const s = buyDecor(sparkly(), 'gumdrop', 'rainbow');
+    const open = (RAINBOW_CAMP.plots[3] + RAINBOW_CAMP.plotW + 2) * TILE;
+    expect(canPlace(s, 'gumdrop', open, 'rainbow')).toBe(true);
+    expect(canPlace(s, 'gumdrop', open)).toBe(false); // not at Earth camp
+    for (const cell of [RAINBOW_CAMP.shaftX, RAINBOW_CAMP.padX, RAINBOW_CAMP.benchX, 1]) {
+      expect(canPlace(s, 'gumdrop', cell * TILE + 8, 'rainbow')).toBe(false);
+    }
+    expect(canPlace(s, 'gumdrop', RAINBOW_CAMP.plots[0] * TILE + 40, 'rainbow')).toBe(false);
+    const built = { ...s, bases: { ...s.bases, rainbow: { ...s.bases.rainbow, plots: ['hatshop', null, null, null] } } };
+    expect(blockedRanges(built, 'rainbow').length).toBe(blockedRanges(s, 'rainbow').length - 1);
+    let t = placeDecor(takeFromStock(s, 'gumdrop', 'rainbow'), 'gumdrop', open, 'rainbow');
+    expect(decorOf(t, 'rainbow').placed).toEqual([{ id: 'gumdrop', x: open }]);
+    expect(decorOf(t, 'rainbow').stock.gumdrop).toBe(0);
+    t = pickUpDecor(t, 0, 'rainbow');
+    expect(decorOf(t, 'rainbow')).toEqual({ stock: { gumdrop: 1 }, placed: [] });
+  });
+});
