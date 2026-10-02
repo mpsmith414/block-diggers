@@ -36,6 +36,7 @@ import { drawBuildArt } from './build.js';
 import { drawRainbowTiles, drawRainbowArt } from './rainbow.js';
 import { drawRainbowShops } from './rainbowShops.js';
 import { drawGearArt } from './gear.js';
+import { drawHuntArt } from './hunt.js';
 
 const T = 16;
 
@@ -773,4 +774,5 @@ export function drawTextures(scene) {
   drawRainbowArt(scene, canvasTexture, rect);
   drawRainbowShops(scene, canvasTexture, rect);
   drawGearArt(scene, canvasTexture, rect);
+  drawHuntArt(scene, canvasTexture, rect);
 }
