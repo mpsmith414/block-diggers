@@ -397,8 +397,9 @@ export const SATURN_CAMP = { ...MOON_CAMP };
 // ---- Solar Station (cells): the same shape as Moon Base ----
 export const SUN_CAMP = { ...MOON_CAMP, plots: [26, 33, 40, 47, 54] };
 
-// ---- Rainbow Village (cells): the same shape as Moon Base ----
-export const RAINBOW_CAMP = { ...MOON_CAMP };
+// ---- Rainbow Village (cells): the same shape as Moon Base (its plots come with
+// its buildings, later) ----
+export const RAINBOW_CAMP = { ...MOON_CAMP, plots: [] };
 
 // ---- solar flares: the storm cycle, but a shower of sunstones (seconds) ----
 export const FLARE = { first: [15, 25], calm: [35, 55], warn: 2, blow: 6, every: 0.5 };

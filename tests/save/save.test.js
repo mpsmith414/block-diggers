@@ -21,7 +21,7 @@ describe('save', () => {
     const { state, status } = loadState(memStorage());
     expect(status).toBe('new');
     expect(state).toEqual(defaultState());
-    expect(state.version).toBe(10);
+    expect(state.version).toBe(11);
     expect(state.plots).toHaveLength(9);
   });
 
@@ -37,10 +37,10 @@ describe('save', () => {
   it('migrates a v1 save and keeps unknown fields', () => {
     const v1 = { version: 1, bank: { coal: 3 }, pick: 1, pack: 0, lantern: 2, buildings: ['house'], petName: 'x' };
     const s = migrate(v1);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.upgrades).toEqual({ pick: 1, pack: 0, lantern: 2 });
     expect(s.plots).toEqual(['house', null, null, null, null, null, null, null, null]);
-    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0, frost: 0, icecream: 0, pearl: 0, comet: 0, jade: 0, bone: 0, tooth: 0, obsidian: 0, sunstone: 0, flare: 0, plasma: 0, nova: 0 });
+    expect(s.bank).toEqual({ coal: 3, iron: 0, gold: 0, diamond: 0, emerald: 0, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0, frost: 0, icecream: 0, pearl: 0, comet: 0, jade: 0, bone: 0, tooth: 0, obsidian: 0, sunstone: 0, flare: 0, plasma: 0, nova: 0, sparkle: 0 });
     expect(s.petName).toBe('x');
     const st = memStorage({ [SAVE_KEY]: JSON.stringify(v1) });
     expect(loadState(st).status).toBe('migrated');
@@ -74,7 +74,7 @@ describe('save v3', () => {
       plots: ['garden', null, null, null, null, null], characters: ['fox', 'dino'], trips: 7, muted: true,
     };
     const s = migrate(v2);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.bank.coal).toBe(5);
     expect(s.plots[0]).toBe('garden');
     expect(s.trips).toBe(7);
@@ -111,7 +111,7 @@ describe('save v5 (the planets)', () => {
   it('a v4 save lands on Earth with an empty Moon Base, no suit, and keeps its cheese', () => {
     const v4 = { version: 4, bank: { coal: 2, cheese: 7, heart: 1 }, plots: ['garden'], records: { deepest: 300, mostOres: 9, layers: ['dirt'], moonTrips: 3 } };
     const s = migrate(v4);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.planet).toBe('earth');
     expect(s.bases.moon.plots).toEqual([null, null, null, null]);
     expect(s.suit).toEqual([]);
@@ -150,7 +150,7 @@ describe('save v6 (Mars)', () => {
     };
     delete v5.bases.mars;
     const s = migrate(v5);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.planet).toBe('moon');
     expect(s.bases.moon.plots).toEqual(['cheesefactory', 'telescope', 'hangar', 'marsrocket']);
     expect(s.bases.mars.plots).toEqual([null, null, null, null]);
@@ -161,7 +161,7 @@ describe('save v6 (Mars)', () => {
 
   it('a v6 save round-trips with its Mars Base', () => {
     const st = memStorage();
-    const s = { ...defaultState(), planet: 'mars', bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: ['weather', null, null, null] }, saturn: { plots: [null, null, null, null] }, dino: { plots: [null, null, null, null] }, sun: { plots: [null, null, null, null] } }, suit: ['helmet', 'boots'] };
+    const s = { ...defaultState(), planet: 'mars', bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: ['weather', null, null, null] }, saturn: { plots: [null, null, null, null] }, dino: { plots: [null, null, null, null] }, sun: { plots: [null, null, null, null, null] } }, suit: ['helmet', 'boots'] };
     saveState(st, s);
     expect(loadState(st)).toEqual({ state: s, status: 'loaded' });
   });
@@ -171,7 +171,7 @@ describe('save v7 (Saturn)', () => {
   it('a v6 save gets an empty Ring Station and the Saturn ores, keeping everything', () => {
     const v6 = { ...defaultState(), version: 6, planet: 'mars', suit: ['helmet', 'boots'], bank: { ruby: 12, coin: 3 }, bases: { moon: { plots: [null, null, null, 'marsrocket'] }, mars: { plots: ['weather', null, null, 'saturnrocket'] } } };
     const s = migrate(v6);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.planet).toBe('mars');
     expect(s.bases.mars.plots).toEqual(['weather', null, null, 'saturnrocket']);
     expect(s.bases.saturn.plots).toEqual([null, null, null, null]);
@@ -184,7 +184,7 @@ describe('save v8 (Dino Planet)', () => {
   it('a v7 save gets an empty Dino Camp and the Dino ores, keeping everything', () => {
     const v7 = { ...defaultState(), version: 7, planet: 'saturn', suit: ['helmet', 'boots', 'gloves'], bank: { frost: 12, comet: 3 }, bases: { saturn: { plots: ['parlour', null, null, 'dinorocket'] } } };
     const s = migrate(v7);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.bases.saturn.plots).toEqual(['parlour', null, null, 'dinorocket']);
     expect(s.bases.dino.plots).toEqual([null, null, null, null]);
     expect(s.bank).toMatchObject({ frost: 12, comet: 3, jade: 0, bone: 0, tooth: 0, obsidian: 0, sunstone: 0, flare: 0, plasma: 0, nova: 0 });
@@ -197,9 +197,9 @@ describe('save v9 (the Sun)', () => {
     const v8 = { ...defaultState(), version: 8, planet: 'dino', suit: ['helmet', 'boots', 'gloves', 'jetpack'], bank: { jade: 12, tooth: 3 }, bases: { dino: { plots: ['nursery', null, null, 'sunrocket'] } } };
     delete v8.sunHeart;
     const s = migrate(v8);
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.bases.dino.plots).toEqual(['nursery', null, null, 'sunrocket']);
-    expect(s.bases.sun.plots).toEqual([null, null, null, null]);
+    expect(s.bases.sun.plots).toEqual([null, null, null, null, null]);
     expect(s.sunHeart).toBe(false);
     expect(s.bank).toMatchObject({ jade: 12, tooth: 3, sunstone: 0, flare: 0, plasma: 0, nova: 0 });
     expect(s.suit).toEqual(['helmet', 'boots', 'gloves', 'jetpack']);
@@ -210,7 +210,7 @@ describe('save v10: the Build Yard', () => {
   it('a v9 save gets an empty Build Yard, keeping everything', async () => {
     const { migrate } = await import('../../src/save/save.js');
     const s = migrate({ version: 9, trips: 12, bank: { coal: 3 }, stickers: { 'ore-coal': true } });
-    expect(s.version).toBe(10);
+    expect(s.version).toBe(11);
     expect(s.build).toEqual({ edits: [] });
     expect(s.trips).toBe(12);
     expect(s.bank.coal).toBe(3);

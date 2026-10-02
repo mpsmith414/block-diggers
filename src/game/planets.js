@@ -9,8 +9,18 @@
 import { ORES } from '../world/blocks.js';
 import {
   LAYERS, MOON_LAYERS, MARS_LAYERS, SATURN_LAYERS, DINO_LAYERS, SUN_LAYERS, MINE_H, MOON_H, MARS_H, SATURN_H, DINO_H, SUN_H, LOW_GRAVITY,
-  CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, DINO_CAMP, SUN_CAMP, PERKS, PETS,
+  CAMP, MOON_CAMP, MARS_CAMP, SATURN_CAMP, DINO_CAMP, SUN_CAMP, RAINBOW_CAMP, PERKS, PETS, LAYER_COLORS,
 } from '../tuning.js';
+import { rowColor } from '../world/rainbow.js';
+
+// Rainbow Planet's layers are endless: during a trip they're that trip's
+// stretch (`r<number>`: rows in the trip's grid), set by useRainbowStretch.
+let stretch = { layers: {}, rows: 0 };
+export function useRainbowStretch(layers, rows) {
+  stretch = { layers: Object.fromEntries(layers.map((l) => [`r${l.n}`, { top: l.top, bottom: l.bottom }])), rows };
+  // (each layer's colour on the depth strip and the trip card: its middle)
+  for (const l of layers) LAYER_COLORS[`r${l.n}`] = rowColor(l.look, 15);
+}
 
 const tops = (layers, byOre) => Object.fromEntries(Object.entries(byOre).map(([ore, layer]) => [ore, layers[layer].top]));
 
@@ -50,6 +60,12 @@ export const PLANETS = [
     chests: { corona: ['sunstone'], sunspots: ['flare'], plasmasea: ['plasma'], radiance: ['nova'], fusion: ['nova', 'plasma'], suncore: ['flare', 'plasma', 'nova'] },
     oreRows: tops(SUN_LAYERS, { sunstone: 'corona', flare: 'sunspots', plasma: 'plasmasea', nova: 'radiance' }),
   },
+  {
+    // past the Sun: an endless mine of random rainbow layers; its money is sparkles
+    id: 'rainbow', endless: true, ores: ['sparkle'], gravity: 1, suit: null, camp: RAINBOW_CAMP, heart: null, perks: {},
+    get layers() { return stretch.layers; },
+    get rows() { return stretch.rows; },
+  },
 ];
 
 const BY_ID = new Map(PLANETS.map((p) => [p.id, p]));
@@ -62,6 +78,7 @@ export const mineRows = (id) => planetById(id)?.rows ?? MINE_H;
 // last as the last.
 export function layerOfRow(row, planet = 'earth') {
   const layers = Object.entries(layersOf(planet));
+  if (!layers.length) return null; // (Rainbow Planet before any trip)
   for (const [name, { top, bottom }] of layers) if (row >= top && row <= bottom) return name;
   return row < layers[0][1].top ? layers[0][0] : layers[layers.length - 1][0];
 }
@@ -76,7 +93,7 @@ export function planetOfLayer(layer) {
 // What unlocks each planet: a rocket built on the planet before it.
 const ROCKET_TO = {
   moon: { at: 'earth', id: 'rocket' }, mars: { at: 'moon', id: 'marsrocket' }, saturn: { at: 'mars', id: 'saturnrocket' },
-  dino: { at: 'saturn', id: 'dinorocket' }, sun: { at: 'dino', id: 'sunrocket' },
+  dino: { at: 'saturn', id: 'dinorocket' }, sun: { at: 'dino', id: 'sunrocket' }, rainbow: { at: 'sun', id: 'rainbowrocket' },
 };
 export const rocketTo = (planet) => ROCKET_TO[planet] ?? null;
 const built = (state, planet, id) => (planet === 'earth' ? state.plots : state.bases?.[planet]?.plots ?? []).includes(id);

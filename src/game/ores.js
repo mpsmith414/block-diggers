@@ -9,6 +9,7 @@ export const BASE_ORES = ORES.slice(0, 5);
 // On another planet, only that planet's ores (once found).
 export function shownOres(state, planet = 'earth') {
   const found = (o) => (state.stickers ?? {})[`ore-${o}`];
+  if (planet === 'rainbow') return ['sparkle'];
   if (planet !== 'earth') return (planetById(planet)?.ores ?? []).filter(found);
   return ORES.slice(0, 8).filter((o, i) => i < 5 || found(o));
 }

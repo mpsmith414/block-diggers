@@ -3,14 +3,15 @@
 
 import { ORES } from '../world/blocks.js';
 import { layersReached } from '../game/trip.js';
-import { MOON_PLOTS } from '../game/economy.js';
+import { MOON_PLOTS, PLOTS_AT } from '../game/economy.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 10;
+export const VERSION = 11;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
-const emptyBank = () => ({ ...Object.fromEntries(ORES.map((o) => [o, 0])), heart: 0, cheese: 0 });
+// (and Rainbow Planet's sparkles)
+const emptyBank = () => ({ ...Object.fromEntries(ORES.map((o) => [o, 0])), heart: 0, cheese: 0, sparkle: 0 });
 
 export function defaultState() {
   return {
@@ -30,11 +31,13 @@ export function defaultState() {
     visitors: { met: [], requests: {}, seen: [] },
     // the planets: where you are, each planet's camp, and the Sun Suit pieces you have
     planet: 'earth',
-    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(MOON_PLOTS).fill(null) } },
+    bases: { moon: { plots: Array(MOON_PLOTS).fill(null) }, mars: { plots: Array(MOON_PLOTS).fill(null) }, saturn: { plots: Array(MOON_PLOTS).fill(null) }, dino: { plots: Array(MOON_PLOTS).fill(null) }, sun: { plots: Array(PLOTS_AT.sun).fill(null) } },
     sunHeart: false, // the finale: the Sun's Heart came home (a mini-sun over Earth camp)
     suit: [],
     // the Build Yard: every cell that differs from the meadow, as [x, y, block]
     build: { edits: [] },
+    // Rainbow Planet: the deepest row you've reached (every trip starts there)
+    rainbow: { deepest: 0 },
   };
 }
 
@@ -78,6 +81,10 @@ export function migrate(raw) {
     // the Build Yard starts as an empty meadow (filled in below)
     s = { ...s, version: 10 };
   }
+  if (s.version === 10) {
+    // Rainbow Planet: not reached yet, no sparkles (filled in below); the Solar Station grows a fifth plot
+    s = { ...s, version: 11 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -99,10 +106,11 @@ export function migrate(raw) {
       mars: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.mars?.plots?.[i] || null) },
       saturn: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.saturn?.plots?.[i] || null) },
       dino: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.dino?.plots?.[i] || null) },
-      sun: { plots: Array.from({ length: MOON_PLOTS }, (_, i) => s.bases?.sun?.plots?.[i] || null) },
+      sun: { plots: Array.from({ length: PLOTS_AT.sun }, (_, i) => s.bases?.sun?.plots?.[i] || null) },
     },
     suit: [...new Set(s.suit || [])],
     build: { ...(s.build || {}), edits: Array.isArray(s.build?.edits) ? s.build.edits : [] },
+    rainbow: { ...d.rainbow, ...(s.rainbow || {}) },
   };
 }
 

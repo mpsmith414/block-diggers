@@ -42,6 +42,7 @@ export const GAIT_OF = {
   jelly: 'drift', plasmajelly: 'drift', snowflake: 'drift', alien: 'drift', martian: 'drift',
   sparky: 'jitter', fairy: 'zigzag', cometling: 'zigzag', dragonfly: 'dart', drone: 'dart',
   moth: 'circle', wisp: 'circle', ember: 'circle', sprite: 'circle',
+  rblob: 'hop', rflier: 'drift', // Rainbow Planet's
 };
 export const WALK_GAITS = ['hop', 'bounce', 'leap', 'march', 'scurry', 'sprint', 'scuttle', 'crawl', 'waddle'];
 
@@ -235,7 +236,17 @@ const WALKERS = new Set(['slime', 'robot', 'moonblob', 'mouse', 'dustbunny', 'cr
 
 export { layerOfRow };
 
+// Rainbow Planet: each layer's own creatures for this trip ({ r12: [{ kind, color, scale }] })
+let layerCreatures = {};
+export const setLayerCreatures = (map) => { layerCreatures = map; };
+
 export function creatureFor(row, planet = 'earth') {
+  if (planet === 'rainbow') {
+    const list = layerCreatures[layerOfRow(row, planet)] ?? [];
+    const look = list[row % Math.max(1, list.length)] ?? { kind: 'blob', color: 0xffffff, scale: 1 };
+    const species = look.kind === 'blob' ? 'rblob' : 'rflier';
+    return { species, walker: species === 'rblob', look };
+  }
   const species = CREATURES[layerOfRow(row, planet)];
   return { species, walker: WALKERS.has(species) };
 }
