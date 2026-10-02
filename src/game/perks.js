@@ -1,6 +1,6 @@
 // What each building does for you. Immutable: state in, new state out.
 
-import { BACKPACK, LANTERN, PERKS } from '../tuning.js';
+import { BACKPACK, LANTERN, PERKS, GEAR_TUNE } from '../tuning.js';
 import { plotsOf } from './economy.js';
 import { layersOf, planetById } from './planets.js';
 import { powersOf, anyoneWears, wearWon } from './gear.js';
@@ -46,6 +46,21 @@ export const digMul = (state, slot = 0) => (wears(state, slot, 'gloves') ? PERKS
 export const iceGrip = (state, slot = 0) => wears(state, slot, 'gloves');
 // the Jetpack: hold jump in the air to fly
 export const jetpack = (state, slot = 0) => wears(state, slot, 'jetpack');
+// What a player's gear powers do to how they move and dig (stepPlayer's options).
+export function gearMoves(powers) {
+  return {
+    walkMul: (powers.has('boots') ? PERKS.bootsSpeed : 1) * (powers.has('skates') ? GEAR_TUNE.skatesWalk : 1),
+    digMul: powers.has('gloves') ? PERKS.glovesDig : 1,
+    grip: powers.has('gloves'),
+    stormProof: powers.has('boots'),
+    jetpack: powers.has('jetpack'),
+    jumpMul: powers.has('bouncy') ? GEAR_TUNE.bouncyJump : 1,
+    glide: powers.has('glide'),
+    balloon: powers.has('balloon'),
+    gecko: powers.has('gecko'),
+    skates: powers.has('skates'),
+  };
+}
 // the Weather Station: storms on Mars carry rubies
 export const stormRubies = (state) => (hasBuilt(state, 'weather', 'mars') ? PERKS.stormRubies : 0);
 export const cartStartRow = (state) => (has(state, 'minecart') ? PERKS.cartRow : null);

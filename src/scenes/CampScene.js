@@ -20,11 +20,12 @@ import { createPerksView } from './camp/perksView.js';
 import { createCampPets } from './camp/campPets.js';
 import { createDecorView } from './camp/decorView.js';
 import { createVisitorsView } from './camp/visitorsView.js';
-import { BUYABLE, buyDecor, decorById, decorUnlocked } from '../game/decor.js';
+import { BUYABLE, RAINBOW_DECOR, buyDecor, decorById, decorUnlocked, decorOf } from '../game/decor.js';
+import { shopItems, ownsGear, buyGear, wearGear, wornBy, powersOf, gearById } from '../game/gear.js';
 import { refreshRequests, presentVisitors } from '../game/visitors.js';
 import { createRng } from '../world/rng.js';
 import { earnSticker } from './common/stickers.js';
-import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSuit, walkMul, winSunHeart } from '../game/perks.js';
+import { growGarden, leavePenGift, elevatorStops, campGift, winSuitPiece, hasSuit, winSunHeart, gearMoves } from '../game/perks.js';
 import { drawMoonBackdrop, drawMoonProps } from './camp/moonScenery.js';
 import { drawMarsBackdrop, drawMarsProps } from './camp/marsScenery.js';
 import { drawSaturnBackdrop, drawSaturnProps } from './camp/saturnScenery.js';
@@ -32,7 +33,8 @@ import { drawDinoBackdrop, drawDinoProps } from './camp/dinoScenery.js';
 import { drawSunBackdrop, drawSunProps } from './camp/sunScenery.js';
 import { drawRainbowBackdrop, drawRainbowProps, setDepthSign } from './camp/rainbowScenery.js';
 import { planetById, rocketTo, PLANETS } from '../game/planets.js';
-import { createSuitView } from './common/suitView.js';
+import { createGearView } from './common/gearView.js';
+import { createGearFx } from './common/gearFx.js';
 import { summarizeTrip } from '../game/trip.js';
 import { TILE, CAMP, PLAYER, SKY_ROWS } from '../tuning.js';
 import { charFor } from '../game/cast.js';
@@ -55,6 +57,8 @@ const order = (id) => PLANETS.findIndex((p) => p.id === id);
 export const shipFor = (from, to) => SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship';
 // where each rocket building's ship stands, from the left of its plot
 const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52, sunrocket: 40, rainbowrocket: 40 };
+// Rainbow Village's shops: press A at one to shop
+const SHOP_BUILDINGS = ['hatshop', 'shoeshop', 'gadgetlab', 'decoshop'];
 
 export class CampScene extends Phaser.Scene {
   constructor() {
@@ -77,7 +81,6 @@ export class CampScene extends Phaser.Scene {
     this.planet = this.planetArg ?? saved.planet ?? 'earth';
     this.onEarth = this.planet === 'earth';
     this.L = planetById(this.planet)?.camp ?? CAMP;
-    this.walkMul = walkMul(saved);
     this.W = this.L.w * TILE;
     if (saved.planet !== this.planet) setState(this.registry, { ...saved, planet: this.planet });
     this.grid = createGrid(this.L.w, this.L.h);
@@ -111,7 +114,12 @@ export class CampScene extends Phaser.Scene {
     // the building perks, decorating and visitors live at Earth camp
     this.perks = this.onEarth ? createPerksView(this) : null;
     this.campPets = createCampPets(this);
-    this.suits = createSuitView(this);
+    this.gearView = createGearView(this);
+    this.gearFx = createGearFx(this);
+    // the Gear page (from the pause menu) changed what someone's wearing
+    const onGear = () => this.refreshGear();
+    this.events.on('gearChanged', onGear);
+    this.events.once('shutdown', () => this.events.off('gearChanged', onGear));
     // visitors need a request; make sure everyone present has one
     if (this.onEarth) {
       const st = getState(this.registry);
@@ -120,7 +128,8 @@ export class CampScene extends Phaser.Scene {
         setState(this.registry, { ...st, visitors: { ...st.visitors, requests: { ...fresh, ...st.visitors.requests } } });
       }
     }
-    this.decor = this.onEarth ? createDecorView(this) : null;
+    // (Earth camp's decorations, and Rainbow Village's own)
+    this.decor = this.onEarth || this.planet === 'rainbow' ? createDecorView(this) : null;
     this.visitors = this.onEarth ? createVisitorsView(this) : null;
     this.perks?.refresh();
     // older saves: back-fill stickers for buildings already standing
@@ -576,9 +585,10 @@ export class CampScene extends Phaser.Scene {
       edges: { a: createEdge(), b: createEdge(), y: createEdge(), left: createEdge(), right: createEdge(), down: createEdge() },
       walkT: 0,
     };
+    a.powers = powersOf(getState(this.registry), slot);
     this.avatars[slot] = a;
     animateCharacter(a.sprite, a.p, a, 0, 0);
-    this.suits.add(a);
+    this.gearView.add(a);
     if (this.landingNow) a.sprite.setAlpha(0);
     else this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
     this.events.emit('joined', a);
@@ -600,9 +610,18 @@ export class CampScene extends Phaser.Scene {
     // the elevator (the minecart, the Moon's UFO, the Mars rover); rockets open the star map
     if (here && here === planetById(this.planet)?.perks?.elevator && ready) return { kind: 'cart', plot };
     if (ROCKETS.includes(here) && ready) return { kind: 'rocket', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
+    // Rainbow Village's shops
+    if (SHOP_BUILDINGS.includes(here) && ready) return { kind: 'shop', plot, shop: here };
     // the Hall of Heroes: press A to play the finale again
     if (here === 'hall' && ready) return { kind: 'hall', plot, x: L.plots[plot] * TILE + (L.plotW * TILE) / 2 };
     return null;
+  }
+
+  // Everyone dresses again (a purchase, the Gear page, a Sun Suit piece won).
+  refreshGear() {
+    const st = getState(this.registry);
+    for (const a of this.avatars) if (a) a.powers = powersOf(st, a.slot);
+    this.gearView.refresh();
   }
 
   // Who the camera follows: everyone, except a player resting while their
@@ -676,7 +695,7 @@ export class CampScene extends Phaser.Scene {
         } else if (zone && zone.kind === 'hall' && !this.partying) {
           action = { x: zone.x, key: 'btn-a', y: GROUND_Y - 92 };
           if (e.a && !hud.picker && !this.partying && !this.arriving && !this.leaving) this.finaleParty();
-        } else if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart' || zone.kind === 'stall')) {
+        } else if (zone && (zone.kind === 'bench' || zone.kind === 'plot' || zone.kind === 'cart' || zone.kind === 'stall' || zone.kind === 'shop')) {
           const x = zone.kind === 'bench' ? this.L.benchX * TILE + TILE / 2
             : zone.kind === 'stall' ? this.L.stallX * TILE + TILE / 2
               : this.L.plots[zone.plot] * TILE + (this.L.plotW * TILE) / 2;
@@ -691,7 +710,7 @@ export class CampScene extends Phaser.Scene {
           action = { x: this.W - 1.5 * TILE, key: 'btn-a', y: GROUND_Y - 58 };
           if (e.a && !hud.picker && !this.arriving) this.goToYard();
         } else if (decorIndex >= 0) {
-          action = { x: getState(this.registry).decor.placed[decorIndex].x, key: 'icon-hand' };
+          action = { x: decorOf(getState(this.registry), this.planet).placed[decorIndex].x, key: 'icon-hand' };
           if (e.a) {
             this.decor.pickUp(a, decorIndex);
             this.events.emit('pickerOpen');
@@ -699,7 +718,14 @@ export class CampScene extends Phaser.Scene {
         }
         if (action) move = { ...i, jump: false }; // A acts here instead of jumping
         if (zone && zone.kind === 'shaft' && e.down) this.startTrip();
-        if (stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: this.walkMul }).jumped) this.events.emit('jump', a);
+        // (gear works at camp too: bouncy feet, the glider, skates…)
+        const gear = gearMoves(a.powers);
+        const r = stepPlayer(a.p, move, this.grid, {
+          dt, canMine: false, walkMul: gear.walkMul, jumpMul: gear.jumpMul, grip: gear.grip, jetpack: gear.jetpack,
+          glide: gear.glide, balloon: gear.balloon, gecko: gear.gecko, skates: gear.skates,
+        });
+        if (r.jumped) this.events.emit('jump', a);
+        this.gearFx.step(a, a.powers, r, dt);
         if (action && action.key && !hud.picker) prompts[slot] = action;
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
@@ -726,7 +752,7 @@ export class CampScene extends Phaser.Scene {
     this.campPets.update(dt, time);
     this.decor?.update(time);
     this.visitors?.update(dt, time);
-    this.suits.update();
+    this.gearView.update();
     this.stepCritters(dt, time);
     this.updateCamera(dt);
   }
@@ -836,18 +862,27 @@ export class CampScene extends Phaser.Scene {
       });
       return;
     }
-    if (zone.kind === 'stall') {
-      const stockIds = Object.keys(state.decor.stock).filter((id) => state.decor.stock[id] > 0);
-      const ids = [...new Set([...stockIds, ...BUYABLE.filter((d) => decorUnlocked(state, d.id)).map((d) => d.id)])];
+    if (zone.kind === 'stall' || (zone.kind === 'shop' && zone.shop === 'decoshop')) {
+      // Earth's stall, or Rainbow Village's Decoration Workshop
+      const decor = decorOf(state, this.planet);
+      const forSale = this.onEarth ? BUYABLE.filter((d) => decorUnlocked(state, d.id)) : RAINBOW_DECOR;
+      const stockIds = Object.keys(decor.stock).filter((id) => decor.stock[id] > 0);
+      const ids = [...new Set([...stockIds, ...forSale.map((d) => d.id)])];
       hud.openPicker({
         slot: a.slot,
         kind: 'decor',
+        planet: this.planet,
         options: ids.map((id) => {
-          const stock = state.decor.stock[id] ?? 0;
+          const stock = decor.stock[id] ?? 0;
           const cost = decorById(id).cost;
           return { id, cost: stock ? null : cost, stock, affordable: stock > 0 || (!!cost && canAfford(state.bank, cost)) };
         }),
       });
+      return;
+    }
+    if (zone.kind === 'shop') {
+      // the Hat Shop, the Shoe Shop, the Gadget Lab: buy it, wear it, take it off
+      hud.openPicker({ slot: a.slot, kind: 'gear', shop: zone.shop, char: a.char, options: this.gearOptions(zone.shop, a.slot) });
       return;
     }
     if (zone.kind === 'bench') {
@@ -868,6 +903,19 @@ export class CampScene extends Phaser.Scene {
     }
   }
 
+  // A gear shop's cards for player `slot`: what it is, its price, owned / worn / still to win.
+  gearOptions(shop, slot) {
+    const state = getState(this.registry);
+    const on = wornBy(state, slot);
+    return shopItems(shop).map((item) => {
+      const owned = ownsGear(state, item.id);
+      return {
+        id: item.id, cost: owned ? null : item.cost, owned, worn: on[item.slot] === item.id, locked: !owned && !item.cost,
+        affordable: owned || (!!item.cost && canAfford(state.bank, item.cost)),
+      };
+    });
+  }
+
   confirmPick(hud) {
     const pick = hud.picker;
     const opt = pick.options[pick.index];
@@ -882,10 +930,34 @@ export class CampScene extends Phaser.Scene {
       this.startTrip({ startRow: opt.row });
       return;
     }
+    if (pick.kind === 'gear') {
+      const a = this.avatars[pick.slot];
+      const item = gearById(opt.id);
+      let next = opt.owned ? state : buyGear(state, opt.id);
+      // A on something you're wearing takes it off; anything else goes on
+      if (next) next = wearGear(next, pick.slot, item.slot, opt.worn ? null : opt.id);
+      if (!next) {
+        hud.pickerNope();
+        this.events.emit('nope');
+        return;
+      }
+      setState(this.registry, next);
+      hud.syncBank(next.bank);
+      this.refreshGear();
+      if (!opt.worn) {
+        this.effects.sparkle(a.sprite.x, a.sprite.y - 10, 0xffe066, 10);
+        a.sprite.setScale(1.3, 0.7);
+        a.p.vy = -120;
+      }
+      this.events.emit(opt.owned ? 'wear' : 'upgraded');
+      hud.picker.options = this.gearOptions(pick.shop, pick.slot);
+      hud.renderPicker(false);
+      return;
+    }
     if (pick.kind === 'decor') {
       const a = this.avatars[pick.slot];
       if (!opt.stock) {
-        const bought = buyDecor(state, opt.id);
+        const bought = buyDecor(state, opt.id, this.planet);
         if (!bought) {
           hud.pickerNope();
           this.events.emit('nope');
@@ -1089,7 +1161,7 @@ export class CampScene extends Phaser.Scene {
         targets: h, y: a.sprite.y, scale: 1, duration: 1100, ease: 'Bounce.easeOut',
         onComplete: () => {
           h.destroy();
-          this.suits.refresh();
+          this.refreshGear();
           a.p.vy = -170;
           this.effects.sparkle(a.sprite.x, a.sprite.y - 12, { helmet: 0x9ff6ff, boots: 0xffa050, gloves: 0xffd84a, jetpack: 0xff8a2a }[piece] ?? 0xffffff, 12);
         },
@@ -1159,7 +1231,7 @@ export class CampScene extends Phaser.Scene {
           targets: c, y: a.sprite.y - 16, scale: 1, duration: 1000, ease: 'Bounce.easeOut',
           onComplete: () => {
             c.destroy();
-            this.suits.refresh();
+            this.refreshGear();
             a.p.vy = -170;
             this.effects.sparkle(a.sprite.x, a.sprite.y - 18, 0xffd84a, 12);
           },

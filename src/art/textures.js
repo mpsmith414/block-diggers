@@ -34,6 +34,8 @@ import { drawEggCatchArt } from './eggcatch.js';
 import { drawFireworksArt } from './fireworks.js';
 import { drawBuildArt } from './build.js';
 import { drawRainbowTiles, drawRainbowArt } from './rainbow.js';
+import { drawRainbowShops } from './rainbowShops.js';
+import { drawGearArt } from './gear.js';
 
 const T = 16;
 
@@ -658,8 +660,9 @@ function drawGlint(scene) {
   tex.refresh();
 }
 
-// A 3×5 pixel font for numbers and a few symbols (HUD, costs).
-export const FONT_CHARS = '0123456789x+-/:!? ';
+// A 3×5 pixel font for numbers and a few symbols (HUD, costs), and capital
+// letters for the little captions grown-ups read (gear in the shops).
+export const FONT_CHARS = "0123456789x+-/:!? ABCDEFGHIJKLMNOPQRSTUVWXYZ.,'";
 const GLYPHS = {
   0: ['111', '101', '101', '101', '111'],
   1: ['010', '110', '010', '010', '111'],
@@ -679,6 +682,35 @@ const GLYPHS = {
   '!': ['010', '010', '010', '000', '010'],
   '?': ['111', '001', '011', '000', '010'],
   ' ': ['000', '000', '000', '000', '000'],
+  A: ['010', '101', '111', '101', '101'],
+  B: ['110', '101', '110', '101', '110'],
+  C: ['011', '100', '100', '100', '011'],
+  D: ['110', '101', '101', '101', '110'],
+  E: ['111', '100', '110', '100', '111'],
+  F: ['111', '100', '110', '100', '100'],
+  G: ['011', '100', '101', '101', '011'],
+  H: ['101', '101', '111', '101', '101'],
+  I: ['111', '010', '010', '010', '111'],
+  J: ['001', '001', '001', '101', '010'],
+  K: ['101', '101', '110', '101', '101'],
+  L: ['100', '100', '100', '100', '111'],
+  M: ['101', '111', '111', '101', '101'],
+  N: ['110', '101', '101', '101', '101'],
+  O: ['010', '101', '101', '101', '010'],
+  P: ['110', '101', '110', '100', '100'],
+  Q: ['010', '101', '101', '110', '011'],
+  R: ['110', '101', '110', '101', '101'],
+  S: ['011', '100', '010', '001', '110'],
+  T: ['111', '010', '010', '010', '010'],
+  U: ['101', '101', '101', '101', '111'],
+  V: ['101', '101', '101', '101', '010'],
+  W: ['101', '101', '111', '111', '101'],
+  X: ['101', '101', '010', '101', '101'],
+  Y: ['101', '101', '010', '010', '010'],
+  Z: ['111', '001', '010', '100', '111'],
+  '.': ['000', '000', '000', '000', '010'],
+  ',': ['000', '000', '000', '010', '100'],
+  "'": ['010', '010', '000', '000', '000'],
 };
 function drawFont(scene) {
   const W = 4;
@@ -739,4 +771,6 @@ export function drawTextures(scene) {
   drawFireworksArt(scene, canvasTexture, rect);
   drawBuildArt(scene, canvasTexture, rect);
   drawRainbowArt(scene, canvasTexture, rect);
+  drawRainbowShops(scene, canvasTexture, rect);
+  drawGearArt(scene, canvasTexture, rect);
 }

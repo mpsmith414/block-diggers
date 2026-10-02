@@ -10,7 +10,7 @@ import { drawRoom, roomLights, flyOres, pressToUse } from './bonusRoom.js';
 import { TILE, PLAYER, CLAW } from '../../tuning.js';
 
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false, contains: () => false,
 };
 const W = 144;
 const H = 128;
@@ -123,6 +123,7 @@ export function createClawView(scene) {
   return {
     // is anyone in the room? (the bonus rooms play the arcade tune)
     occupied: () => scene.avatars.some((a) => a && inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 })),
+    contains: (a) => inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }),
     busy: (a) => owner === a,
 
     // At the joystick: remember the stick; A drops the claw; down steps away.

@@ -13,7 +13,7 @@ import { createRng } from '../../world/rng.js';
 import { TILE, PLAYER, HOCKEY } from '../../tuning.js';
 
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false, contains: () => false,
 };
 
 export function createHockeyView(scene) {
@@ -145,6 +145,7 @@ export function createHockeyView(scene) {
     rink, // (for the dev harness)
     // is anyone in the room? (the bonus rooms play the arcade tune)
     occupied: () => scene.avatars.some((a) => a && inRoom(middle(a))),
+    contains: (a) => inRoom(middle(a)),
     busy: () => false,
     step() {},
 

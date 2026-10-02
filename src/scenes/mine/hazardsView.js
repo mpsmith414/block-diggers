@@ -98,6 +98,15 @@ export function createHazards(scene) {
       fallers = triggerGravel(fallers, scene.grid, x, y - 1);
     },
 
+    // Boxing Gloves: the creature goes flying, spinning, and is gone
+    boop(e, dir) {
+      enemies = enemies.filter((o) => o !== e);
+      const s = sprites.get(e);
+      if (!s) return;
+      sprites.delete(e);
+      scene.tweens.add({ targets: s, x: s.x + dir * 70, y: s.y - 40, angle: dir * 720, alpha: 0, duration: 650, ease: 'Quad.easeOut', onComplete: () => s.destroy() });
+    },
+
     squash(e) {
       enemies = enemies.filter((o) => o !== e);
       const s = sprites.get(e);
