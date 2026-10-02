@@ -30,7 +30,8 @@ import { createDarkness } from './mine/darkness.js';
 import { createEffects } from './mine/effects.js';
 import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
-import { getState } from '../save/store.js';
+import { getState, setState } from '../save/store.js';
+import { huntOf, checkPassed } from '../game/hunt.js';
 import {
   packCap, revealsChests, luck, lanternRadius, stormRubies, gearMoves,
 } from '../game/perks.js';
@@ -42,6 +43,7 @@ import { createGearView } from './common/gearView.js';
 import { createGearFx } from './common/gearFx.js';
 import { createBonusViews } from './mine/bonusViews.js';
 import { createRainbowView, rainbowPainter } from './mine/rainbowView.js';
+import { createHuntView } from './mine/huntView.js';
 import { attachAudio, songFor, setSong } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import { charFor } from '../game/cast.js';
@@ -101,7 +103,11 @@ export class MineScene extends Phaser.Scene {
     else if (this.rainbowPlanet) {
       // Rainbow Planet: the same endless mine every time, starting at your deepest point
       this.startDeepest = saved.rainbow?.deepest ?? 0;
-      this.world = generateRainbow(RAINBOW.seed, this.startDeepest);
+      // a treasure map's X you've dug past moves below you
+      const hunt = huntOf(saved);
+      const checked = checkPassed(hunt, this.startDeepest, createRng(this.seed ^ 0x7e45));
+      if (checked !== hunt) setState(this.registry, { ...saved, hunt: checked });
+      this.world = generateRainbow(RAINBOW.seed, this.startDeepest, { x: checked.map });
       useRainbowStretch(this.world.layers, this.world.rows);
       setLayerCreatures(Object.fromEntries(this.world.layers.map((l) => [`r${l.n}`, l.look.creatures])));
       this.painter = rainbowPainter(this.world);
@@ -170,6 +176,7 @@ export class MineScene extends Phaser.Scene {
     this.gearFx = createGearFx(this);
     this.bonus = createBonusViews(this);
     this.rainbowView = this.rainbowPlanet ? createRainbowView(this, this.painter, { startDeepest: this.startDeepest }) : null;
+    this.huntView = this.world.huntChest ? createHuntView(this) : null;
     const rows = this.grid.h;
     this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE, underground: this.rainbowPlanet });
     this.lavaCells = [];
@@ -539,6 +546,7 @@ export class MineScene extends Phaser.Scene {
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
     this.rainbowView?.update(dt);
+    this.huntView?.update(dt);
     this.bonus.update(dt, time);
     // the bonus rooms have their own bouncy arcade tune
     this.songT = (this.songT ?? 0) - dt;
@@ -1376,6 +1384,7 @@ export class MineScene extends Phaser.Scene {
     lights.push(...this.pets.lights());
     lights.push(...this.bonus.lights(view, flicker));
     if (this.rainbowView) lights.push(...this.rainbowView.lights(view, flicker));
+    if (this.huntView) lights.push(...this.huntView.lights(view, flicker));
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     const heart = this.finds.heart;

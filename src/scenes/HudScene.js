@@ -10,6 +10,7 @@ import { shownOres } from '../game/ores.js';
 import { EGG_KINDS } from '../art/finds.js';
 import { BADGE_LAYERS } from '../game/trip.js';
 import { CHARACTER_COLORS } from '../art/characters.js';
+import { TREASURE_NAMES } from '../game/hunt.js';
 
 // Per-player panels: character face, ore counts, backpack meter. Icons and
 // numbers only — nothing a child needs to read.
@@ -144,6 +145,8 @@ export class HudScene extends Phaser.Scene {
     this.eggDots = this.source.world.eggs.map((e) => this.add.rectangle(x + 5, top + e.y * this.meter.scale, 3, 4, 0xfff6d0).setOrigin(0.5));
     const bc = this.source.world.bigChest;
     this.bigDot = bc ? this.add.rectangle(x - 4, top + bc.y * this.meter.scale, 4, 3, 0xd08cff).setOrigin(0.5) : null;
+    // the treasure map's X (Rainbow Planet), at the chest's depth
+    this.huntMark = this.add.image(x - 5, 0, 'hunt-x').setScale(0.22).setVisible(false);
     this.carriedEggs = this.add.container(6, 44 + GOAL_H + 6);
     this.buildGoal();
     this.carriedShown = 0;
@@ -299,6 +302,33 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: c, y: -60, alpha: 0, delay: 2800, duration: 500, ease: 'Quad.easeIn', onComplete: () => c.destroy() });
   }
 
+  // The treasure hunt: what was in the chest. A big gold card with the
+  // treasure (or the golden statue) and its name, for the grown-ups.
+  treasureCard(prize) {
+    const w = 190;
+    const cx = this.scale.width / 2;
+    const c = this.add.container(cx, 124).setDepth(100);
+    const g = this.add.graphics();
+    g.fillStyle(0x4a3222, 1).fillRoundedRect(-w / 2 - 2, -42, w + 4, 84, 8);
+    g.fillStyle(0xf5c629, 1).fillRoundedRect(-w / 2, -40, w, 80, 7);
+    g.fillStyle(0xf4e4c1, 1).fillRoundedRect(-w / 2 + 4, -36, w - 8, 72, 5);
+    c.add(g);
+    const glow = this.add.image(0, -8, 'light').setTint(0xffe066).setAlpha(0.6).setScale(1.4);
+    const img = this.add.image(0, -8, prize === 'statue' ? 'hunt-statue-icon' : `treasure-${prize}`).setScale(3);
+    const name = this.add.bitmapText(0, 26, 'pixel', TREASURE_NAMES[prize] ?? '').setOrigin(0.5).setScale(2).setTint(0x4a3222);
+    c.add([glow, img, name]);
+    for (const sx of [-1, 1]) {
+      const star = this.add.image(sx * 60, -14, 'star').setScale(1.4);
+      c.add(star);
+      this.tweens.add({ targets: star, angle: 360, duration: 1200, repeat: 2 });
+    }
+    this.tweens.add({ targets: glow, scale: 1.8, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
+    this.tweens.add({ targets: img, angle: { from: -8, to: 8 }, duration: 300, yoyo: true, repeat: 5, ease: 'Sine.easeInOut' });
+    c.setScale(0);
+    this.tweens.add({ targets: c, scale: 1, duration: 500, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: c, y: -80, alpha: 0, delay: 3800, duration: 500, ease: 'Quad.easeIn', onComplete: () => c.destroy() });
+  }
+
   updateDepthMeter(time) {
     const { x, top, scale } = this.meter;
     this.source.world.chests.forEach((c, i) => {
@@ -306,6 +336,9 @@ export class HudScene extends Phaser.Scene {
       const known = this.source.revealAll || this.source.seenChests.has(i);
       this.chestDots[i].setVisible(!open && known).setAlpha(0.6 + Math.sin(time / 300 + i) * 0.4);
     });
+    const hunt = this.source.huntView?.target();
+    this.huntMark.setVisible(!!hunt);
+    if (hunt) this.huntMark.setPosition(x - 5, top + hunt.row * scale).setScale(0.22 + Math.sin(time / 200) * 0.03).setTint(hunt.golden ? 0xffe066 : 0xffffff);
     const reveal = this.source.revealAll;
     this.source.finds.eggs.forEach((e, i) => this.eggDots[i].setVisible(reveal && !e.taken));
     if (this.bigDot) {
@@ -369,7 +402,11 @@ export class HudScene extends Phaser.Scene {
     c.add([bag, barBg, bar, count, full]);
     // (Rainbow Planet's sparkles go in a jar, not the backpack: no backpack meter there)
     if (this.source.planet === 'rainbow') for (const o of [bag, barBg, bar, count]) o.setVisible(false);
-    const panel = { c, ores, bar, count, full, key };
+    // ...but a treasure map shows there instead, with an arrow pointing to its X
+    const map = this.add.image(30, 25, 'hunt-map').setVisible(false);
+    const arrow = this.add.image(50, 25, 'arrow-r').setScale(1.8).setVisible(false);
+    c.add([map, arrow]);
+    const panel = { c, ores, bar, count, full, key, map, arrow };
     this.panels[a.slot] = panel;
     return panel;
   }
@@ -397,6 +434,15 @@ export class HudScene extends Phaser.Scene {
       p.count.setText(`${a.pack.count}/${a.pack.cap}`);
       const isFull = packFull(a.pack);
       p.full.setVisible(isFull && Math.floor(time / 300) % 2 === 0);
+      // the treasure map's compass: an arrow from you to the X
+      const t = this.source.huntView?.target();
+      p.map.setVisible(!!t);
+      p.arrow.setVisible(!!t);
+      if (t) {
+        p.map.setTexture(t.golden ? 'hunt-map-golden' : 'hunt-map');
+        const ang = Math.atan2(t.y - (a.p.y + 7), t.x - (a.p.x + 6));
+        p.arrow.setRotation(ang).setPosition(50 + Math.cos(ang) * Math.sin(time / 150) * 1.5, 25 + Math.sin(ang) * Math.sin(time / 150) * 1.5);
+      }
     }
   }
 }

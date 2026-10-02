@@ -132,6 +132,9 @@ export function createRainbowView(scene, painter, { startDeepest = 0 } = {}) {
   const shown = new Set();
 
   return {
+    // sparkles for player `a` from cell (x, y) (the treasure hunt's chest uses this too)
+    give: giveSparkles,
+
     // Magnet Mitts pulled a tiny gem out of the rock (the block is rock again now)
     pluck(a, x, y) {
       const g = tinyAt.get(key(x, y));
