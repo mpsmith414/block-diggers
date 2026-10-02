@@ -730,6 +730,8 @@ export class CampScene extends Phaser.Scene {
         if (zone && zone.kind === 'shaft') downPrompt = true;
       }
       a.p.x = Phaser.Math.Clamp(a.p.x, 2, this.W - PLAYER.w - 2);
+      // (the Balloon Pack and the Jetpack: never float off the top of the screen)
+      if (a.p.y < GROUND_Y - 118) { a.p.y = GROUND_Y - 118; a.p.vy = Math.max(0, a.p.vy); }
       animateCharacter(a.sprite, a.p, a, dt, time);
       if (this.onEarth) this.pondDrink(a, dt, time);
     }
