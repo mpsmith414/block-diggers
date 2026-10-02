@@ -137,3 +137,43 @@ describe('Rainbow Planet: a trip builds a stretch of layers below your deepest p
     }
   });
 });
+
+describe('the treasure map’s X', async () => {
+  const { placeX } = await import('../../src/game/hunt.js');
+  const { createRng } = await import('../../src/world/rng.js');
+  const { gemInfo: info } = await import('../../src/game/rainbowGems.js');
+  const covered = (w, x, y) => w.gems.some((g) => {
+    const k = info(g.size).cells;
+    return x >= g.x && x < g.x + k && y >= g.y && y < g.y + k;
+  });
+
+  it('is a little sealed cave with the chest on rock, and nothing else in it or its ring', () => {
+    const rng = createRng(5);
+    for (const deepest of [0, 61, 500, 2000]) {
+      for (let i = 0; i < 10; i++) {
+        const x = placeX(rng, deepest);
+        const w = generateRainbow(SEED, deepest, { x });
+        expect(w.huntChest).toMatchObject({ x: x.col, y: x.row - w.top });
+        const { x0, x1, y0, y1 } = w.huntChest.cave;
+        expect([x1 - x0 + 1, y1 - y0 + 1]).toEqual([5, 3]);
+        for (let yy = y0 - 1; yy <= y1 + 1; yy++) {
+          for (let xx = x0 - 1; xx <= x1 + 1; xx++) {
+            const inside = xx >= x0 && xx <= x1 && yy >= y0 && yy <= y1;
+            expect(w.grid.get(xx, yy)).toBe(inside ? B.AIR : B.RAINBOW_ROCK);
+            expect(covered(w, xx, yy)).toBe(false);
+            expect(w.rchests.some((c) => c.x === xx && c.y === yy)).toBe(false);
+            expect(w.rdecor.some((d) => d.x === xx && d.y === yy)).toBe(false);
+          }
+        }
+        expect(w.grid.get(w.huntChest.x, w.huntChest.y + 1)).toBe(B.RAINBOW_ROCK);
+      }
+    }
+  });
+
+  it('only when the X is in this trip’s stretch', () => {
+    expect(generateRainbow(SEED, 0).huntChest).toBeNull();
+    // above the stretch (you've dug past it), or below its floor
+    expect(generateRainbow(SEED, 400, { x: { row: 100, col: 10 } }).huntChest).toBeNull();
+    expect(generateRainbow(SEED, 0, { x: { row: 2000, col: 10 } }).huntChest).toBeNull();
+  });
+});

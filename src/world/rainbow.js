@@ -9,7 +9,7 @@ import { createGrid } from './grid.js';
 import { createRng } from './rng.js';
 import { B } from './blocks.js';
 import { gemInfo } from '../game/rainbowGems.js';
-import { MINE_W, SHAFT_X, RAINBOW } from '../tuning.js';
+import { MINE_W, SHAFT_X, RAINBOW, HUNT } from '../tuning.js';
 
 export const PATTERNS = ['speckles', 'stripes', 'swirls', 'dots', 'bubbles', 'zigzag'];
 export const GEM_SHAPES = ['round', 'diamond', 'hex', 'star', 'heart', 'crystal', 'nugget'];
@@ -84,7 +84,9 @@ export const layerOfRow = (row) => Math.floor(Math.max(0, row) / RAINBOW.layerRo
 // A trip's stretch of the mine: from a little above your deepest point down
 // to the end of the `stretch`-th layer, then the glowing floor. Grid row 0 is
 // the planet's row `top`; `layers` give their rows in grid rows.
-export function generateRainbow(seed, deepest = 0) {
+// `x`: a treasure map's X (a planet row and column). If it's in the stretch,
+// a little sealed cave is carved there with the pirate chest on its floor.
+export function generateRainbow(seed, deepest = 0, { x: mark = null } = {}) {
   const L = RAINBOW.layerRows;
   const start = Math.max(RAINBOW.cave.h - 1, Math.floor(deepest));
   const top = Math.max(0, start - RAINBOW.above);
@@ -101,7 +103,14 @@ export function generateRainbow(seed, deepest = 0) {
   // the starting cave (grid rows), where the lift drops you off
   const spawn = { x: SHAFT_X, y: start - top };
   const cave = { x0: SHAFT_X - 3, x1: SHAFT_X + 3, y0: spawn.y - RAINBOW.cave.h + 1, y1: spawn.y };
-  const inCave = (x, y) => x >= cave.x0 - 1 && x <= cave.x1 + 1 && y >= cave.y0 - 1 && y <= cave.y1 + 1;
+  const inStart = (x, y) => x >= cave.x0 - 1 && x <= cave.x1 + 1 && y >= cave.y0 - 1 && y <= cave.y1 + 1;
+  // the X cave (grid rows), with a ring of rock round it that nothing else uses
+  const hw = Math.floor(HUNT.cave.w / 2);
+  const xy = mark ? mark.row - top : -1;
+  const xCave = mark && xy - HUNT.cave.h >= 0 && xy < floorRow - 1
+    ? { x0: mark.col - hw, x1: mark.col + hw, y0: xy - HUNT.cave.h + 1, y1: xy } : null;
+  const inX = (x, y) => !!xCave && x >= xCave.x0 - 1 && x <= xCave.x1 + 1 && y >= xCave.y0 - 1 && y <= xCave.y1 + 1;
+  const inCave = (x, y) => inStart(x, y) || inX(x, y);
 
   const layers = [];
   const gems = [];
@@ -208,8 +217,19 @@ export function generateRainbow(seed, deepest = 0) {
   for (let y = Math.max(0, cave.y0); y <= cave.y1; y++) for (let x = cave.x0; x <= cave.x1; x++) grid.set(x, y, B.AIR);
   for (let x = cave.x0; x <= cave.x1; x++) if (grid.get(x, cave.y1 + 1) !== B.RAINBOW_FLOOR) grid.set(x, cave.y1 + 1, B.RAINBOW_ROCK);
 
+  // the X cave: carved last, sealed in rock, the chest on its floor
+  if (xCave) {
+    for (let y = xCave.y0 - 1; y <= xCave.y1 + 1; y++) {
+      for (let x = xCave.x0 - 1; x <= xCave.x1 + 1; x++) {
+        const inside = x >= xCave.x0 && x <= xCave.x1 && y >= xCave.y0 && y <= xCave.y1;
+        grid.set(x, y, inside ? B.AIR : B.RAINBOW_ROCK);
+      }
+    }
+  }
+
   return {
     top, rows, grid, floorRow, layers, gems, twists, spawn,
+    huntChest: xCave ? { x: mark.col, y: xy, cave: xCave } : null,
     // (its own chests and decorations: the mine's usual ones are for the other planets)
     rchests: chests, rdecor: decor,
     startCave: { x: SHAFT_X, y: spawn.y },
