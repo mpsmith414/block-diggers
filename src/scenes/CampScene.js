@@ -30,6 +30,7 @@ import { drawMarsBackdrop, drawMarsProps } from './camp/marsScenery.js';
 import { drawSaturnBackdrop, drawSaturnProps } from './camp/saturnScenery.js';
 import { drawDinoBackdrop, drawDinoProps } from './camp/dinoScenery.js';
 import { drawSunBackdrop, drawSunProps } from './camp/sunScenery.js';
+import { drawRainbowBackdrop, drawRainbowProps, setDepthSign } from './camp/rainbowScenery.js';
 import { planetById, rocketTo, PLANETS } from '../game/planets.js';
 import { createSuitView } from './common/suitView.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -40,20 +41,20 @@ const GROUND_Y = CAMP.ground * TILE;
 const HUD_STRIP = 48;
 const IDLE = { moveX: 0, moveY: 0, jump: false, bubble: false, home: false, pause: false };
 // the rocket buildings (each opens the star map), and the ground of each camp
-const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket', 'sunrocket'];
-const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW], dino: [B.GRASS, B.DIRT], sun: [B.CORONA_ROCK, B.CORONA_ROCK] };
+const ROCKETS = ['rocket', 'marsrocket', 'saturnrocket', 'dinorocket', 'sunrocket', 'rainbowrocket'];
+const GROUND = { earth: [B.GRASS, B.DIRT], moon: [B.MOONROCK, B.MOONROCK], mars: [B.MARS_ROCK, B.MARS_ROCK], saturn: [B.SNOW, B.SNOW], dino: [B.GRASS, B.DIRT], sun: [B.CORONA_ROCK, B.CORONA_ROCK], rainbow: [B.RAINBOW_TOP, B.RAINBOW_SOIL] };
 // each camp's sky and scenery (Earth's are drawn here in the scene)
 const SCENERY = {
   moon: [drawMoonBackdrop, drawMoonProps], mars: [drawMarsBackdrop, drawMarsProps], saturn: [drawSaturnBackdrop, drawSaturnProps],
-  dino: [drawDinoBackdrop, drawDinoProps], sun: [drawSunBackdrop, drawSunProps],
+  dino: [drawDinoBackdrop, drawDinoProps], sun: [drawSunBackdrop, drawSunProps], rainbow: [drawRainbowBackdrop, drawRainbowProps],
 };
 // the big ship that flies a route: the rocket of the farther planet (the
 // Rocket Ship to the Moon, the Mars Rocket to Mars, the Saturn Rocket to Saturn)
-const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship', sun: 'sun-ship' };
+const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship', sun: 'sun-ship', rainbow: 'rainbow-ship' };
 const order = (id) => PLANETS.findIndex((p) => p.id === id);
 export const shipFor = (from, to) => SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship';
 // where each rocket building's ship stands, from the left of its plot
-const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52, sunrocket: 40 };
+const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52, sunrocket: 40, rainbowrocket: 40 };
 
 export class CampScene extends Phaser.Scene {
   constructor() {
@@ -104,6 +105,7 @@ export class CampScene extends Phaser.Scene {
     this.drawGround();
     if (this.onEarth) this.drawProps();
     else props(this, { L: this.L, groundY: GROUND_Y });
+    if (this.planet === 'rainbow') setDepthSign(this, saved.rainbow?.deepest ?? 0);
     this.drawCommonProps();
     this.placeBuildings();
     // the building perks, decorating and visitors live at Earth camp
@@ -951,7 +953,12 @@ export class CampScene extends Phaser.Scene {
     // each camp's own gift: dinosaurs dig up amber at home, space mice make
     // cheese on the Moon, robots build bolts on Mars
     const park = campGift(banked, this.planet);
-    const state = setState(this.registry, { ...park.state, trips: (getState(this.registry).trips ?? 0) + 1 });
+    // Rainbow Planet: the deepest you reached (the next trip starts there; the Depth Sign shows it)
+    const rainbowDeepest = this.arrived.rainbowDeepest;
+    const oldDeepest = park.state.rainbow?.deepest ?? 0;
+    const rainbow = rainbowDeepest != null ? { rainbow: { ...park.state.rainbow, deepest: Math.max(oldDeepest, rainbowDeepest) } } : {};
+    const state = setState(this.registry, { ...park.state, ...rainbow, trips: (getState(this.registry).trips ?? 0) + 1 });
+    if (rainbowDeepest != null && rainbowDeepest > oldDeepest) setDepthSign(this, state.rainbow.deepest, { pop: true });
     const flyTime = hud.flyOres(packs, this.avatars, state.bank);
     // the Heart of the World and the dino park's amber arrive after the packs
     const a0 = this.avatars.find(Boolean);

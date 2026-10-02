@@ -395,7 +395,9 @@ export const STORM = { first: [20, 30], calm: [40, 70], warn: 3, blow: 8, push: 
 export const SATURN_CAMP = { ...MOON_CAMP };
 
 // ---- Solar Station (cells): the same shape as Moon Base ----
-export const SUN_CAMP = { ...MOON_CAMP, plots: [26, 33, 40, 47, 54] };
+// (a fifth plot for the Rainbow Rocket, and 10 more cells so the domes and
+// solar panels still fit past it)
+export const SUN_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
 
 // ---- Rainbow Village (cells): the same shape as Moon Base (its plots come with
 // its buildings, later) ----

@@ -217,7 +217,23 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   - **Sundial Tower:** chests show on the depth meter;
   - **Sunbeam Lift:** slide down a sunbeam (the elevator);
   - **Hall of Heroes:** needs the Sun's Heart. Press A inside to play the
-    finale again.
+    finale again;
+  - **Rainbow Rocket** (a fifth plot): needs the Sun's Heart. It flies to Rainbow Planet.
+- **Rainbow Planet** (after the finale): an **endless mine** that's new all the
+  way down. Every layer (30 rows) has its own random colours (a gradient from
+  top to bottom), rock pattern and gem: round, diamond, hex, star, heart,
+  crystal or nugget, in one of four sizes. **Tiny** gems are one block;
+  **chunky** (2x2), **big** (4x4) and **massive** (8x8) ones are a single gem:
+  every dig cracks it a bit more until it **shatters**. Layers also have
+  treasure chests, glowing mushrooms and crystals, creatures in the layer's
+  colours, and sometimes a twist (bouncy pads, pools, shiny slippery floors,
+  floaty low gravity). Gems are **sparkles**, Rainbow Planet's money: they go in
+  a jar, never the backpack, and any drill digs everything here. **Every trip
+  starts at the deepest point you've reached**, and a banner shows each new
+  layer's number (with a ribbon for a record).
+- **Rainbow Village**: a candy-coloured camp under a giant rainbow, with the
+  **Rainbow Lift** down into the mine and the **Depth Sign** showing the
+  deepest layer you've reached.
 - **The Build Yard:** walk out through the gate at the right end of Earth camp
   into a big sunny meadow and **build with every block you've found**, as many
   as you like (Lego-style). Reaching a layer on any planet unlocks its rock and
