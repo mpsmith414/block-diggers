@@ -81,3 +81,21 @@ describe('baby dinosaurs', () => {
     expect(roarTargets([near, far], 0, 0, 80)).toEqual([near]);
   });
 });
+
+describe('Magnet Mitts', async () => {
+  const { magnetTarget } = await import('../../src/game/pets.js');
+  const { createGrid } = await import('../../src/world/grid.js');
+  const { B } = await import('../../src/world/blocks.js');
+  it('finds the nearest ore your drill can dig, within reach', () => {
+    const g = createGrid(12, 12);
+    for (let y = 0; y < 12; y++) for (let x = 0; x < 12; x++) g.set(x, y, B.STONE);
+    g.set(5, 5, B.AIR);
+    expect(magnetTarget(g, 5, 5, 0, 3)).toBeNull();
+    g.set(8, 5, B.COAL_STONE);
+    g.set(5, 3, B.IRON);
+    expect(magnetTarget(g, 5, 5, 0, 3)).toMatchObject({ x: 5, y: 3, id: B.IRON });
+    expect(magnetTarget(g, 5, 5, 0, 1)).toBeNull();
+    // only what `ok` accepts
+    expect(magnetTarget(g, 5, 5, 0, 3, (id) => id === B.COAL_STONE)).toMatchObject({ x: 8, y: 5 });
+  });
+});

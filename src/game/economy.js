@@ -89,8 +89,16 @@ export const SUN_BLUEPRINTS = [
   { id: 'rainbowrocket', cost: { nova: 60, plasma: 60, sunstone: 60 }, needs: { sunHeart: true } },
 ];
 
-// (Rainbow Village's buildings come later)
-const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS, sun: SUN_BLUEPRINTS, rainbow: [] };
+// Rainbow Village: four shops, bought with sparkles. Each one opens its shop.
+export const RAINBOW_BLUEPRINTS = [
+  { id: 'hatshop', cost: { sparkle: 300 } },
+  { id: 'shoeshop', cost: { sparkle: 600 } },
+  { id: 'gadgetlab', cost: { sparkle: 1000 } },
+  { id: 'decoshop', cost: { sparkle: 1500 } },
+];
+export const SHOPS = ['hatshop', 'shoeshop', 'gadgetlab', 'decoshop'];
+
+const BLUEPRINTS_OF = { earth: BLUEPRINTS, moon: MOON_BLUEPRINTS, mars: MARS_BLUEPRINTS, saturn: SATURN_BLUEPRINTS, dino: DINO_BLUEPRINTS, sun: SUN_BLUEPRINTS, rainbow: RAINBOW_BLUEPRINTS };
 export const blueprintsFor = (planet = 'earth') => BLUEPRINTS_OF[planet] ?? BLUEPRINTS;
 const blueprint = (id, planet) => blueprintsFor(planet).find((b) => b.id === id);
 

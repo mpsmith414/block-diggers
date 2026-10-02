@@ -10,7 +10,9 @@ import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
-import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
+import { CAVE_KINDS, DINO_KINDS, magnetTarget } from '../game/pets.js';
+import { HOST, layerAt } from '../world/worldgen.js';
+import { powersOf, anyoneWears } from '../game/gear.js';
 import { planetById, useRainbowStretch } from '../game/planets.js';
 import { setLayerCreatures } from '../game/hazards.js';
 import { createStorm, stepStorm, windOf } from '../game/storms.js';
@@ -30,13 +32,14 @@ import { createHazards } from './mine/hazardsView.js';
 import { createDecorView } from './mine/decorView.js';
 import { getState } from '../save/store.js';
 import {
-  packCap, revealsChests, luck, lanternRadius, walkMul, stormProof, stormRubies, digMul, iceGrip, jetpack,
+  packCap, revealsChests, luck, lanternRadius, stormRubies, gearMoves,
 } from '../game/perks.js';
 import { createFindsView } from './mine/findsView.js';
 import { createPetsView } from './mine/petsView.js';
 import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
-import { createSuitView } from './common/suitView.js';
+import { createGearView } from './common/gearView.js';
+import { createGearFx } from './common/gearFx.js';
 import { createBonusViews } from './mine/bonusViews.js';
 import { createRainbowView, rainbowPainter } from './mine/rainbowView.js';
 import { attachAudio, songFor, setSong } from '../audio/wire.js';
@@ -44,7 +47,7 @@ import { createPauseWatch } from './common/pauseWatch.js';
 import { charFor } from '../game/cast.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
-  LAYERS, LOW_GRAVITY, SILLY, FLARE, RAINBOW,
+  LAYERS, LOW_GRAVITY, SILLY, FLARE, RAINBOW, PERKS, GEAR_TUNE,
 } from '../tuning.js';
 
 const GLINT_COLORS = {
@@ -62,6 +65,7 @@ const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
 const HUD_STRIP = 40; // screen pixels at the top used by the HUD
 const DEFAULT_UPGRADES = { pick: 0, pack: 0, lantern: 0 };
+const NO_POWERS = new Set();
 
 export class MineScene extends Phaser.Scene {
   constructor() {
@@ -106,15 +110,12 @@ export class MineScene extends Phaser.Scene {
     this.gravity = planetById(this.planet).gravity;
     this.light = lanternRadius({ ...saved, upgrades: this.upgrades });
     this.airJumps = pets.includes('moonpup') ? 1 : 0;
-    // the Boots: faster everywhere, and Mars dust storms can't push you
-    this.walkMul = walkMul(saved);
-    this.stormProof = stormProof(saved);
     this.stormRubies = stormRubies(saved);
-    // the Gloves: faster digging, and no slipping on Saturn's ice; the Yeti Cub helps you dig a little faster
-    this.digMul = digMul(saved);
-    this.grip = iceGrip(saved);
-    // the Jetpack (hold jump in the air)
-    this.jet = jetpack(saved);
+    // the Yeti Cub helps you dig a little faster (each player's gear does the
+    // rest, see powersFor: the Boots, the Gloves, the Jetpack and the new gear)
+    this.yetiDig = pets.includes('yeti') ? PERKS.yetiDig : 1;
+    // X-Ray Goggles (if anyone's wearing them)
+    this.xray = anyoneWears(saved, 'xray');
     if (this.startRow) carveStation(this.world, SHAFT_X, this.startRow);
     this.rng = createRng(this.seed ^ 0x9e3779b9);
     this.storm = this.mars ? createStorm(this.rng) : null;
@@ -131,7 +132,11 @@ export class MineScene extends Phaser.Scene {
     this.trip = { deepest: 0, deepestBy: [], chests: 0, stickers: [], skateGems: 0 };
     this.knownLayers = [...(saved.records?.layers ?? [])];
     this.seenChests = new Set();
-    this.revealAll = revealsChests(getState(this.registry), this.planet);
+    this.revealAll = revealsChests(getState(this.registry), this.planet) || this.xray;
+    // the Gear page (from the pause menu) changed what someone's wearing
+    const onGear = () => this.refreshGear();
+    this.events.on('gearChanged', onGear);
+    this.events.once('shutdown', () => this.events.off('gearChanged', onGear));
     this.scanT = 0;
     // scene events outlive a restart, so remove this listener when the trip ends
     const onSticker = (id) => { if (!this.trip.stickers.includes(id)) this.trip.stickers.push(id); };
@@ -161,7 +166,8 @@ export class MineScene extends Phaser.Scene {
     this.hazards = createHazards(this);
     this.finds = createFindsView(this);
     this.pets = createPetsView(this, saved.pets ?? []);
-    this.suits = createSuitView(this);
+    this.gearView = createGearView(this);
+    this.gearFx = createGearFx(this);
     this.bonus = createBonusViews(this);
     this.rainbowView = this.rainbowPlanet ? createRainbowView(this, this.painter, { startDeepest: this.startDeepest }) : null;
     const rows = this.grid.h;
@@ -391,8 +397,11 @@ export class MineScene extends Phaser.Scene {
       dustT: 0,
       walkT: 0,
     };
+    a.powers = powersOf(getState(this.registry), slot);
+    a.magnetT = GEAR_TUNE.magnetEvery;
     this.avatars[slot] = a;
-    this.suits.add(a);
+    this.gearView.add(a);
+    this.teamGear();
     // a little poof as they appear
     this.drawAvatar(a, 0, this.time.now);
     a.sprite.setScale(0.2);
@@ -401,6 +410,33 @@ export class MineScene extends Phaser.Scene {
     this.offscreenGraceUntil = this.time.now + 1500;
     this.events.emit('joined', a);
     return a;
+  }
+
+  // Everyone's gear again (after the Gear page): powers, the light, x-ray, the looks.
+  refreshGear() {
+    const st = getState(this.registry);
+    for (const a of this.avatars) if (a) a.powers = powersOf(st, a.slot);
+    this.teamGear();
+    this.gearView.refresh();
+  }
+
+  // What gear does for the whole team, from whoever's here: the Helmet's light, X-Ray Goggles.
+  teamGear() {
+    const st = getState(this.registry);
+    const here = this.avatars.filter(Boolean).map((a) => a.slot);
+    this.light = lanternRadius({ ...st, upgrades: this.upgrades }, here);
+    this.xray = anyoneWears(st, 'xray', here);
+    this.revealAll = revealsChests(st, this.planet) || this.xray;
+  }
+
+  // A player's gear powers right now (none inside a bonus room).
+  powersFor(a) {
+    return this.bonus.inside(a) ? NO_POWERS : (a.powers ?? NO_POWERS);
+  }
+
+  // Lucky Mittens: chests give more
+  lucky(a) {
+    return !!a && this.powersFor(a).has('lucky');
   }
 
   partnerOf(a) {
@@ -457,7 +493,7 @@ export class MineScene extends Phaser.Scene {
     if (!this.goingHome && this.pauseWatch.update()) return;
     if (this.goingHome) {
       for (const a of this.avatars) if (a) this.drawAvatar(a, dt, time);
-      this.suits.update();
+      this.gearView.update();
       this.updateCamera(dt);
       this.drawLights(time);
       return;
@@ -517,7 +553,7 @@ export class MineScene extends Phaser.Scene {
     this.stepPickups(dt, time);
     this.twinkleOres(dt);
     this.scanSurroundings(dt);
-    this.suits.update();
+    this.gearView.update();
     this.drawLights(time);
   }
 
@@ -722,12 +758,17 @@ export class MineScene extends Phaser.Scene {
     const floaty = this.gravity < 1 || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom)
       || (this.rainbowPlanet && this.world.twists.floaty.some(([t, b]) => row >= t && row <= b + 1));
     const still = mul.drinking || a.sneezeT > 0; // drinking or sneezing: stand still
+    const powers = this.powersFor(a);
+    const gear = gearMoves(powers);
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       {
-        pickLevel: this.upgrades.pick, dt, digMul: mul.dig * this.digMul, walkMul: mul.walk * this.walkMul, grip: this.grip,
-        jumpMul: mul.jump, jetpack: this.jet, chip: this.rainbowView ? (id) => id === B.RAINBOW_GEM_PART : null,
-        gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
+        pickLevel: this.upgrades.pick, dt, digMul: mul.dig * gear.digMul * this.yetiDig, walkMul: mul.walk * gear.walkMul, grip: gear.grip,
+        jumpMul: mul.jump * gear.jumpMul, jetpack: gear.jetpack, chip: this.rainbowView ? (id) => id === B.RAINBOW_GEM_PART : null,
+        gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: gear.stormProof ? 0 : windOf(this.storm),
+        glide: gear.glide, balloon: gear.balloon, gecko: gear.gecko, skates: gear.skates,
       });
+    this.gearFx.step(a, powers, r, dt);
+    if (powers.has('magnet')) this.stepMagnet(a, dt);
     this.stepSilly(a, dt, floaty);
     if (r.sprung) {
       this.events.emit('spring', a);
@@ -754,7 +795,7 @@ export class MineScene extends Phaser.Scene {
 
     // treasure chest: walk into it to open
     const { cx, cy } = playerCell(a.p);
-    if (this.grid.get(cx, cy) === B.CHEST) this.openChest(cx, cy);
+    if (this.grid.get(cx, cy) === B.CHEST) this.openChest(cx, cy, a);
     if (this.touchedLava(a)) this.lavaTouch(a);
 
     this.collectNear(a, dt);
@@ -786,6 +827,29 @@ export class MineScene extends Phaser.Scene {
     if (addDust(a.sneeze, hardnessOf(m.id), this.rng) && a.sneezeT <= 0) this.startSneeze(a);
     this.dugCount++;
     if (m.drop) this.giveOre(a, m.drop, m.x, m.y);
+  }
+
+  // Magnet Mitts: every few seconds the nearest gem in the rock around you
+  // flies out to you (the block stays, as plain rock: the mine keeps its shape).
+  stepMagnet(a, dt) {
+    a.magnetT -= dt;
+    if (a.magnetT > 0) return;
+    a.magnetT = GEAR_TUNE.magnetEvery;
+    const { cx, cy } = playerCell(a.p);
+    const ok = this.rainbowView ? (id) => id === B.RAINBOW_GEM : undefined;
+    const n = magnetTarget(this.grid, cx, cy, this.upgrades.pick, GEAR_TUNE.magnetR, ok);
+    if (!n) return;
+    const from = { x: n.x * TILE + TILE / 2, y: n.y * TILE + TILE / 2 };
+    this.grid.set(n.x, n.y, this.rainbowView ? B.RAINBOW_ROCK : this.world.hostAt?.(n.y) ?? HOST[layerAt(n.y)]);
+    this.mapView.sync(n.x, n.y);
+    this.effects.sparkle(from.x, from.y, 0xff8a8a, 6);
+    // a little line of sparkles from the rock to your hands
+    for (let i = 1; i <= 5; i++) {
+      this.time.delayedCall(i * 40, () => this.effects.sparkle(from.x + ((a.sprite.x - from.x) * i) / 5, from.y + ((a.sprite.y - 8 - from.y) * i) / 5, 0xffe0a0, 1));
+    }
+    this.events.emit('nibble');
+    if (this.rainbowView) this.rainbowView.pluck(a, n.x, n.y);
+    else this.giveOre(a, n.drop, n.x, n.y);
   }
 
   // The Jetpack: flames from your back while you fly.
@@ -969,6 +1033,25 @@ export class MineScene extends Phaser.Scene {
       return;
     }
     if (a.bubbling || a.invuln > 0) return;
+    const powers = this.powersFor(a);
+    // Boxing Gloves: a creature that bumps you goes flying instead
+    if (enemy && powers.has('boxing')) {
+      const dir = Math.sign(enemy.x + enemy.w / 2 - (a.p.x + PLAYER.w / 2)) || a.p.facing;
+      this.hazards.boop(enemy, dir);
+      const pow = this.add.image(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, 'dizzy-star').setDepth(42).setScale(1.5).setTint(0xffe066);
+      this.tweens.add({ targets: pow, scale: 3, alpha: 0, duration: 350, onComplete: () => pow.destroy() });
+      this.cameras.main.shake(80, 0.003);
+      a.invuln = 0.4;
+      this.events.emit('gearBoop', a);
+      return;
+    }
+    // the Turtle Shell: bumps just bounce off (no knock, nothing dropped)
+    if (powers.has('shell')) {
+      a.invuln = 0.6;
+      this.effects.sparkle(a.sprite.x - a.p.facing * 4, a.sprite.y - 6, 0x9ae67a, 5);
+      this.events.emit('gearTink', a);
+      return;
+    }
     a.invuln = BONK.invuln;
     const dir = Math.sign(a.p.x + PLAYER.w / 2 - fromX) || -a.p.facing || 1;
     if (!noKnock) knockback(a.p, dir);
@@ -1003,12 +1086,15 @@ export class MineScene extends Phaser.Scene {
     this.events.emit('squash', a);
   }
 
-  openChest(cx, cy) {
+  openChest(cx, cy, a = null) {
     this.grid.set(cx, cy, B.AIR);
     this.mapView.sync(cx, cy);
     const x = cx * TILE + TILE / 2;
     const y = cy * TILE + TILE / 2;
-    for (const ore of chestLoot(cy, this.rng, this.planet)) {
+    const loot = chestLoot(cy, this.rng, this.planet);
+    // Lucky Mittens: half as much again
+    if (this.lucky(a)) loot.push(...loot.slice(0, Math.round(loot.length * (GEAR_TUNE.luckyMul - 1))));
+    for (const ore of loot) {
       this.pickups.push(createPickup({
         x, y, ore, delay: 0.45, vx: (this.rng.next() - 0.5) * 110, vy: -110 - this.rng.next() * 40,
       }));
@@ -1298,9 +1384,10 @@ export class MineScene extends Phaser.Scene {
     for (const m of this.meteorites) {
       if (this.grid.get(m.x, m.y) === B.METEORITE) lights.push({ x: m.x * TILE + 8, y: m.y * TILE + 8, r: 1.2 * flicker, glow: 0.12, color: 0xffb04a });
     }
+    // (X-Ray Goggles: chests shine right through the rock)
     for (const c of this.world.chests) {
       if (this.grid.get(c.x, c.y) !== B.CHEST) continue;
-      lights.push({ x: c.x * TILE + TILE / 2, y: c.y * TILE + TILE / 2, r: 1.3 * flicker, glow: 0.14, color: 0xffd86b });
+      lights.push({ x: c.x * TILE + TILE / 2, y: c.y * TILE + TILE / 2, r: (this.xray ? 2.6 : 1.3) * flicker, glow: this.xray ? 0.3 : 0.14, color: 0xffd86b });
     }
     this.darkness.draw(lights);
   }

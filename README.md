@@ -233,7 +233,33 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   layer's number (with a ribbon for a record).
 - **Rainbow Village**: a candy-coloured camp under a giant rainbow, with the
   **Rainbow Lift** down into the mine and the **Depth Sign** showing the
-  deepest layer you've reached.
+  deepest layer you've reached. Its four plots hold **shops**, built with
+  sparkles: the **Hat Shop** (300), the **Shoe Shop** (600), the **Gadget Lab**
+  (1,000) and the **Decoration Workshop** (1,500). In a shop, each card shows
+  your own character wearing the thing, a picture of what it does and a little
+  line for grown-ups; A buys it and puts it on, and A on something you're
+  wearing takes it off.
+  - **Gear:** one thing on each body part (head, back, feet, hands), each player
+    their own; buy once and both players can wear it. The Sun Suit pieces are
+    gear too, so the Jetpack can come off. **Hats:** the Space Helmet, X-Ray
+    Goggles (chests shine through the rock), the Party Hat (confetti every
+    jump), the Wizard Hat (a sparkle trail), the Sun Crown, and pirate, cowboy,
+    top, chef, viking and duck hats, bunny ears and a flower crown just for
+    looks. **Backs:** the Jetpack, the Glider Cape (hold jump while falling to
+    float down), the Turtle Shell (creatures can't knock you back) and the
+    Balloon Pack (hold jump to float up, forever). **Feet:** Rocket Boots,
+    Bouncy Feet (jump twice as high), Gecko Socks (jump at a wall and hold to
+    climb it), Ice Skates (everything's slippery) and squeaky Clown Shoes.
+    **Hands:** Power Gloves, Magnet Mitts (gems nearby fly out of the rock to
+    you), Boxing Gloves (creatures that bump you go flying) and Lucky Mittens
+    (chests give extra). Gear works in every mine and at the camps, but not
+    inside the bonus games.
+  - **The Gear page:** the coat hanger in the pause menu. Each player swaps
+    their own gear (up/down picks a body part, left/right flips through what
+    you own), anywhere, even in the middle of a dig.
+  - **Decorations** for the village: a candy tree, lollipops, gumdrops, a
+    candy-cane fence, a sparkle fountain, a cloud lamp, a giant ice cream, a
+    rainbow dino statue, balloons, a gem pile, a jelly pond and a cupcake house.
 - **The Build Yard:** walk out through the gate at the right end of Earth camp
   into a big sunny meadow and **build with every block you've found**, as many
   as you like (Lego-style). Reaching a layer on any planet unlocks its rock and

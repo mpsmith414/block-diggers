@@ -7,6 +7,8 @@ import { B } from '../world/blocks.js';
 import { LAYER_COLORS } from '../tuning.js';
 import { layersOf } from '../game/planets.js';
 import { BADGE_LAYERS } from '../game/trip.js';
+import { gearById } from '../game/gear.js';
+import { gearLook } from '../art/gear.js';
 
 // the elevator at each camp, and each Sun Suit piece's icon
 const VEHICLE = { earth: ['cart', 2, -40, 50], moon: ['ufo', 0.6, -44, 44], mars: ['rover-car', 1.5, -44, 48], saturn: ['ski-chair', 2.5, -44, 30], dino: ['ptero-taxi', 1.8, -44, 36], sun: ['sun-lift', 1.8, -44, 36] };
@@ -257,6 +259,46 @@ export class CampHudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.pickerUi, x: { from: -4, to: 0 }, duration: 60, yoyo: true, repeat: 2 });
   }
 
+  // A gear card: your own character wearing it (big), what it does (a
+  // picture, and a little line for a grown-up to read), and a tick once it's
+  // yours (glowing when you're wearing it), or a padlock until it's won.
+  renderGearCard(c, pk, opt, x, y, w, h) {
+    const item = gearById(opt.id);
+    const look = gearLook(opt.id);
+    const S = 3;
+    const cx = x + 58;
+    const feet = y + 78;
+    const frame = look.framed ? 0 : undefined;
+    const fade = (img) => (opt.locked ? img.setTint(0x3a2a24).setAlpha(0.7) : img);
+    if (look.behind) c.add(fade(this.add.image(cx, feet, look.key, frame).setOrigin(0.5, 1).setScale(S)));
+    c.add(this.add.image(cx, feet, `char-${pk.char ?? 'miner'}`, 0).setOrigin(0.5, 1).setScale(S));
+    if (!look.behind) c.add(fade(this.add.image(cx, feet, look.key, frame).setOrigin(0.5, 1).setScale(S)));
+    if (opt.locked) c.add(this.add.image(cx, feet - 30, 'icon-lock').setScale(2.5));
+    // what it does
+    const px = x + w - 52;
+    c.add(this.add.circle(px, y + 40, 26, 0xffffff, 0.6));
+    c.add(this.add.image(px, y + 40, `power-${item.power ?? 'looks'}`).setScale(2.5));
+    // the little line for grown-ups (two lines if it's long)
+    const words = item.caption.split(' ');
+    const lines = [''];
+    for (const word of words) {
+      const line = lines[lines.length - 1];
+      if (line && (line.length + 1 + word.length) * 4 > w - 16) lines.push(word);
+      else lines[lines.length - 1] = line ? `${line} ${word}` : word;
+    }
+    lines.forEach((line, i) => c.add(this.add.bitmapText(x + w / 2, y + 84 + i * 7 - (lines.length - 1) * 3, 'pixel', line).setOrigin(0.5, 0).setTint(INK)));
+    // owned: a tick (and a hanger when you're wearing it)
+    if (opt.owned) {
+      const tick = this.add.image(x + w / 2 - (opt.worn ? 10 : 0), y + h - 24, 'icon-tick').setScale(2);
+      c.add(tick);
+      if (opt.worn) {
+        const hanger = this.add.image(x + w / 2 + 14, y + h - 24, 'icon-hanger').setScale(1.8);
+        c.add(hanger);
+        this.tweens.add({ targets: hanger, angle: { from: -10, to: 10 }, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      }
+    }
+  }
+
   renderPicker(pop) {
     if (this.pickerUi) this.pickerUi.destroy();
     const pk = this.picker;
@@ -289,6 +331,8 @@ export class CampHudScene extends Phaser.Scene {
         c.add(this.add.image(midX - 12, y + h - 24, 'icon-bag').setScale(2));
         c.add(this.add.bitmapText(midX + 2, y + h - 30, 'pixel', `x${opt.stock}`).setScale(2).setTint(INK));
       }
+    } else if (pk.kind === 'gear') {
+      this.renderGearCard(c, pk, opt, x, y, w, h);
     } else if (pk.kind === 'elevator') {
       // the layer's badge (or its rock), and a padlock if you haven't been there yet
       const deep = BADGE_LAYERS.indexOf(opt.id);
@@ -343,7 +387,7 @@ export class CampHudScene extends Phaser.Scene {
 
     // cost row (or a star when maxed)
     const rowY = y + h - 30;
-    if ((pk.kind === 'decor' && opt.stock) || pk.kind === 'elevator') {
+    if ((pk.kind === 'decor' && opt.stock) || pk.kind === 'elevator' || (pk.kind === 'gear' && !opt.cost)) {
       // (shown above)
     } else if (!opt.cost) {
       c.add(this.add.image(midX, rowY + 6, 'star').setScale(2));

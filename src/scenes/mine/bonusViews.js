@@ -24,5 +24,7 @@ export function createBonusViews(scene) {
     lights: (view, flicker) => views.flatMap((v) => v.lights(view, flicker)),
     framePoints: () => views.flatMap((v) => v.framePoints()),
     occupied: () => views.some((v) => v.occupied()),
+    // inside a bonus room (where gear has no powers)
+    inside: (a) => views.some((v) => v.contains(a)),
   };
 }

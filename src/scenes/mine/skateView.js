@@ -11,7 +11,7 @@ import { TILE, PLAYER, SKATE } from '../../tuning.js';
 
 const HALF = 8; // half a character's height: tricks spin around the middle
 const NONE = {
-  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false,
+  busy: () => false, step() {}, update() {}, draw() {}, leave() {}, lights: () => [], framePoints: () => [], occupied: () => false, contains: () => false,
 };
 
 export function createSkateView(scene) {
@@ -99,6 +99,7 @@ export function createSkateView(scene) {
   return {
     // is anyone in the room? (the bonus rooms play the arcade tune)
     occupied: () => scene.avatars.some((a) => a && inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 })),
+    contains: (a) => inRoom({ x: a.p.x + PLAYER.w / 2, y: a.p.y + PLAYER.h / 2 }),
     // The park's sticker when you first walk in; the A button over the rack.
     update() {
       for (const a of scene.avatars) if (a && !a.skate && inRoom(center(a))) earnSticker(scene, 'skate-park');

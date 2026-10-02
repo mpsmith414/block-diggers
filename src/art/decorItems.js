@@ -155,5 +155,18 @@ export const DECOR_LOOK = {
   brickcar: { key: 'deco-brickcar' },
   rainbowarch: { key: 'deco-rainbowarch' },
   brickrobot: { key: 'deco-brickrobot' },
+  // Rainbow Village's (drawn in rainbowShops.js)
+  candytree: { key: 'deco-candytree' },
+  lollipop: { key: 'deco-lollipop' },
+  gumdrop: { key: 'deco-gumdrop' },
+  canefence: { key: 'deco-canefence' },
+  fountain: { key: 'deco-fountain' },
+  cloudlamp: { key: 'deco-cloudlamp', glow: 0xfff0a0, glowY: 22, nightOnly: true },
+  icecream: { key: 'deco-icecream' },
+  dinostatue: { key: 'deco-dinostatue' },
+  balloons: { key: 'deco-balloons' },
+  gempile: { key: 'deco-gempile', glow: 0xff9ad0, glowY: 6, nightOnly: true },
+  jellypond: { key: 'deco-jellypond', sink: 2 },
+  cupcake: { key: 'deco-cupcake' },
 };
 export const decorLook = (id) => DECOR_LOOK[id] ?? { key: id, scale: 1.5 };

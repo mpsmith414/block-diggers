@@ -45,7 +45,7 @@ describe('save v4', () => {
   it('adds the new bank keys and records, keeping everything else', () => {
     const v3 = { version: 3, bank: { coal: 4, iron: 0, gold: 0, diamond: 0, emerald: 2 }, stickers: { 'ore-coal': true }, records: { deepest: 60, mostOres: 20 } };
     const s = migrate(v3);
-    expect(s.version).toBe(11);
+    expect(s.version).toBe(12);
     expect(s.bank).toEqual({ coal: 4, iron: 0, gold: 0, diamond: 0, emerald: 2, amber: 0, brick: 0, star: 0, heart: 0, cheese: 0, moonstone: 0, spacegem: 0, gizmo: 0, ruby: 0, bolt: 0, opal: 0, coin: 0, frost: 0, icecream: 0, pearl: 0, comet: 0, jade: 0, bone: 0, tooth: 0, obsidian: 0, sunstone: 0, flare: 0, plasma: 0, nova: 0, sparkle: 0 });
     expect(s.records).toEqual({ deepest: 60, mostOres: 20, layers: ['dirt', 'stone'], moonTrips: 0, planetDeepest: {} });
     expect(s.stickers).toEqual({ 'ore-coal': true });

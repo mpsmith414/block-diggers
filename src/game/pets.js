@@ -32,6 +32,23 @@ export function nibbleTarget(grid, cx, cy, pickLevel) {
   return null;
 }
 
+// Magnet Mitts (gear): the nearest cell within r whose block `ok` accepts
+// (any ore by default) and that your drill could dig. { x, y, id, drop }, or null.
+export function magnetTarget(grid, cx, cy, pickLevel, r, ok = (id) => !!dropOf(id)) {
+  let best = null;
+  for (let y = cy - r; y <= cy + r; y++) {
+    for (let x = cx - r; x <= cx + r; x++) {
+      const id = grid.get(x, y);
+      if (!ok(id) || mineTime(id, pickLevel) === Infinity) continue;
+      const d = Math.hypot(x - cx, y - cy);
+      if (d <= r && (!best || d < best.d)) best = { x, y, id, drop: dropOf(id), d };
+    }
+  }
+  if (!best) return null;
+  const { d, ...hit } = best;
+  return hit;
+}
+
 // A new kind hatches into a pet; a golden egg (or one you already have) is gold.
 export function hatch(state, kind) {
   const pets = state.pets ?? [];

@@ -1,7 +1,7 @@
 // Placed decorations at camp, and carrying one around to place it.
 
 import Phaser from 'phaser';
-import { placeDecor, pickUpDecor, canPlace, takeFromStock } from '../../game/decor.js';
+import { placeDecor, pickUpDecor, canPlace, takeFromStock, decorOf } from '../../game/decor.js';
 import { decorLook } from '../../art/decorItems.js';
 import { PHASES } from '../../game/timeOfDay.js';
 import { getState, setState } from '../../save/store.js';
@@ -11,10 +11,12 @@ export function createDecorView(camp) {
   const groundY = CAMP.ground * TILE;
   let sprites = [];
   const night = PHASES[camp.phase].night > 0;
+  const planet = camp.planet ?? 'earth';
+  const mine = () => decorOf(getState(camp.registry), planet);
 
   function render() {
     for (const s of sprites) s.forEach((o) => o.destroy());
-    sprites = getState(camp.registry).decor.placed.map((d) => {
+    sprites = mine().placed.map((d) => {
       const look = decorLook(d.id);
       const parts = [];
       const img = camp.add.image(d.x, groundY + (look.sink ?? 0), look.key).setOrigin(0.5, 1).setDepth(look.sink ? 11 : 4).setScale(look.scale ?? 1);
@@ -64,7 +66,7 @@ export function createDecorView(camp) {
 
     // Start carrying: from stock (the picker already bought it if needed).
     carry(a, id) {
-      const next = takeFromStock(getState(camp.registry), id);
+      const next = takeFromStock(getState(camp.registry), id, planet);
       if (!next) return false;
       setState(camp.registry, next);
       a.carrying = id;
@@ -76,7 +78,7 @@ export function createDecorView(camp) {
     // A: put it down here if there's room
     place(a) {
       const x = Math.round(a.p.x + PLAYER.w / 2);
-      const next = placeDecor(getState(camp.registry), a.carrying, x);
+      const next = placeDecor(getState(camp.registry), a.carrying, x, planet);
       if (!next) return false;
       setState(camp.registry, next);
       a.carrying = null;
@@ -88,8 +90,12 @@ export function createDecorView(camp) {
 
     // B: put it back in the bag
     stow(a) {
+      // (back into the bag: placing it and picking it up again does exactly that)
       const s = getState(camp.registry);
-      setState(camp.registry, { ...s, decor: { ...s.decor, stock: { ...s.decor.stock, [a.carrying]: (s.decor.stock[a.carrying] ?? 0) + 1 } } });
+      const d = decorOf(s, planet);
+      const stock = { ...d.stock, [a.carrying]: (d.stock[a.carrying] ?? 0) + 1 };
+      setState(camp.registry, planet === 'earth' ? { ...s, decor: { ...d, stock } }
+        : { ...s, bases: { ...s.bases, [planet]: { ...s.bases[planet], decor: { ...d, stock } } } });
       a.carrying = null;
       carriedIcon(a).setVisible(false);
     },
@@ -97,19 +103,19 @@ export function createDecorView(camp) {
     // index of a placed decoration under this player, or -1
     under(a) {
       const x = a.p.x + PLAYER.w / 2;
-      return getState(camp.registry).decor.placed.findIndex((d) => Math.abs(d.x - x) < 9);
+      return mine().placed.findIndex((d) => Math.abs(d.x - x) < 9);
     },
 
     pickUp(a, index) {
       const s = getState(camp.registry);
-      const id = s.decor.placed[index].id;
-      setState(camp.registry, pickUpDecor(s, index));
+      const id = decorOf(s, planet).placed[index].id;
+      setState(camp.registry, pickUpDecor(s, index, planet));
       render();
       this.carry(a, id);
     },
 
     canDrop(a) {
-      return canPlace(getState(camp.registry), a.carrying, Math.round(a.p.x + PLAYER.w / 2));
+      return canPlace(getState(camp.registry), a.carrying, Math.round(a.p.x + PLAYER.w / 2), planet);
     },
 
     update(time) {

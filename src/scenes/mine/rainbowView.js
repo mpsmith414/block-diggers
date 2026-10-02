@@ -8,7 +8,7 @@ import { B } from '../../world/blocks.js';
 import { rowColor, layerOfRow, PATTERNS } from '../../world/rainbow.js';
 import { gemInfo, hitGem, crackStage } from '../../game/rainbowGems.js';
 import { RAINBOW_TILES } from '../../art/textures.js';
-import { TILE, PLAYER, RAINBOW } from '../../tuning.js';
+import { TILE, PLAYER, RAINBOW, GEAR_TUNE } from '../../tuning.js';
 
 const mix = (a, b, t) => {
   const ch = (c, s) => (c >> s) & 255;
@@ -132,6 +132,15 @@ export function createRainbowView(scene, painter, { startDeepest = 0 } = {}) {
   const shown = new Set();
 
   return {
+    // Magnet Mitts pulled a tiny gem out of the rock (the block is rock again now)
+    pluck(a, x, y) {
+      const g = tinyAt.get(key(x, y));
+      if (!g) return;
+      g.img.destroy();
+      tinyAt.delete(key(x, y));
+      giveSparkles(a, gemInfo('tiny').sparkles, x, y);
+    },
+
     // A block was dug: a tiny gem's sparkle, and decorations that lost their support.
     mined(a, m) {
       if (m.id === B.RAINBOW_GEM) {
@@ -182,7 +191,8 @@ export function createRainbowView(scene, painter, { startDeepest = 0 } = {}) {
           scene.trip.chests++;
           scene.events.emit('chestOpened');
           scene.effects.sparkle(px(c.x) + TILE / 2, px(c.y) + 4, 0xfff2a0, 10);
-          giveSparkles(a, c.sparkles, c.x, c.y);
+          // (Lucky Mittens: half as much again)
+          giveSparkles(a, scene.lucky?.(a) ? Math.round(c.sparkles * GEAR_TUNE.luckyMul) : c.sparkles, c.x, c.y);
         }
         // a new layer: its banner (the first time ever, with a ribbon)
         const n = layerOfRow(world.top + cy);
@@ -219,7 +229,9 @@ export function createRainbowView(scene, painter, { startDeepest = 0 } = {}) {
         if (x < view.x - 96 || x > view.right + 96 || y < view.y - 96 || y > view.bottom + 96) continue;
         out.push({ x, y, r: (gemInfo(g.size).cells * 0.5 + 0.8) * flicker, glow: 0.1, color: g.look.color });
       }
-      for (const c of chests) if (!c.open) out.push({ x: px(c.x) + 8, y: px(c.y) + 8, r: 1.2 * flicker, glow: 0.1, color: 0xfff2a0 });
+      // (X-Ray Goggles: unopened chests shine right through the dark)
+      const r = scene.xray ? 2.6 : 1.2;
+      for (const c of chests) if (!c.open) out.push({ x: px(c.x) + 8, y: px(c.y) + 8, r: r * flicker, glow: scene.xray ? 0.3 : 0.1, color: 0xfff2a0 });
       return out;
     },
   };

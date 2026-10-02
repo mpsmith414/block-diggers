@@ -81,7 +81,8 @@ export function drawRainbowProps(scene, { L, groundY }) {
     g.setPosition(x, groundY + 1).setScale(0.8 + (i % 3) * 0.2);
     scene.tweens.add({ targets: g, angle: { from: -4, to: 4 }, duration: 1600 + (i % 5) * 200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   };
-  const keep = [0, 1, 2, 3, L.shaftX, L.shaftX + 1, L.shaftX + 2, L.shaftX + 3, L.lecternX, L.benchX, L.padX - 2, L.padX - 1, L.padX, L.padX + 1, L.padX + 2];
+  const keep = [0, 1, 2, 3, L.shaftX, L.shaftX + 1, L.shaftX + 2, L.shaftX + 3, L.lecternX, L.benchX, L.padX - 2, L.padX - 1, L.padX, L.padX + 1, L.padX + 2,
+    ...L.plots.flatMap((px) => Array.from({ length: L.plotW }, (_, i) => px + i))];
   for (let i = 0; i < 18; i++) {
     const x = 10 + ((i * 113) % (L.w * TILE - 20));
     if (keep.includes(Math.floor(x / TILE))) continue;

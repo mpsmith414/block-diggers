@@ -344,3 +344,73 @@ describe('big gems (Rainbow Planet)', () => {
     expect(grid.get(5, 5)).toBe(B.RAINBOW_GEM_PART);
   });
 });
+
+describe('gear powers', async () => {
+  const { GEAR_TUNE } = await import('../../src/tuning.js');
+  const tall = () => makeGrid([
+    '##########',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '#........#',
+    '##########',
+  ]);
+  it('the Glider Cape: holding jump while falling floats you down slowly', () => {
+    const g = tall();
+    const p = createPlayer({ ...standAt(4, 1), y: 20 });
+    run(p, { ...idle, jump: true }, g, 0.4, { glide: true });
+    expect(p.vy).toBeLessThanOrEqual(GEAR_TUNE.glideFall);
+    const q = createPlayer({ ...standAt(4, 1), y: 20 });
+    run(q, { ...idle, jump: true }, g, 0.4);
+    expect(q.y).toBeGreaterThan(p.y + 20);
+    // (not holding jump: you fall as usual)
+    const r = createPlayer({ ...standAt(4, 1), y: 20 });
+    run(r, idle, g, 0.4, { glide: true });
+    expect(r.y).toBeCloseTo(q.y, 0);
+  });
+  it('the Balloon Pack: hold jump and you float up, and it never runs out', () => {
+    const g = tall();
+    const p = createPlayer(standAt(4, 9));
+    settle(p, g);
+    const y0 = p.y;
+    run(p, { ...idle, jump: true }, g, 1.5, { balloon: true });
+    expect(p.y).toBeLessThan(y0 - 2 * TILE);
+    expect(p.vy).toBeLessThan(0); // still rising
+    expect(p.vy).toBeGreaterThanOrEqual(-GEAR_TUNE.balloonUp - 1e-6);
+    // let go: you come down again
+    run(p, idle, g, 2);
+    expect(p.grounded).toBe(true);
+  });
+  it('Gecko Socks: jump at a wall and hold towards it to climb straight up', () => {
+    const g = tall();
+    const p = createPlayer(standAt(7, 9));
+    settle(p, g);
+    run(p, { ...idle, jump: true, moveX: 1 }, g, 0.1, { gecko: true });
+    run(p, { ...idle, moveX: 1 }, g, 1.5, { gecko: true });
+    expect(playerCell(p).cy).toBeLessThanOrEqual(4);
+    // without them you just slide back down
+    const q = createPlayer(standAt(7, 9));
+    settle(q, g);
+    run(q, { ...idle, jump: true, moveX: 1 }, g, 0.1);
+    run(q, { ...idle, moveX: 1 }, g, 1.5);
+    expect(q.grounded).toBe(true);
+  });
+  it('Ice Skates: every floor is slippery, even with the Gloves on', () => {
+    const g = makeGrid(['##########', '#........#', '##########']);
+    const p = createPlayer(standAt(1, 1));
+    settle(p, g);
+    run(p, { ...idle, moveX: 1 }, g, 0.8, { skates: true, grip: true });
+    run(p, idle, g, 0.1, { skates: true, grip: true });
+    expect(p.vx).toBeGreaterThan(20); // still gliding after letting go
+    const q = createPlayer(standAt(1, 1));
+    settle(q, g);
+    run(q, { ...idle, moveX: 1 }, g, 0.8);
+    run(q, idle, g, 0.1);
+    expect(q.vx).toBe(0);
+  });
+});

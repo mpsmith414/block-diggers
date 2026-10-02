@@ -105,6 +105,10 @@ const MINE = {
   flareGem: (s) => s.play('ore'),
   flower: (s) => s.play('chime', 3),
   forge: (s) => s.play('hammer'),
+  // gear
+  gearSqueak: (s) => s.play('squeak'),
+  gearBoop: (s) => s.play('boing'),
+  gearTink: (s) => s.play('tick'),
 };
 
 const CAMP = {
@@ -131,6 +135,8 @@ const CAMP = {
   fanfare: (s) => s.play('fanfare'),
   firework: (s) => s.play('firework'),
   party: (s) => s.play('party'),
+  gearSqueak: (s) => s.play('squeak'),
+  wear: (s) => s.play('upgrade'),
 };
 
 const BUILD = {
@@ -154,7 +160,7 @@ const MENU = {
   nope: (s) => s.play('nope'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU };
+const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU, Gear: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp' };
 
 // Which song plays: every planet has its own theme (at its camp and in its

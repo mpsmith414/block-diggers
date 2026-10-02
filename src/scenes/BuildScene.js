@@ -17,7 +17,7 @@ import { createEdge } from '../input/intents.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createEffects } from './mine/effects.js';
 import { varyTile } from '../art/tileVariety.js';
-import { createSuitView } from './common/suitView.js';
+import { createGearView } from './common/gearView.js';
 import { getState, setState } from '../save/store.js';
 import { PHASES, phaseForTrips } from '../game/timeOfDay.js';
 import { attachAudio } from '../audio/wire.js';
@@ -41,7 +41,6 @@ export class BuildScene extends Phaser.Scene {
     const state = getState(this.registry);
     this.grid = createYard(state.build?.edits ?? []);
     this.blocks = unlockedBlocks(state);
-    this.walkMul = walkMul(state);
     this.W = BUILD.w * TILE;
     this.avatars = [];
     this.leaving = false;
@@ -60,7 +59,11 @@ export class BuildScene extends Phaser.Scene {
       this.add.image(x, GROUND_Y + 1, 'flower', i % 3).setOrigin(0.5, 1).setDepth(4);
     }
     this.effects = createEffects(this);
-    this.suits = createSuitView(this);
+    this.gearView = createGearView(this);
+    // the Gear page (from the pause menu): only the looks change here
+    const onGear = () => this.gearView.refresh();
+    this.events.on('gearChanged', onGear);
+    this.events.once('shutdown', () => this.events.off('gearChanged', onGear));
 
     const cam = this.cameras.main;
     cam.setBounds(0, -6 * TILE, this.W, (BUILD.h + 6) * TILE);
@@ -138,7 +141,7 @@ export class BuildScene extends Phaser.Scene {
     };
     this.avatars[slot] = a;
     animateCharacter(a.sprite, a.p, a, 0, 0);
-    this.suits.add(a);
+    this.gearView.add(a);
     this.effects.sparkle(a.sprite.x, a.sprite.y - 8, 0xffffff, 8);
     this.events.emit('joined', a);
     return a;
@@ -200,7 +203,7 @@ export class BuildScene extends Phaser.Scene {
         if (e.b) this.dig(aim);
         // (here A builds, so Y is the jump: for climbing what you've built)
         const move = { ...i, jump: !!i.bubble && !a.yLock };
-        const r = stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: this.walkMul });
+        const r = stepPlayer(a.p, move, this.grid, { dt, canMine: false, walkMul: walkMul(getState(this.registry), a.slot) });
         if (r.jumped) this.events.emit('jump', a);
         if (r.sprung) {
           this.events.emit('spring', a);
@@ -229,7 +232,7 @@ export class BuildScene extends Phaser.Scene {
         .setPosition(atGate ? 1.5 * TILE : px, (atGate ? GROUND_Y - 58 : aim.y * TILE - 8) + bob);
       a.promptB.setVisible(show && removable && !free).setPosition(px, aim.y * TILE - 8 + bob);
     }
-    this.suits.update();
+    this.gearView.update();
     this.updateCamera(dt);
     // save a moment after building (and when leaving)
     if (this.dirty) {
