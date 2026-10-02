@@ -61,7 +61,7 @@ It starts small. Projects 2 and 4 fill it in.
 - **The bottom of the stretch** is a row of glowing rainbow floor that can't be dug. Going home from there means the next trip starts there.
 - **Recording depth:** `deepest` is updated whenever a player's feet go below it. It's saved when the trip ends.
 - **Digging:**
-  - every rainbow block is dug in the same time with any drill, `RAINBOW.digTime` (about stone with a starter pick, 0.35 s), so nothing ever needs an upgrade;
+  - every rainbow block is dug in the same time with any drill, `RAINBOW.digTime` (0.15 s, about what a Sun-level drill does), so nothing ever needs an upgrade;
   - the normal rules apply: ladders appear when you dig up or down, and Earth tools and pets still help;
   - perks that speed up digging (the Gloves, the Yeti Cub) still work.
 - **Going home:** hold B for the rope, as everywhere.
@@ -81,7 +81,7 @@ Everything is rolled from `(seed, n)`, so it's always the same.
   - **sparkle style:** `twinkle`, `glow` or `shimmer`;
   - **size:** one of `tiny`, `chunky`, `big` or `massive`. Massive comes up about 1 layer in 6; the rest are spread evenly.
 - **Decorations:** 2 kinds per layer from `mushroom`, `flower`, `bubble`, `vine` and `crystal`, tinted in the layer's colours.
-- **Creatures:** 1 or 2 kinds per layer from a gentle blob (it hops) and a gentle flier (it drifts). Each gets a random colour and a size from 0.8 to 1.4. Like every creature in the game, they only bump you.
+- **Creatures:** 1 or 2 kinds per layer from a gentle blob (it hops) and a gentle flier (it drifts). They're two new creatures, drawn in greys so they tint cleanly. Each gets a random colour and a size from 0.8 to 1.4. Like every creature in the game, they only bump you.
 - **Twist:** about half the layers get one of:
   - `bouncy`: some spring pads;
   - `pools`: little water pockets;
@@ -105,14 +105,14 @@ Everything is rolled from `(seed, n)`, so it's always the same.
 ## Sparkles and treasure
 
 - **The sparkle jar:** gems go **straight into it**, shown on the HUD for each player. It has no limit and uses no backpack space.
-- **Going home:** the jar is added to `state.rainbow.sparkles`, counted up on the trip card.
+- **Going home:** the jar goes into the bank as `bank.sparkle` (like `bank.heart`), counted up on the trip card. The Rainbow Village top bar shows it.
 - **Treasure chests:** 3–5 per layer, in the layer's colours. Opening one gives 10–25 sparkles.
 - **Spending:** none yet. That's project 2.
 
 ## Saving
 
 - **Save v11:**
-  - `state.rainbow = { deepest: 0, sparkles: 0 }`;
+  - `state.rainbow = { deepest: 0 }` and `bank.sparkle = 0`;
   - the Rainbow Rocket goes in the Sun's plots like any building;
   - the star map status comes from it.
 - **Migration:** older saves get the default, with nothing lost.
