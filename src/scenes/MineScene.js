@@ -5,12 +5,14 @@ import { generateMars } from '../world/mars.js';
 import { generateSaturn } from '../world/saturn.js';
 import { generateDino } from '../world/dinoworld.js';
 import { generateSun } from '../world/sunworld.js';
+import { generateRainbow } from '../world/rainbow.js';
 import { createRng } from '../world/rng.js';
 import { B, dropOf, hardnessOf } from '../world/blocks.js';
 import { createPlayer, stepPlayer, standAt, playerCell, knockback } from '../game/player.js';
 import { discovery } from '../game/trip.js';
 import { CAVE_KINDS, DINO_KINDS } from '../game/pets.js';
-import { planetById } from '../game/planets.js';
+import { planetById, useRainbowStretch } from '../game/planets.js';
+import { setLayerCreatures } from '../game/hazards.js';
 import { createStorm, stepStorm, windOf } from '../game/storms.js';
 import { heartOf } from '../game/finds.js';
 import { createSneeze, addDust, createFall, trackFall, chestSock } from '../game/silly.js';
@@ -36,12 +38,13 @@ import { earnSticker } from './common/stickers.js';
 import { animateCharacter } from './common/avatarView.js';
 import { createSuitView } from './common/suitView.js';
 import { createBonusViews } from './mine/bonusViews.js';
+import { createRainbowView, rainbowPainter } from './mine/rainbowView.js';
 import { attachAudio, songFor, setSong } from '../audio/wire.js';
 import { createPauseWatch } from './common/pauseWatch.js';
 import { charFor } from '../game/cast.js';
 import {
   TILE, MINE_W, MINE_H, SKY_ROWS, SHAFT_X, PLAYER, BACKPACK, LANTERN, PICKUP, CAMERA, BUBBLE, BONK, HOME_HOLD_MS,
-  LAYERS, LOW_GRAVITY, SILLY, FLARE,
+  LAYERS, LOW_GRAVITY, SILLY, FLARE, RAINBOW,
 } from '../tuning.js';
 
 const GLINT_COLORS = {
@@ -53,7 +56,7 @@ const GLINT_COLORS = {
   sunstone: 0xffa04a, flare: 0xffffff, plasma: 0xffa0d8, nova: 0xb8d8ff,
 };
 // the beam home from each planet
-const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a, sun: 0xffe066 };
+const BEAM = { moon: 0x9ff6ff, mars: 0xffa050, saturn: 0xc8f0ff, dino: 0x9aff7a, sun: 0xffe066, rainbow: 0xff9ad0 };
 // creatures whose sticker isn't called creature-<species>
 const CREATURE_STICKER = { moonblob: 'moon-blob' };
 const creatureSticker = (species) => CREATURE_STICKER[species] ?? `creature-${species}`;
@@ -75,6 +78,7 @@ export class MineScene extends Phaser.Scene {
     this.saturn = this.planet === 'saturn';
     this.dino = this.planet === 'dino';
     this.sun = this.planet === 'sun';
+    this.rainbowPlanet = this.planet === 'rainbow';
     this.away = this.planet !== 'earth';
   }
 
@@ -90,7 +94,14 @@ export class MineScene extends Phaser.Scene {
     else if (this.saturn) this.world = generateSaturn(this.seed, { yetiEgg: !pets.includes('yeti') });
     else if (this.dino) this.world = generateDino(this.seed, { longneckEgg: !pets.includes('longneck') });
     else if (this.sun) this.world = generateSun(this.seed, { dragonEgg: !pets.includes('sundragon') });
-    else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
+    else if (this.rainbowPlanet) {
+      // Rainbow Planet: the same endless mine every time, starting at your deepest point
+      this.startDeepest = saved.rainbow?.deepest ?? 0;
+      this.world = generateRainbow(RAINBOW.seed, this.startDeepest);
+      useRainbowStretch(this.world.layers, this.world.rows);
+      setLayerCreatures(Object.fromEntries(this.world.layers.map((l) => [`r${l.n}`, l.look.creatures])));
+      this.painter = rainbowPainter(this.world);
+    } else this.world = generateMine(this.seed, { luck: this.luck, eggKinds: this.eggKinds, dinoEggKinds });
     this.grid = this.world.grid;
     this.gravity = planetById(this.planet).gravity;
     this.light = lanternRadius({ ...saved, upgrades: this.upgrades });
@@ -132,14 +143,15 @@ export class MineScene extends Phaser.Scene {
     else if (this.saturn) this.drawSaturnSky();
     else if (this.dino) this.drawDinoSky();
     else if (this.sun) this.drawSunSky();
-    else this.drawSky();
+    else if (!this.rainbowPlanet) this.drawSky(); // (Rainbow Planet's mine starts deep underground)
     const top = Object.keys(planetById(this.planet).layers)[0];
-    this.mapView = createMapView(this, this.grid, this.away ? { layerAt: this.world.layerAt, top } : {});
+    this.mapView = createMapView(this, this.grid, this.rainbowPlanet ? { paint: this.painter } : this.away ? { layerAt: this.world.layerAt, top } : {});
     if (this.moon) this.drawLander();
     else if (this.mars) this.drawLander({ flag: 'mars-flag', later: 'mars-moons' });
     else if (this.saturn) this.drawLander({ flag: 'saturn-flag', later: 'saturn-rings' });
     else if (this.dino) this.drawLander({ flag: 'dino-flag', later: 'dino-volcano' });
     else if (this.sun) this.drawLander({ flag: 'sun-flag', later: 'sun-goldmonster' });
+    else if (this.rainbowPlanet) this.drawLift();
     else this.drawEntrance();
     if (this.startRow) this.drawStation();
     this.effects = createEffects(this);
@@ -151,8 +163,9 @@ export class MineScene extends Phaser.Scene {
     this.pets = createPetsView(this, saved.pets ?? []);
     this.suits = createSuitView(this);
     this.bonus = createBonusViews(this);
+    this.rainbowView = this.rainbowPlanet ? createRainbowView(this, this.painter, { startDeepest: this.startDeepest }) : null;
     const rows = this.grid.h;
-    this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE });
+    this.darkness = createDarkness(this, { w: MINE_W * TILE, h: rows * TILE, underground: this.rainbowPlanet });
     this.lavaCells = [];
     this.meteorites = [];
     for (let y = 0; y < rows; y++) {
@@ -164,9 +177,10 @@ export class MineScene extends Phaser.Scene {
     }
 
     const cam = this.cameras.main;
-    cam.setBounds(0, -SKY_ROWS * TILE, MINE_W * TILE, (rows + SKY_ROWS) * TILE);
+    const sky = this.rainbowPlanet ? 0 : SKY_ROWS;
+    cam.setBounds(0, -sky * TILE, MINE_W * TILE, (rows + sky) * TILE);
     cam.setRoundPixels(true);
-    this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: (this.startRow ?? -1) * TILE };
+    this.cam = { zoom: CAMERA.maxZoom, x: SHAFT_X * TILE, y: (this.rainbowPlanet ? this.world.spawn.y : this.startRow ?? -1) * TILE };
     cam.setZoom(this.cam.zoom);
     cam.centerOn(this.cam.x, this.cam.y);
     this.wall = wallLimits({ w: this.scale.width, h: this.scale.height });
@@ -319,6 +333,13 @@ export class MineScene extends Phaser.Scene {
       earnSticker(this, flag);
     });
     this.time.delayedCall(3500, () => earnSticker(this, later));
+  }
+
+  // Rainbow Planet: the lift that brought you down, in the little starting cave.
+  drawLift() {
+    const { x, y } = this.world.spawn;
+    this.add.image(x * TILE + TILE / 2, (y + 1) * TILE, 'rainbow-lift').setOrigin(0.5, 1).setDepth(12);
+    this.stationLight = { x: x * TILE + 8, y: y * TILE - 8 };
   }
 
   // A little wooden frame over the shaft, with a lantern.
@@ -481,6 +502,7 @@ export class MineScene extends Phaser.Scene {
     this.stepFlare(dt);
     this.hazards.update(dt, time);
     this.finds.update(dt, time);
+    this.rainbowView?.update(dt);
     this.bonus.update(dt, time);
     // the bonus rooms have their own bouncy arcade tune
     this.songT = (this.songT ?? 0) - dt;
@@ -642,6 +664,8 @@ export class MineScene extends Phaser.Scene {
         packs: packs.map((p) => p ?? {}), deepest: this.trip.deepest, deepestBy: [...this.trip.deepestBy], chests: this.trip.chests,
         stickers: this.trip.stickers, eggs: [...this.finds.carried], hearts: this.finds.hearts,
         moonHearts: this.finds.moonHearts, suitHearts: this.finds.suitHearts, planet: this.planet,
+        // Rainbow Planet: the deepest row of the planet you reached (the next trip starts there)
+        rainbowDeepest: this.rainbowPlanet ? Math.max(this.startDeepest, this.world.top + this.trip.deepest) : undefined,
       },
       planet: this.planet,
     });
@@ -695,12 +719,13 @@ export class MineScene extends Phaser.Scene {
     const mul = multipliers(a.pu);
     // drinking: stand still and glug
     const row = (a.p.y + PLAYER.h / 2) / TILE;
-    const floaty = this.gravity < 1 || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom);
+    const floaty = this.gravity < 1 || (row >= LAYERS.meteor.top && row <= LAYERS.meteor.bottom)
+      || (this.rainbowPlanet && this.world.twists.floaty.some(([t, b]) => row >= t && row <= b + 1));
     const still = mul.drinking || a.sneezeT > 0; // drinking or sneezing: stand still
     const r = stepPlayer(a.p, still ? { ...intent, moveX: 0, moveY: 0, jump: false } : intent, this.grid,
       {
         pickLevel: this.upgrades.pick, dt, digMul: mul.dig * this.digMul, walkMul: mul.walk * this.walkMul, grip: this.grip,
-        jumpMul: mul.jump, jetpack: this.jet,
+        jumpMul: mul.jump, jetpack: this.jet, chip: this.rainbowView ? (id) => id === B.RAINBOW_GEM_PART : null,
         gravityMul: floaty ? LOW_GRAVITY : 1, airJumps: this.airJumps, windX: this.stormProof ? 0 : windOf(this.storm),
       });
     this.stepSilly(a, dt, floaty);
@@ -715,6 +740,7 @@ export class MineScene extends Phaser.Scene {
     if (r.doubleJumped) this.doubleJump(a);
     if (r.jetting) this.jetFlame(a, dt);
     for (const m of r.mined) this.afterMined(a, m);
+    for (const c of r.chipped) this.rainbowView?.chip(a, c);
     // sliding on Saturn's ice: whee!
     if (a.p.sliding && Math.abs(a.p.vx) > 20) earnSticker(this, 'saturn-slide');
     const target = a.p.mining ? this.grid.get(a.p.mining.cx, a.p.mining.cy) : null;
@@ -750,7 +776,8 @@ export class MineScene extends Phaser.Scene {
   // A cell has been dug (by you, or the Yeti): the map, the bits, the ore.
   afterMined(a, m) {
     this.mapView.syncMined(m.x, m.y);
-    this.effects.chunks(m.x, m.y, m.id);
+    this.effects.chunks(m.x, m.y, m.id, this.rainbowView?.chunkTint(m.x, m.y, m.id));
+    this.rainbowView?.mined(a, m);
     this.events.emit('blockMined', m);
     this.hazards.mined(m.x, m.y);
     this.decor.mined(m.x, m.y);
@@ -1262,6 +1289,7 @@ export class MineScene extends Phaser.Scene {
     lights.push(...this.decor.lights(view, flicker));
     lights.push(...this.pets.lights());
     lights.push(...this.bonus.lights(view, flicker));
+    if (this.rainbowView) lights.push(...this.rainbowView.lights(view, flicker));
     for (const e of this.finds.eggs) if (!e.taken) lights.push({ x: e.x * TILE + 8, y: e.y * TILE + 8, r: 1.1 * flicker, glow: 0.1, color: 0xfff2a0 });
     if (this.stationLight) lights.push({ ...this.stationLight, r: 3.5 * flicker, glow: 0.14 });
     const heart = this.finds.heart;

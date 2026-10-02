@@ -35,6 +35,8 @@ export function createHazards(scene) {
       if (e.kind === 'slime') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 1).setDepth(28);
       else if (e.kind === 'bat') s = scene.add.sprite(0, 0, key, 0).setOrigin(0.5, 0.5).setDepth(28);
       else s = scene.add.image(0, 0, 'tiles', B.GRAVEL).setOrigin(0, 0).setDepth(12);
+      // (Rainbow Planet's creatures come in their layer's own colour and size)
+      if (e.look) s.setTint(e.look.color).setScale(e.look.scale);
       sprites.set(e, s);
     }
     return s;
@@ -61,7 +63,7 @@ export function createHazards(scene) {
     };
     const count = (kind) => enemies.filter((e) => e.kind === kind).length;
     // each layer has its own creature: walkers move like slimes, flyers like bats
-    const { species, walker } = creatureFor(near.cy, scene.planet);
+    const { species, walker, look } = creatureFor(near.cy, scene.planet);
     const kind = walker ? 'slime' : 'bat';
     if (kind === 'slime' && count('slime') >= SLIME.max) return;
     if (kind === 'bat' && count('bat') >= BAT.max) return;
@@ -74,6 +76,7 @@ export function createHazards(scene) {
       ? createSlime(spot.cx * TILE + 2, spot.cy * TILE + 6, dir, gait ?? 'hop')
       : createBat(spot.cx * TILE + 3, spot.cy * TILE + 4, dir, gait ?? 'flap');
     e.species = species;
+    e.look = look ?? null;
     e.voiceT = SILLY.voiceEvery[0] + Math.random() * (SILLY.voiceEvery[1] - SILLY.voiceEvery[0]);
     e.giggleT = 0;
     if (species === 'slime') e.golden = scene.rng.chance(GOLDEN_SLIME * (scene.luck ?? 1));
@@ -146,7 +149,8 @@ export function createHazards(scene) {
           // walkers step along (legs going while they move); hoppers squash on the ground
           const frame = walks ? (e.moving && e.grounded ? Math.floor(time / (e.sliding ? 400 : 140)) % 2 : 0) : (e.grounded ? 0 : 1);
           s.setPosition(e.x + e.w / 2, e.y + e.h + 1).setFrame(frame).setFlipX(e.dir < 0);
-          s.setScale(e.grounded && !walks ? 1 + Math.sin(time / 180 + e.x) * 0.05 : 1, 1);
+          const k = e.look?.scale ?? 1;
+          s.setScale((e.grounded && !walks ? 1 + Math.sin(time / 180 + e.x) * 0.05 : 1) * k, k);
           // a penguin tips over onto its tummy to slide
           s.setAngle(e.sliding ? e.dir * 70 : (walks && e.moving ? Math.sin(time / 90) * 4 : 0));
         } else {

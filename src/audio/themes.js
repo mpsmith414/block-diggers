@@ -114,6 +114,31 @@ const sunBass = bars(
 );
 const sunDrums = each('. . . . x . . . . . . . x . . .');
 
+// Rainbow Planet: bright and bubbly, with a twinkly arpeggio. D – Bm – G – A.
+const rainbowLead = bars(
+  'D5 - F#5 - A5 - D6 - A5 - F#5 - A5 - - -',
+  'B4 - D5 - F#5 - B5 - - - A5 - F#5 - - -',
+  'G4 - B4 - D5 - G5 - D5 - B4 - D5 - - -',
+  'A4 - C#5 - E5 - A5 - - - G5 - E5 - - -',
+  'D6 - - - C#6 - B5 - A5 - - - F#5 - - -',
+  'B5 - - - A5 - G5 - F#5 - - - D5 - - -',
+  'G5 - A5 - B5 - D6 - E6 - - - D6 - B5 -',
+  'A5 - - - - - - - D5 - - - - - - .',
+);
+const rainbowTwinkle = bars(
+  'D6 . A5 . F#6 . A5 . D6 . A5 . F#6 . A5 .', 'B5 . F#5 . D6 . F#5 . B5 . F#5 . D6 . F#5 .',
+  'G5 . D6 . B5 . D6 . G5 . D6 . B5 . D6 .', 'A5 . E6 . C#6 . E6 . A5 . E6 . C#6 . E6 .',
+  'D6 . A5 . F#6 . A5 . D6 . A5 . F#6 . A5 .', 'B5 . F#5 . D6 . F#5 . B5 . F#5 . D6 . F#5 .',
+  'G5 . D6 . B5 . D6 . G5 . D6 . B5 . D6 .', 'A5 . E6 . C#6 . E6 . D6 . A5 . F#6 . A5 .',
+);
+const rainbowBass = bars(
+  'D3 - - . D3 - - . A2 - - . A2 - - .', 'B2 - - . B2 - - . F#2 - - . F#2 - - .',
+  'G2 - - . G2 - - . D3 - - . D3 - - .', 'A2 - - . A2 - - . E2 - - . E2 - - .',
+  'D3 - - . D3 - - . A2 - - . A2 - - .', 'B2 - - . B2 - - . F#2 - - . F#2 - - .',
+  'G2 - - . G2 - - . D3 - - . D3 - - .', 'A2 - - . A2 - - . D3 - - - - - - .',
+);
+const rainbowDrums = each('x . . . . . x . x . . . . . x .');
+
 // The bonus rooms: a bouncy arcade tune. C – Am – F – G.
 const arcadeLead = bars(
   'C5 . E5 . G5 . C6 . G5 . E5 . G5 . C6 .',
@@ -177,6 +202,16 @@ export const THEMES = {
       { wave: 'square', gain: 0.012, notes: sunHarmony, decay: 1, attack: 0.05 },
       { wave: 'sine', gain: 0.12, notes: sunBass, decay: 0.9, attack: 0.02 },
       { wave: 'noise', gain: 0.02, notes: sunDrums, decay: 1, attack: 0.005 },
+    ],
+  },
+  rainbow: {
+    bpm: 104,
+    steps: 128,
+    tracks: [
+      { wave: 'triangle', gain: 0.06, notes: rainbowLead, decay: 1, attack: 0.02 },
+      { wave: 'square', gain: 0.012, notes: rainbowTwinkle, decay: 0.6, attack: 0.01 },
+      { wave: 'sine', gain: 0.12, notes: rainbowBass, decay: 0.9, attack: 0.02 },
+      { wave: 'noise', gain: 0.02, notes: rainbowDrums, decay: 1, attack: 0.005 },
     ],
   },
   arcade: {

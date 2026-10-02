@@ -324,3 +324,23 @@ describe('low gravity and springs', () => {
     expect(top).toBeLessThan(3 * TILE); // flew back up well above the spring
   });
 });
+
+describe('big gems (Rainbow Planet)', () => {
+  it('digging a block of a big gem is a hit on it: the block stays', () => {
+    const grid = createGrid(10, 10);
+    for (let x = 0; x < 10; x++) grid.set(x, 6, B.STONE);
+    // (two blocks tall, like a chunky gem: too tall to step up onto)
+    grid.set(5, 5, B.RAINBOW_GEM_PART);
+    grid.set(5, 4, B.RAINBOW_GEM_PART);
+    const p = createPlayer(standAt(4, 5));
+    const chipped = [];
+    for (let i = 0; i < 30; i++) {
+      const r = stepPlayer(p, { moveX: 1, moveY: 0, jump: false }, grid, { dt: 1 / 60, pickLevel: 0, chip: (id) => id === B.RAINBOW_GEM_PART });
+      chipped.push(...r.chipped);
+      expect(r.mined).toEqual([]);
+    }
+    expect(chipped.length).toBeGreaterThanOrEqual(2);
+    expect(chipped[0]).toEqual({ x: 5, y: 5, id: B.RAINBOW_GEM_PART });
+    expect(grid.get(5, 5)).toBe(B.RAINBOW_GEM_PART);
+  });
+});

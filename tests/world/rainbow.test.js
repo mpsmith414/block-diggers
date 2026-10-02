@@ -55,7 +55,7 @@ describe('Rainbow Planet: a trip builds a stretch of layers below your deepest p
   it('is always the same for the same deepest point', () => {
     const again = generateRainbow(SEED, 0);
     expect(again.gems).toEqual(first.gems);
-    expect(again.chests).toEqual(first.chests);
+    expect(again.rchests).toEqual(first.rchests);
   });
 
   it('the first trip starts near the top, in a little open cave', () => {
@@ -118,7 +118,7 @@ describe('Rainbow Planet: a trip builds a stretch of layers below your deepest p
 
   it('a few treasure chests per layer, sitting on cave floors', () => {
     for (const layer of first.layers) {
-      const chests = first.chests.filter((c) => c.n === layer.n);
+      const chests = first.rchests.filter((c) => c.n === layer.n);
       expect(chests.length).toBeGreaterThanOrEqual(3);
       expect(chests.length).toBeLessThanOrEqual(5);
       for (const c of chests) {

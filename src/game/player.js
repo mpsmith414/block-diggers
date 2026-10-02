@@ -49,9 +49,9 @@ const rowsOf = (y) => {
 };
 
 export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true, digMul = 1, walkMul = 1, gravityMul = 1, airJumps = 0, windX = 0, grip = false,
-  jumpMul = 1, jetpack = false,
+  jumpMul = 1, jetpack = false, chip = null,
 }) {
-  const out = { mined: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false };
+  const out = { mined: [], chipped: [], bounced: false, stepped: false, jumped: false, sprung: false, doubleJumped: false, jetting: false };
   const jumpSpeed = PLAYER.jumpSpeed * jumpMul;
   const gravity = PLAYER.gravity * gravityMul;
   const maxFall = PLAYER.maxFall * Math.sqrt(gravityMul);
@@ -233,8 +233,14 @@ export function stepPlayer(p, intent, grid, { pickLevel = 0, dt, canMine = true,
       if (need === Infinity) out.bounced = true;
     }
     if (p.mining.t >= p.mining.need) {
-      const { id, drop } = mineCell(grid, target.x, target.y, { ladder: target.ladder });
-      out.mined.push({ x: target.x, y: target.y, id, drop });
+      const hit = grid.get(target.x, target.y);
+      if (chip?.(hit)) {
+        // a block of a big gem (Rainbow Planet): the dig is one hit on the whole gem
+        out.chipped.push({ x: target.x, y: target.y, id: hit });
+      } else {
+        const { id, drop } = mineCell(grid, target.x, target.y, { ladder: target.ladder });
+        out.mined.push({ x: target.x, y: target.y, id, drop });
+      }
       p.mining = null;
     }
   } else {

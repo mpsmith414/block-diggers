@@ -44,7 +44,7 @@ const mix = (a, b, t) => {
 // creatures and twist. Bright or pastel colours only: cheerful and easy to see.
 export function layerLook(seed, n) {
   const rng = lookRng(seed, n);
-  const bright = (h) => hsl(h, 0.55 + rng.next() * 0.35, 0.55 + rng.next() * 0.2);
+  const bright = (h) => hsl(h, 0.65 + rng.next() * 0.3, 0.5 + rng.next() * 0.18);
   const hue = rng.next() * 360;
   const hues = [hue];
   const count = rng.chance(0.5) ? 3 : 2;
@@ -209,10 +209,12 @@ export function generateRainbow(seed, deepest = 0) {
   for (let x = cave.x0; x <= cave.x1; x++) if (grid.get(x, cave.y1 + 1) !== B.RAINBOW_FLOOR) grid.set(x, cave.y1 + 1, B.RAINBOW_ROCK);
 
   return {
-    top, rows, grid, floorRow, layers, gems, chests, decor, twists, spawn,
+    top, rows, grid, floorRow, layers, gems, twists, spawn,
+    // (its own chests and decorations: the mine's usual ones are for the other planets)
+    rchests: chests, rdecor: decor,
     startCave: { x: SHAFT_X, y: spawn.y },
     // (what the rest of the mine expects a world to have)
-    eggs: [], bigChest: null, boulders: [], fossils: [], heart: null, teleports: [], ufo: null, chimes: [],
+    chests: [], decor: [], eggs: [], bigChest: null, boulders: [], fossils: [], heart: null, teleports: [], ufo: null, chimes: [],
     geysers: [], rovers: [], vaults: [], globes: [], ducks: [], cushions: [],
   };
 }
