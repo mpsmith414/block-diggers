@@ -1,6 +1,7 @@
-// The sticker book: 221 things to find, on 22 pages. A full page earns a trophy.
+// The sticker book: 276 things to find, on 28 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
+import { HUNT_TREASURES } from './hunt.js';
 
 const page = (name, icon, stickers) => ({ name, icon, stickers: stickers.map(([id, tex, frame = 0]) => ({ id, icon: tex, frame })) });
 
@@ -146,6 +147,13 @@ export const STICKER_PAGES = [
   page('build', 'icon-yard', [
     ['build-yard', 'icon-yard'], ['build-first', 'tiles', B.BRICKS], ['build-tower', 'build-tower'], ['build-rainbow', 'build-rainbow'], ['build-100', 'build-100'],
   ]),
+  // Rainbow Planet: the treasure hunt's twelve treasures
+  page('rainbowtreasures', 'treasure-crown', HUNT_TREASURES.map((t) => [`hunt-${t}`, `treasure-${t}`])),
+  // Rainbow Village: its shops, the Treasure Hall, your maps and the grand prize
+  page('rainbowvillage', 'bld-treasurehall', [
+    ['bld-hatshop', 'bld-hatshop'], ['bld-shoeshop', 'bld-shoeshop'], ['bld-gadgetlab', 'bld-gadgetlab'], ['bld-decoshop', 'bld-decoshop'],
+    ['bld-treasurehall', 'bld-treasurehall'], ['hunt-map', 'hunt-map'], ['hunt-golden', 'hunt-map-golden'], ['hunt-statue', 'hunt-statue-icon'],
+  ]),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);
@@ -161,6 +169,7 @@ export const CHAPTERS = [
   { id: 'dino', icon: 'planet-dino', pages: [17, 18] },
   { id: 'sun', icon: 'planet-sun', pages: [19, 20, 21] },
   { id: 'fun', icon: 'icon-claw', pages: [22, 23, 24, 25] },
+  { id: 'rainbow', icon: 'planet-rainbow', pages: [26, 27] },
 ];
 // every page in book order (chapter by chapter)
 export const BOOK_ORDER = CHAPTERS.flatMap((c) => c.pages);

@@ -118,3 +118,31 @@ describe('the hall', () => {
     expect(newlyFound(markShown(hunt))).toEqual([]);
   });
 });
+
+describe('save v13', async () => {
+  const { migrate, VERSION } = await import('../../src/save/save.js');
+  const { plotsOf, blueprintsFor } = await import('../../src/game/economy.js');
+  const { STICKER_PAGES, stickerById } = await import('../../src/game/stickers.js');
+  it('a v12 save gets an empty hunt and a fifth village plot, keeping its shops', () => {
+    const v12 = { ...defaultState(), version: 12, bank: { sparkle: 900 }, bases: { rainbow: { plots: ['hatshop', 'shoeshop', 'gadgetlab', 'decoshop'], decor: { stock: { gumdrop: 1 }, placed: [] } } } };
+    delete v12.hunt;
+    const s = migrate(v12);
+    expect(s.version).toBe(VERSION);
+    expect(VERSION).toBe(13);
+    expect(s.hunt).toEqual({ map: null, found: [], shown: [] });
+    expect(plotsOf(s, 'rainbow')).toEqual(['hatshop', 'shoeshop', 'gadgetlab', 'decoshop', null]);
+    expect(s.bases.rainbow.decor.stock.gumdrop).toBe(1);
+    expect(s.bank.sparkle).toBe(900);
+  });
+  it('a hunt in progress survives a load', () => {
+    const hunt = { map: { row: 300, col: 9, golden: false }, found: ['duck'], shown: [] };
+    expect(migrate({ ...defaultState(), hunt }).hunt).toEqual(hunt);
+  });
+  it('the Treasure Hall costs 500 sparkles', () => {
+    expect(blueprintsFor('rainbow').find((b) => b.id === 'treasurehall').cost).toEqual({ sparkle: HUNT.hall });
+  });
+  it('a sticker for every treasure and the statue', () => {
+    for (const t of [...HUNT_TREASURES, STATUE]) expect(stickerById(`hunt-${t}`)).toBeTruthy();
+    expect(STICKER_PAGES.find((p) => p.name === 'rainbowtreasures').stickers).toHaveLength(12);
+  });
+});

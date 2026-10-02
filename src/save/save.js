@@ -7,7 +7,7 @@ import { MOON_PLOTS, PLOTS_AT } from '../game/economy.js';
 import { emptyWorn, wornFromSuit } from '../game/gear.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 12;
+export const VERSION = 13;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -42,6 +42,9 @@ export function defaultState() {
     // gear: what you've bought (the Sun Suit pieces you own through `suit`),
     // and what each player is wearing
     gear: { owned: [], worn: [emptyWorn(), emptyWorn()] },
+    // the treasure hunt: the map you hold (its X, a planet row and column),
+    // the treasures found, and the ones already shown off in the hall
+    hunt: { map: null, found: [], shown: [] },
   };
 }
 
@@ -94,6 +97,10 @@ export function migrate(raw) {
     const worn = wornFromSuit(s.suit || []);
     s = { ...s, version: 12, gear: { owned: [], worn: [{ ...worn }, { ...worn }] } };
   }
+  if (s.version === 12) {
+    // the treasure hunt: no map, nothing found (filled in below); Rainbow Village grows a fifth plot
+    s = { ...s, version: 13 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -127,6 +134,11 @@ export function migrate(raw) {
     gear: {
       owned: Array.isArray(s.gear?.owned) ? [...new Set(s.gear.owned)] : [],
       worn: [0, 1].map((i) => ({ ...emptyWorn(), ...(s.gear?.worn?.[i] || {}) })),
+    },
+    hunt: {
+      map: s.hunt?.map ?? null,
+      found: Array.isArray(s.hunt?.found) ? [...new Set(s.hunt.found)] : [],
+      shown: Array.isArray(s.hunt?.shown) ? [...new Set(s.hunt.shown)] : [],
     },
   };
 }

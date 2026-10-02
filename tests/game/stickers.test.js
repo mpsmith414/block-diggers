@@ -5,10 +5,10 @@ import {
 import { defaultState } from '../../src/save/save.js';
 
 describe('sticker catalog', () => {
-  it('has 256 unique stickers over 26 pages (none over the 12 a page holds), each with an icon', () => {
-    expect(STICKER_PAGES).toHaveLength(26);
-    expect(ALL_STICKERS).toHaveLength(256);
-    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(256);
+  it('has 276 unique stickers over 28 pages (none over the 12 a page holds), each with an icon', () => {
+    expect(STICKER_PAGES).toHaveLength(28);
+    expect(ALL_STICKERS).toHaveLength(276);
+    expect(new Set(ALL_STICKERS.map((s) => s.id)).size).toBe(276);
     for (const p of STICKER_PAGES) expect(p.stickers.length).toBeLessThanOrEqual(12);
     for (const s of ALL_STICKERS) expect(typeof s.icon).toBe('string');
     expect(stickerById('ore-coal').icon).toBe('ore-coal');
@@ -53,6 +53,9 @@ describe('the book chapters', () => {
     expect([...BOOK_ORDER].sort((a, b) => a - b)).toEqual(STICKER_PAGES.map((_, i) => i));
     expect(CHAPTERS[chapterOfPage(9)].id).toBe('earth'); // the Silly page is an Earth one
     expect(CHAPTERS[chapterOfPage(25)].id).toBe('fun');
+    // Rainbow Planet: its treasures, and its village
+    expect(CHAPTERS[chapterOfPage(26)].id).toBe('rainbow');
+    expect(CHAPTERS[chapterOfPage(27)].id).toBe('rainbow');
   });
   it('a chapter counts all of its pages', () => {
     const { state } = award(defaultState(), 'cave-grass');

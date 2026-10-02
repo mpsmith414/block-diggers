@@ -399,8 +399,10 @@ export const SATURN_CAMP = { ...MOON_CAMP };
 // solar panels still fit past it)
 export const SUN_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
 
-// ---- Rainbow Village (cells): the same shape as Moon Base; its four plots hold the shops ----
-export const RAINBOW_CAMP = { ...MOON_CAMP };
+// ---- Rainbow Village (cells): the same shape as Moon Base; four plots hold
+// the shops and a fifth the Treasure Hall (10 more cells, like the Solar
+// Station, keep the patch at the end clear) ----
+export const RAINBOW_CAMP = { ...MOON_CAMP, w: 72, plots: [26, 33, 40, 47, 54] };
 
 // ---- the treasure hunt (sparkles; layers, rows and cells) ----
 // the hall and a map cost; the X goes 3-5 layers below your deepest, inside

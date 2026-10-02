@@ -1,7 +1,7 @@
 // Blueprints, upgrades and the shared ore bank. Immutable: state in, new state out.
 
 import { ORES } from '../world/blocks.js';
-import { SUN_CAMP, RAINBOW_CAMP } from '../tuning.js';
+import { SUN_CAMP, RAINBOW_CAMP, HUNT } from '../tuning.js';
 
 export const PLOTS = 9;
 
@@ -90,11 +90,13 @@ export const SUN_BLUEPRINTS = [
 ];
 
 // Rainbow Village: four shops, bought with sparkles. Each one opens its shop.
+// And the Treasure Hall, where Polly sells treasure maps and the treasures go.
 export const RAINBOW_BLUEPRINTS = [
   { id: 'hatshop', cost: { sparkle: 300 } },
   { id: 'shoeshop', cost: { sparkle: 600 } },
   { id: 'gadgetlab', cost: { sparkle: 1000 } },
   { id: 'decoshop', cost: { sparkle: 1500 } },
+  { id: 'treasurehall', cost: { sparkle: HUNT.hall } },
 ];
 export const SHOPS = ['hatshop', 'shoeshop', 'gadgetlab', 'decoshop'];
 
