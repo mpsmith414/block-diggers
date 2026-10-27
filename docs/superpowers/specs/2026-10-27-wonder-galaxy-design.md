@@ -1,7 +1,7 @@
 # Block Diggers — The Wonder Galaxy — Design
 
 **Date:** 2026-10-27
-**Status:** the owner picked "build them all" from the pitch of eight planets, and asked for no more questions. Everything below that the owner didn't say is my call, marked as a default.
+**Status:** the owner picked "build them all" from the pitch of eight planets, and asked for no more questions. Everything below that the owner didn't say is my call, marked as a default. Built 2026-10-27 on `feat/wonder-galaxy`.
 
 **Why:** the owner wants "a bunch more cool planets — the rocket should take you to any planet you want, a whole new section with each planet giving a new super fun and unique experience." The journey planets are all "dig down five layers". These are not. Each one is its own way to play.
 
@@ -80,7 +80,7 @@
 - **Wafer ledges** (crispy biscuits) don't bounce. They're solid from above only, so you can jump up through them and stand on them, and a fall only drops you to the ledge below.
 - **Gummy bears** wander on the ledges. Touch one and it boings you upwards.
 - **Gumballs:** touch one and you blow a bubblegum bubble that floats you up a long way, then pops.
-- **Jelly beans** line the way up (50 of them).
+- **Jelly beans** line the way up (about 45 of them).
 - **The goal:** **climb to the top.** The HUD shows a height meter instead of a count (the jelly beans are counted beside it, for fun). **Prize: the Jelly Crown**, at the castle.
 
 ### 6. Race Planet — Rocket Kart Rally
@@ -88,7 +88,7 @@
 - **The place:** a long, sunny race track seen from the side: rolling hills, ramps over a pond, boost pads, a tunnel, a **loop-the-loop**, a jump through a hoop, and the finish line with fireworks and a crowd.
 - **The racers:** each player drives a kart with their character in it, against three silly racers: the penguin, the alien and the martian.
 - **Moves:** hold **right** to go and **left** to slow down. **A** hops (big air off ramps, and a spin in the air). **Boost pads** fire you forward with flames. **Coins** on the track.
-- **The race:** a 3-2-1-GO start, then one long race of about 75 seconds. The racers stay close and fun to chase: they ease off when they're far ahead and speed up when far behind, so the race is always close and a child who keeps going usually wins. Your place shows as a big number on the HUD.
+- **The race:** a 3-2-1-GO start, then one long race of about 45 seconds. The racers stay close and fun to chase: they ease off when they're far ahead and speed up when far behind, so the race is always close and a child who keeps going usually wins. Your place shows as a big number on the HUD.
 - **The finish:** a podium with everyone on their step and confetti, every time. **1st place wins the prize: the Golden Cup.** 2nd and 3rd get a party too; you can race again by pressing **A** on the start line, or go back to the rocket.
 
 ### 7. Dragon Planet — Sky Dragons
@@ -107,7 +107,7 @@
   - **The ladybug taxi:** stand on the ladybug and she flies you up to the high leaves.
   - **The sleeping cat:** jump on its tummy and it bounces you sky-high, purring.
   - **Ants** march along carrying crumbs; you can ride on their backs.
-- **The goal:** **25 sunflower seeds**, hidden all over the garden. Then plant them in the flower pot: a giant sunflower shoots up into the sky with you on it. **Prize: the Golden Acorn**, at the top.
+- **The goal:** **25 sunflower seeds** (27 are hidden all over the garden, seven of them baked into the cookie and the sandwich). Then plant them in the flower pot: a giant sunflower shoots up into the sky with you on it. **Prize: the Golden Acorn**, at the top.
 
 ## Stickers
 
@@ -138,3 +138,7 @@
 - **Physics:** a small shared box-against-tiles mover (`src/game/wonder/body.js`, tested), with signed gravity (for Upside-Down), one-way ledges and bouncy tiles. Spooky and Tiny use it with the normal player sizes and speeds. The Race uses a height-map track instead of tiles.
 - **Art and music:** drawn and composed in code like everything else. Static level tiles are baked into big render textures in chunks; things that change (crates, doors, clams) are separate sprites.
 - **The HUD:** a small `WonderHud` scene with the counter (or the height meter, or the race place), the prize silhouette and the hold-B ring.
+
+## Found while building
+
+- The Treasure Hall and the Build Yard drew over the pause menu, the book and the star map (they came after them in the scene list), so pausing there froze the game with no menu showing. Fixed by moving every place you play ahead of the menus in `main.js`.
