@@ -28,7 +28,9 @@ const game = new Phaser.Game({
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [BootScene, TitleScene, CampScene, CampHudScene, WonderScene, WonderHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, GearScene, StarMapScene, LaunchScene, ToastScene, BuildScene, BuildHudScene, TreasureHallScene],
+  // (scenes draw in this order: the places you play come first, so the menus
+  // that open over them, the pause menu, the book and the star map, draw on top)
+  scene: [BootScene, TitleScene, CampScene, CampHudScene, BuildScene, BuildHudScene, TreasureHallScene, WonderScene, WonderHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, GearScene, StarMapScene, LaunchScene, ToastScene],
 });
 
 // Dev-only handle for debugging and screenshots.
