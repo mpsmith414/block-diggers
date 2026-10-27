@@ -7,6 +7,7 @@ import { drawOceanArt } from './ocean.js';
 import { drawUpsideArt } from './upside.js';
 import { drawJellyArt } from './jelly.js';
 import { drawRaceArt } from './race.js';
+import { drawDragonArt } from './dragon.js';
 
 export function drawWonderArt(scene, canvasTexture, rect) {
   drawWonderCommon(scene, canvasTexture, rect);
@@ -16,4 +17,5 @@ export function drawWonderArt(scene, canvasTexture, rect) {
   drawUpsideArt(scene, canvasTexture, rect);
   drawJellyArt(scene, canvasTexture, rect);
   drawRaceArt(scene, canvasTexture, rect);
+  drawDragonArt(scene, canvasTexture, rect);
 }

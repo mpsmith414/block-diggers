@@ -6,6 +6,7 @@ import { createOcean } from './ocean.js';
 import { createUpside } from './upside.js';
 import { createJelly } from './jelly.js';
 import { createRace } from './race.js';
+import { createDragon } from './dragon.js';
 
 export const WONDER_MODULES = {
   spooky: createSpooky,
@@ -14,4 +15,5 @@ export const WONDER_MODULES = {
   upside: createUpside,
   jelly: createJelly,
   race: createRace,
+  dragon: createDragon,
 };
