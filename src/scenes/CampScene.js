@@ -33,6 +33,7 @@ import { drawDinoBackdrop, drawDinoProps } from './camp/dinoScenery.js';
 import { drawSunBackdrop, drawSunProps } from './camp/sunScenery.js';
 import { drawRainbowBackdrop, drawRainbowProps, setDepthSign } from './camp/rainbowScenery.js';
 import { planetById, rocketTo, PLANETS } from '../game/planets.js';
+import { isWonder } from '../game/wonder/planets.js';
 import { createGearView } from './common/gearView.js';
 import { createGearFx } from './common/gearFx.js';
 import { summarizeTrip } from '../game/trip.js';
@@ -55,7 +56,8 @@ const SCENERY = {
 // Rocket Ship to the Moon, the Mars Rocket to Mars, the Saturn Rocket to Saturn)
 const SHIP = { moon: 'rocket-ship', mars: 'mars-ship', saturn: 'saturn-ship', dino: 'dino-ship', sun: 'sun-ship', rainbow: 'rainbow-ship' };
 const order = (id) => PLANETS.findIndex((p) => p.id === id);
-export const shipFor = (from, to) => SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship';
+// (every trip to or from the Wonder Galaxy flies the Wonder Rocket)
+export const shipFor = (from, to) => (isWonder(from) || isWonder(to) ? 'wonder-ship' : SHIP[order(from) > order(to) ? from : to] ?? 'rocket-ship');
 // where each rocket building's ship stands, from the left of its plot
 const SHIP_X = { rocket: 48, marsrocket: 52, saturnrocket: 40, dinorocket: 52, sunrocket: 40, rainbowrocket: 40 };
 // Rainbow Village's shops: press A at one to shop

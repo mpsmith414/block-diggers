@@ -153,6 +153,29 @@ export function createSfx(audio) {
       [0, 0.1, 0.2, 0.3].forEach((at, i) => tone({ type: 'triangle', freq: 900 + i * 60, to: 1100 + i * 60, dur: 0.07, gain: 0.05, at }));
     },
     caw() { tone({ type: 'sawtooth', freq: 700, to: 420, dur: 0.22, gain: 0.04 }); },
+    // the Wonder planets
+    knock() { [0, 0.16].forEach((at) => { noise({ dur: 0.06, gain: 0.2, freq: 500, q: 3, at }); tone({ type: 'triangle', freq: 140, to: 90, dur: 0.07, gain: 0.12, at }); }); },
+    boo() {
+      tone({ type: 'sine', freq: 300, to: 520, dur: 0.25, gain: 0.07 });
+      tone({ type: 'sine', freq: 520, to: 260, dur: 0.5, gain: 0.07, at: 0.24 });
+    },
+    meow() {
+      tone({ type: 'triangle', freq: 700, to: 1000, dur: 0.12, gain: 0.06 });
+      tone({ type: 'triangle', freq: 1000, to: 600, dur: 0.25, gain: 0.06, at: 0.12 });
+    },
+    rattle() { for (let i = 0; i < 6; i++) noise({ dur: 0.03, gain: 0.08, freq: 2400 + i * 200, q: 4, at: i * 0.05 }); },
+    flip() { tone({ type: 'triangle', freq: 400, to: 1200, dur: 0.14, gain: 0.07 }); tone({ type: 'sine', freq: 1200, to: 600, dur: 0.12, gain: 0.04, at: 0.12 }); },
+    honk() { tone({ type: 'square', freq: 330, dur: 0.12, gain: 0.04 }); tone({ type: 'square', freq: 392, dur: 0.12, gain: 0.03 }); tone({ type: 'square', freq: 330, dur: 0.16, gain: 0.04, at: 0.16 }); },
+    purr() { for (let i = 0; i < 8; i++) noise({ dur: 0.05, gain: 0.07, freq: 160, q: 2, type: 'lowpass', at: i * 0.07 }); },
+    stomp() { noise({ dur: 0.25, gain: 0.3, freq: 300, to: 80, q: 1, type: 'lowpass' }); tone({ type: 'sine', freq: 90, to: 40, dur: 0.25, gain: 0.2 }); },
+    punch() { noise({ dur: 0.1, gain: 0.2, freq: 1200, to: 300, q: 1.5 }); tone({ type: 'square', freq: 200, to: 80, dur: 0.08, gain: 0.05 }); },
+    fixed() { ['C5', 'G5', 'C6', 'E6'].forEach((n, i) => tone({ type: 'square', freq: noteFreq(n), dur: 0.07, gain: 0.04, at: i * 0.06 })); },
+    swim() { noise({ dur: 0.18, gain: 0.08, freq: 700, to: 1500, q: 1.5 }); },
+    clam() { tone({ type: 'sine', freq: 600, to: 300, dur: 0.1, gain: 0.08 }); tone({ type: 'triangle', freq: noteFreq('E6'), dur: 0.2, gain: 0.05, at: 0.1 }); },
+    superbounce() { tone({ type: 'sine', freq: 200, to: 900, dur: 0.35, gain: 0.14 }); tone({ type: 'triangle', freq: 400, to: 1600, dur: 0.3, gain: 0.05, at: 0.05 }); },
+    fire() { noise({ dur: 0.25, gain: 0.12, freq: 1800, to: 500, q: 0.8 }); },
+    vroom() { tone({ type: 'sawtooth', freq: 90, to: 220, dur: 0.4, gain: 0.04 }); },
+    munch() { noise({ dur: 0.07, gain: 0.12, freq: 1400, q: 2 }); noise({ dur: 0.07, gain: 0.1, freq: 1000, q: 2, at: 0.09 }); },
     squeak() { tone({ type: 'sine', freq: 2200, to: 2600, dur: 0.06, gain: 0.03 }); },
     whirr() { tone({ type: 'square', freq: 220, to: 260, dur: 0.3, gain: 0.025 }); },
     blorp() { tone({ type: 'sine', freq: 180, to: 420, dur: 0.14, gain: 0.06 }); },

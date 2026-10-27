@@ -15,6 +15,8 @@ import { BuildScene } from './scenes/BuildScene.js';
 import { TreasureHallScene } from './scenes/TreasureHallScene.js';
 import { BuildHudScene } from './scenes/BuildHudScene.js';
 import { StarMapScene } from './scenes/StarMapScene.js';
+import { WonderScene } from './scenes/WonderScene.js';
+import { WonderHudScene } from './scenes/WonderHudScene.js';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -26,7 +28,7 @@ const game = new Phaser.Game({
   backgroundColor: '#1b1428',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: false },
-  scene: [BootScene, TitleScene, CampScene, CampHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, GearScene, StarMapScene, LaunchScene, ToastScene, BuildScene, BuildHudScene, TreasureHallScene],
+  scene: [BootScene, TitleScene, CampScene, CampHudScene, WonderScene, WonderHudScene, MineScene, HudScene, PauseScene, SummaryScene, BookScene, GearScene, StarMapScene, LaunchScene, ToastScene, BuildScene, BuildHudScene, TreasureHallScene],
 });
 
 // Dev-only handle for debugging and screenshots.

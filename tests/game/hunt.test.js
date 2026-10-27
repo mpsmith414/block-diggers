@@ -128,7 +128,7 @@ describe('save v13', async () => {
     delete v12.hunt;
     const s = migrate(v12);
     expect(s.version).toBe(VERSION);
-    expect(VERSION).toBe(13);
+    expect(VERSION).toBe(14);
     expect(s.hunt).toEqual({ map: null, found: [], shown: [] });
     expect(plotsOf(s, 'rainbow')).toEqual(['hatshop', 'shoeshop', 'gadgetlab', 'decoshop', null]);
     expect(s.bases.rainbow.decor.stock.gumdrop).toBe(1);

@@ -2,6 +2,7 @@
 // '.' is a rest, '-' holds the previous note, 'x' is a drum hit.
 
 import { THEMES } from './themes.js';
+import { WONDER_THEMES } from './wonderThemes.js';
 
 const SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -121,4 +122,5 @@ export const SONGS = {
   },
   // a theme for every planet, and the bonus rooms' arcade tune (themes.js)
   ...THEMES,
+  ...WONDER_THEMES,
 };

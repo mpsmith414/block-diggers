@@ -7,7 +7,7 @@ import { MOON_PLOTS, PLOTS_AT } from '../game/economy.js';
 import { emptyWorn, wornFromSuit } from '../game/gear.js';
 
 export const SAVE_KEY = 'block-diggers-save';
-export const VERSION = 13;
+export const VERSION = 14;
 const PLOT_COUNT = 9;
 
 // the Heart of the World and moon cheese are kept in the bank too
@@ -45,6 +45,8 @@ export function defaultState() {
     // the treasure hunt: the map you hold (its X, a planet row and column),
     // the treasures found, and the ones already shown off in the hall
     hunt: { map: null, found: [], shown: [] },
+    // the Wonder Galaxy: the planets you've landed on, and the prizes won
+    wonder: { visited: [], prizes: [] },
   };
 }
 
@@ -101,6 +103,10 @@ export function migrate(raw) {
     // the treasure hunt: no map, nothing found (filled in below); Rainbow Village grows a fifth plot
     s = { ...s, version: 13 };
   }
+  if (s.version === 13) {
+    // the Wonder Galaxy: nowhere visited, no prizes (filled in below)
+    s = { ...s, version: 14 };
+  }
   // fill anything missing, keep anything unknown
   const d = defaultState();
   const records = { ...d.records, ...(s.records || {}) };
@@ -139,6 +145,10 @@ export function migrate(raw) {
       map: s.hunt?.map ?? null,
       found: Array.isArray(s.hunt?.found) ? [...new Set(s.hunt.found)] : [],
       shown: Array.isArray(s.hunt?.shown) ? [...new Set(s.hunt.shown)] : [],
+    },
+    wonder: {
+      visited: Array.isArray(s.wonder?.visited) ? [...new Set(s.wonder.visited)] : [],
+      prizes: Array.isArray(s.wonder?.prizes) ? [...new Set(s.wonder.prizes)] : [],
     },
   };
 }

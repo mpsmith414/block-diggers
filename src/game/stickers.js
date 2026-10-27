@@ -1,7 +1,8 @@
-// The sticker book: 276 things to find, on 28 pages. A full page earns a trophy.
+// The sticker book: 300 things to find, on 31 pages. A full page earns a trophy.
 
 import { B } from '../world/blocks.js';
 import { HUNT_TREASURES } from './hunt.js';
+import { WONDER } from './wonder/planets.js';
 
 const page = (name, icon, stickers) => ({ name, icon, stickers: stickers.map(([id, tex, frame = 0]) => ({ id, icon: tex, frame })) });
 
@@ -154,6 +155,10 @@ export const STICKER_PAGES = [
     ['bld-hatshop', 'bld-hatshop'], ['bld-shoeshop', 'bld-shoeshop'], ['bld-gadgetlab', 'bld-gadgetlab'], ['bld-decoshop', 'bld-decoshop'],
     ['bld-treasurehall', 'bld-treasurehall'], ['hunt-map', 'hunt-map'], ['hunt-golden', 'hunt-map-golden'], ['hunt-statue', 'hunt-statue-icon'],
   ]),
+  // the Wonder Galaxy: landing on each planet, each planet's prize, and one fun moment on each
+  page('wonder', 'planet-spooky', WONDER.map((w) => [`wonder-${w.id}`, `planet-${w.id}`])),
+  page('wonderprizes', 'wprize-cup', WONDER.map((w) => [`wprize-${w.prize}`, `wprize-${w.prize}`])),
+  page('wonderfun', 'wfun-loop', WONDER.map((w) => [`wfun-${w.fun}`, `wfun-${w.fun}`])),
 ];
 
 export const ALL_STICKERS = STICKER_PAGES.flatMap((p) => p.stickers);
@@ -170,6 +175,7 @@ export const CHAPTERS = [
   { id: 'sun', icon: 'planet-sun', pages: [19, 20, 21] },
   { id: 'fun', icon: 'icon-claw', pages: [22, 23, 24, 25] },
   { id: 'rainbow', icon: 'planet-rainbow', pages: [26, 27] },
+  { id: 'wonder', icon: 'icon-wonder', pages: [28, 29, 30] },
 ];
 // every page in book order (chapter by chapter)
 export const BOOK_ORDER = CHAPTERS.flatMap((c) => c.pages);

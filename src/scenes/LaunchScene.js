@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { createRng } from '../world/rng.js';
+import { isWonder } from '../game/wonder/planets.js';
 
 // Lift-off! A 3-2-1 countdown, flames and smoke, then the rocket climbs up
 // into space: the planet you left shrinks away below, the one you're flying
@@ -9,6 +10,13 @@ const W = 480;
 const H = 270;
 const TOP = -2600; // the top of the sky, in world pixels
 const GROUND = 236;
+// the Wonder planets: the sky near the ground, and the ground [hills, ground, edge]
+const WONDER_SKY = { spooky: 0x4a2a6a, robot: 0x9ab8d8, ocean: 0x8ed8ff, upside: 0xa8d8ff, jelly: 0xffb8d8, race: 0x8ec5ff, dragon: 0xa8f0ff, tiny: 0x9ad8ff };
+const WONDER_GROUND = {
+  spooky: [0x3a2a4a, 0x2a1d3a, 0x5a3a6a], robot: [0x6a7a90, 0x5a6a80, 0xa8b8c8], ocean: [0xf0d890, 0xe8c878, 0xfff0b0],
+  upside: [0x5aa63c, 0x4a8a2a, 0x7cc95a], jelly: [0xff6a8a, 0xe83a5a, 0xffb0c8], race: [0x5aa63c, 0x7a7a8a, 0xffffff],
+  dragon: [0xf4faff, 0xe0f0ff, 0xffffff], tiny: [0x3a8a2a, 0x2a6a1a, 0x5aa63c],
+};
 
 const lerpColor = (a, b, t) => {
   const ca = Phaser.Display.Color.ValueToColor(a);
@@ -51,8 +59,9 @@ export class LaunchScene extends Phaser.Scene {
       const t = i / (bands - 1); // 0 = top of the world, 1 = the ground
       // (the Moon has no air: its sky is space all the way down)
       // (Mars's thin air is butterscotch pink near the ground)
-      const low = { mars: 0xf0b890, dino: 0xffc890, sun: 0xffb050 }[this.from] ?? 0x8ec5ff;
-      const color = t < 0.45 || !(earth || ['mars', 'dino', 'sun'].includes(this.from)) ? lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, low, (t - 0.45) / 0.55);
+      // (the Wonder planets have skies of their own: Spooky's is a night sky)
+      const low = { mars: 0xf0b890, dino: 0xffc890, sun: 0xffb050, ...WONDER_SKY }[this.from] ?? 0x8ec5ff;
+      const color = t < 0.45 || !(earth || ['mars', 'dino', 'sun'].includes(this.from) || isWonder(this.from)) ?lerpColor(0x05040f, 0x1a1a48, Math.min(1, t / 0.45)) : lerpColor(0x1a1a48, low, (t - 0.45) / 0.55);
       g.fillStyle(color, 1).fillRect(0, TOP + (span * i) / bands, W, span / bands + 1);
     }
     // stars up in space, twinkling
@@ -75,7 +84,7 @@ export class LaunchScene extends Phaser.Scene {
   drawGround() {
     const g = this.add.graphics().setDepth(5);
     const earth = this.from === 'earth';
-    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a], saturn: [0xc8e0f0, 0xf4faff, 0xffffff], dino: [0x3a8a3a, 0x5aa63c, 0x7cc95a], sun: [0xe08a2a, 0xd88a2a, 0xffd070] }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
+    const look = { earth: [0x8fb86a, 0x5aa63c, 0x7cc95a], moon: [0x8a8a9c, 0xb8b8c8, 0xdcdcea], mars: [0xb85a3a, 0xc8583a, 0xe8845a], saturn: [0xc8e0f0, 0xf4faff, 0xffffff], dino: [0x3a8a3a, 0x5aa63c, 0x7cc95a], sun: [0xe08a2a, 0xd88a2a, 0xffd070], ...WONDER_GROUND }[this.from] ?? [0x8a8a9c, 0xb8b8c8, 0xdcdcea];
     g.fillStyle(look[0], 1);
     for (let i = 0; i < 7; i++) g.fillCircle(i * 90 - 20, GROUND + 6, 44);
     g.fillStyle(look[1], 1).fillRect(0, GROUND, W, H - GROUND);
@@ -95,6 +104,10 @@ export class LaunchScene extends Phaser.Scene {
       // Mars's two little moons over the red ground
       g.fillStyle(0xd8c8b8, 1).fillEllipse(W - 110, 50, 18, 13);
       g.fillStyle(0xd8c8b8, 1).fillCircle(90, 80, 4);
+    } else if (isWonder(this.from)) {
+      // the Wonder Galaxy swirls in the sky
+      const swirl = this.add.image(W - 100, 64, 'wonder-portal').setScale(2.4).setDepth(-5).setAlpha(0.8);
+      this.tweens.add({ targets: swirl, angle: 360, duration: 20000, repeat: -1 });
     } else if (!earth) {
       // the Earth hangs in the Moon's sky while you count down
       this.add.image(W - 90, 60, 'earth').setScale(2).setDepth(-5);
@@ -149,7 +162,11 @@ export class LaunchScene extends Phaser.Scene {
     });
     this.time.delayedCall(5400, () => {
       this.cameras.main.fadeOut(600, 5, 4, 15);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Camp', { planet: this.to, landing: true, from: this.from }));
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        // (a Wonder planet has no camp: its own scene starts, the rocket landing)
+        if (isWonder(this.to)) this.scene.start('Wonder', { planet: this.to, from: this.from });
+        else this.scene.start('Camp', { planet: this.to, landing: true, from: this.from });
+      });
     });
   }
 
