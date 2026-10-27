@@ -170,13 +170,28 @@ const HALL = {
   tripStart: (s) => s.play('whoosh'),
 };
 
-const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Hall: HALL, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU, Gear: MENU };
+// the Wonder planets: the shared frame's sounds, and each planet's own
+const WONDER = {
+  jump: (s) => s.play('jump'),
+  joined: (s) => s.play('join'),
+  landed: (s) => s.play('build'),
+  fanfare: (s) => s.play('fanfare'),
+  party: (s) => s.play('party'),
+  tripStart: (s) => s.play('whoosh'),
+  goHome: (s) => s.play('whoosh'),
+  bubblePop: (s) => s.play('pop'),
+  pickup: (s) => s.play('ore'),
+  sfx: (s, name, arg) => s.play(name, arg),
+};
+
+const TABLES = { Mine: MINE, Camp: CAMP, Build: BUILD, Hall: HALL, Wonder: WONDER, Title: MENU, Pause: MENU, Book: MENU, StarMap: MENU, Gear: MENU };
 const SONG_FOR = { Mine: 'mine', Camp: 'camp', Title: 'camp', Build: 'camp', Hall: 'rainbow' };
 
 // Which song plays: every planet has its own theme (at its camp and in its
 // mines); Earth keeps the camp and mine songs.
 export function songFor(sceneKey, planet = 'earth') {
   if ((sceneKey === 'Mine' || sceneKey === 'Camp') && planet !== 'earth') return planet;
+  if (sceneKey === 'Wonder') return planet;
   return SONG_FOR[sceneKey] ?? null;
 }
 

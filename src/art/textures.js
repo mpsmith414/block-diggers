@@ -37,6 +37,7 @@ import { drawRainbowTiles, drawRainbowArt } from './rainbow.js';
 import { drawRainbowShops } from './rainbowShops.js';
 import { drawGearArt } from './gear.js';
 import { drawHuntArt } from './hunt.js';
+import { drawWonderArt } from './wonder/index.js';
 
 const T = 16;
 
@@ -775,4 +776,5 @@ export function drawTextures(scene) {
   drawRainbowShops(scene, canvasTexture, rect);
   drawGearArt(scene, canvasTexture, rect);
   drawHuntArt(scene, canvasTexture, rect);
+  drawWonderArt(scene, canvasTexture, rect);
 }

@@ -278,6 +278,48 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
     gear, on the big plinth at the end of the hall. After that, maps keep
     giving big piles of sparkles (300–500).
   - Two new sticker pages: **Rainbow Treasures** and **Rainbow Village**.
+- **The Wonder Galaxy:** on the star map, push **right past Rainbow Planet** and
+  the map slides over to a second page: eight more planets, **all open from any
+  rocket**, each with its own way to play. The swirly **Wonder Rocket** flies
+  you there; the rocket waits on its pad (**A** at the rocket opens the star
+  map again), and **holding B** zips you back to it from anywhere. Every planet
+  has one thing to collect (the counter's at the top), a prize at the end, and
+  starts fresh every visit:
+  - **Spooky Planet:** trick-or-treat! Knock on doors with **A** for candy and a
+    surprise (a giggling ghost, a dancing skeleton, a cat in a witch's hat),
+    carve pumpkins, and touch a friendly ghost to float about as one. **40
+    candies** open the Haunted House, where the Pumpkin King throws a party:
+    the **Golden Pumpkin**.
+  - **Robot Planet:** ride your own giant **Mega Bot**. Walk into crates to
+    punch them, jump and land to **stomp**, ride the conveyor belts and the
+    springs. Walk into the **12 broken robots** to fix them; they march behind
+    you, and the Robot Factory opens: the **Golden Mega Bot**.
+  - **Ocean Planet:** **swim** any way you like (**A** kicks, and leaps out at
+    the top). Open **20 clams** for their pearls, ride the sea turtles, explore
+    the sunken ship and the glowing deep. The Giant Clam holds the **Golden
+    Submarine**.
+  - **Upside-Down Planet:** **A flips gravity**: walk on the ceiling, catch
+    **30 stars** mid-flip, and the Topsy Tower turns the right way up: the
+    **Topsy Trophy**.
+  - **Jelly Planet:** everything bounces. **Hold A** as you land for a super
+    bounce (higher each time), ride the gummy bears and gumball bubbles, and
+    climb the tower (the meter on the right) to the Jelly Castle: the **Jelly
+    Crown**.
+  - **Race Planet:** drive up to the start line, **3, 2, 1, GO!** Right to go,
+    left to slow down, **A** to hop (and A in the air for a trick). Boost pads,
+    a pond jump, two **loop-the-loops** and a hoop; the penguin, the alien and
+    the martian race too. First place wins the **Golden Cup**; **A** at the
+    podium races again.
+  - **Dragon Planet:** fly a baby dragon, **A** breathes fireballs. Pop **30
+    balloons**, fly through the golden rings, and Mama Dragon wakes up with the
+    **Golden Dragon Egg**.
+  - **Tiny Planet:** you're bug-sized in a giant's garden. Munch through the
+    cookie and the sandwich (push into them), bounce on mushrooms and the
+    sleeping cat, ride the ants and the ladybug, and find **25 sunflower
+    seeds**. Planting them in the flower pot grows a giant sunflower, with the
+    **Golden Acorn** at the top.
+  - Three new sticker pages (a visit, a prize and a fun moment on each
+    planet) in the book's new **Wonder** chapter.
 - **The Build Yard:** walk out through the gate at the right end of Earth camp
   into a big sunny meadow and **build with every block you've found**, as many
   as you like (Lego-style). Reaching a layer on any planet unlocks its rock and
@@ -304,7 +346,7 @@ knock you back and drop up to 3 ores. Nothing is ever lost for good.
   missing or damaged save comes back on its own. On the title screen, the 💾
   button (for grown-ups, with a mouse) downloads the whole game as a file, or
   loads one back (on another computer, or after clearing the browser).
-- **Sticker book:** 256 stickers on 26 pages, and a trophy for each full page. Open
+- **Sticker book:** 300 stickers on 31 pages, and a trophy for each full page. Open
   it at the lectern, from the pause menu, or with 📖 on a phone.
 - **Decorate** from the market stall: lamps, a windmill, a pond, fences… Carry
   one and press A to place it (B puts it back). Stand on one and press A to move it.

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { starMapStops, rocketTo } from '../game/planets.js';
+import { wonderStops, isWonder } from '../game/wonder/planets.js';
 import { createRng } from '../world/rng.js';
 import { createEdge } from '../input/intents.js';
 import { getState } from '../save/store.js';
@@ -12,13 +13,22 @@ import { CHARACTERS } from '../art/characters.js';
 // padlock (and a bubble showing the rocket that opens it), a traffic cone on
 // the ones still being built. Under each planet sits the Sun Suit piece
 // hidden at its bottom. ←/→ picks, A flies, B closes.
+//
+// Push right past Rainbow Planet and the map slides over to its second page,
+// the Wonder Galaxy: eight planets in two rows (up/down hops between the
+// rows), every one open, with its prize under it, lit once won.
 
 const W = 480;
 const H = 270;
 // (Rainbow Planet, past the Sun, at the end)
-const SPOTS = [
+const JOURNEY_SPOTS = [
   { x: 40, y: 150 }, { x: 100, y: 118 }, { x: 162, y: 146 }, { x: 224, y: 112 }, { x: 286, y: 142 }, { x: 360, y: 118 }, { x: 442, y: 150 },
 ];
+// the Wonder Galaxy, on the second page: two rows of four, read like a book
+const WONDER_SPOTS = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ x: W + 90 + (i % 4) * 100 + (i >= 4 ? 20 : 0), y: i < 4 ? 92 : 186 }));
+const SPOTS = [...JOURNEY_SPOTS, ...WONDER_SPOTS];
+const FIRST_WONDER = JOURNEY_SPOTS.length;
+const pageOf = (i) => (i >= FIRST_WONDER ? 1 : 0);
 const LOOK = { earth: 'earth', moon: 'planet-moon', mars: 'planet-mars', saturn: 'planet-saturn', dino: 'planet-dino', sun: 'planet-sun', rainbow: 'planet-rainbow' };
 const SUIT_ICON = { helmet: 'suit-helmet-icon', boots: 'suit-boots', gloves: 'suit-gloves', jetpack: 'suit-jetpack' };
 
@@ -35,7 +45,7 @@ export class StarMapScene extends Phaser.Scene {
 
   create() {
     this.session = this.registry.get('input');
-    this.edges = [0, 1].map(() => ({ a: createEdge(), b: createEdge(), left: createEdge(), right: createEdge() }));
+    this.edges = [0, 1].map(() => ({ a: createEdge(), b: createEdge(), left: createEdge(), right: createEdge(), up: createEdge(), down: createEdge() }));
     for (const s of this.session.slots) {
       if (!s.intent) continue;
       const e = this.edges[s.slot];
@@ -47,24 +57,37 @@ export class StarMapScene extends Phaser.Scene {
     attachAudio(this);
     this.events.emit('pickerOpen');
     const state = getState(this.registry);
-    this.stops = starMapStops(state, this.here);
+    this.stops = [...starMapStops(state, this.here), ...wonderStops(state, this.here)];
 
-    // deep space, stars and a faint nebula
-    this.add.rectangle(0, 0, W, H, 0x07061a, 1).setOrigin(0);
+    // deep space, stars and a faint nebula (the second page: the Wonder
+    // Galaxy's pink and teal swirl)
+    this.add.rectangle(0, 0, W * 2, H, 0x07061a, 1).setOrigin(0);
     const neb = this.add.graphics();
     neb.fillStyle(0x3a1a5a, 0.35).fillCircle(150, 60, 70).fillCircle(360, 220, 90);
     neb.fillStyle(0x1a3a5a, 0.35).fillCircle(260, 200, 60);
+    neb.fillStyle(0x5a1a4a, 0.4).fillCircle(W + 140, 150, 110).fillCircle(W + 380, 90, 90);
+    neb.fillStyle(0x0a4a4a, 0.4).fillCircle(W + 270, 150, 100).fillCircle(W + 420, 230, 70);
+    const galaxy = this.add.image(W + W / 2, H / 2 + 4, 'wonder-portal').setScale(7).setAlpha(0.16);
+    this.tweens.add({ targets: galaxy, angle: 360, duration: 60000, repeat: -1 });
     // (scattered by a seeded shuffle: the same sky every time, and no rows of
     // stars that look like extra flight paths)
     const sky = createRng(7);
-    for (let i = 0; i < 120; i++) {
-      const s = this.add.image(Math.floor(sky.next() * W), Math.floor(sky.next() * H), 'pixel').setTint([0xffffff, 0xfff6d0, 0x9ff6ff][i % 3]).setAlpha(0.3 + (i % 5) * 0.14);
+    for (let i = 0; i < 240; i++) {
+      const s = this.add.image(Math.floor(sky.next() * W * 2), Math.floor(sky.next() * H), 'pixel').setTint([0xffffff, 0xfff6d0, 0x9ff6ff, 0xff8ac8][i % 4]).setAlpha(0.3 + (i % 5) * 0.14);
       if (i % 4 === 0) this.tweens.add({ targets: s, alpha: 0.1, duration: 700 + (i % 6) * 250, yoyo: true, repeat: -1 });
     }
+    // a swirl portal at the edge of each page: there's more this way
+    for (const p of [{ x: W - 20, dir: 1 }, { x: W + 20, dir: -1 }]) {
+      const img = this.add.image(p.x, 236, 'wonder-portal');
+      this.tweens.add({ targets: img, angle: p.dir * 360, duration: 4000, repeat: -1 });
+      const arrow = this.add.image(p.x - p.dir * 22, 236, p.dir > 0 ? 'arrow-r' : 'arrow-l');
+      this.tweens.add({ targets: arrow, x: arrow.x + p.dir * 4, duration: 400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
 
-    // the dotted path from Earth to the Sun
+    // the dotted path from Earth to the Sun (and round the Wonder Galaxy)
     const path = this.add.graphics();
     for (let i = 0; i < SPOTS.length - 1; i++) {
+      if (i === FIRST_WONDER - 1) continue; // (the pages meet at the portals)
       const a = SPOTS[i];
       const b = SPOTS[i + 1];
       const reached = this.stops[i + 1].status !== 'locked';
@@ -86,10 +109,11 @@ export class StarMapScene extends Phaser.Scene {
     // the cursor: a glowing ring, and an A when you can fly there
     this.ring = this.add.graphics();
     this.btnA = this.add.image(0, 0, 'btn-a').setScale(1.6);
-    this.btnB = this.add.image(W - 16, 16, 'btn-b').setScale(1.4);
+    this.btnB = this.add.image(W - 16, 16, 'btn-b').setScale(1.4).setScrollFactor(0).setDepth(20);
     this.hint = this.add.container(0, 0).setDepth(5).setVisible(false);
     // (it starts on the planet you're launching from; left/right to pick where to go)
     this.index = hereAt;
+    this.cameras.main.setBounds(0, 0, W * 2, H).setScroll(pageOf(hereAt) * W, 0);
     this.drawCursor();
 
     earnSticker(this.camp, 'trip-starmap');
@@ -98,7 +122,7 @@ export class StarMapScene extends Phaser.Scene {
 
   makePlanet(stop, at) {
     const sun = stop.id === 'sun';
-    const img = this.add.image(at.x, at.y, LOOK[stop.id]).setScale(sun ? 2 : stop.id === 'earth' ? 1.2 : 1.1);
+    const img = this.add.image(at.x, at.y, LOOK[stop.id] ?? `planet-${stop.id}`).setScale(sun ? 2 : stop.id === 'earth' ? 1.2 : 1.1);
     const glow = sun ? this.add.image(at.x, at.y, 'light').setTint(0xffb040).setScale(4).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD) : null;
     if (glow) {
       glow.setDepth(-1);
@@ -122,6 +146,13 @@ export class StarMapScene extends Phaser.Scene {
       img.setAlpha(0.7);
       extras.push(this.add.image(at.x - 8, at.y + 16, 'icon-cone').setScale(1.3));
       extras.push(this.add.image(at.x + 9, at.y + 16, 'icon-clock').setScale(1.2));
+    }
+    // a Wonder planet's prize (lit once you've won it)
+    if (stop.prize) {
+      const prize = this.add.image(at.x, at.y + 31, `wprize-${stop.prize}`).setScale(1.3);
+      if (!stop.hasPrize) prize.setTintFill(0x4a4870).setAlpha(0.8);
+      else this.tweens.add({ targets: prize, scale: 1.6, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      extras.push(prize);
     }
     // the Sun Suit piece hidden at this planet's bottom (lit once it's yours)
     if (stop.suit) {
@@ -178,9 +209,26 @@ export class StarMapScene extends Phaser.Scene {
   }
 
   move(d) {
+    const was = this.index;
     this.index = Phaser.Math.Clamp(this.index + d, 0, this.planets.length - 1);
+    if (this.index === was) return;
     this.drawCursor();
     this.events.emit('pickerMove');
+    if (pageOf(this.index) !== pageOf(was)) this.turnPage(pageOf(this.index));
+  }
+
+  // Up / down on the Wonder Galaxy's page: hop to the planet above or below.
+  moveRow(d) {
+    if (pageOf(this.index) !== 1) return;
+    const i = this.index - FIRST_WONDER;
+    const to = i + d * 4;
+    if (to >= 0 && to < WONDER_SPOTS.length) this.move(to - i);
+  }
+
+  // The map slides over to the other page.
+  turnPage(page, duration = 450) {
+    this.tweens.killTweensOf(this.cameras.main);
+    this.tweens.add({ targets: this.cameras.main, scrollX: page * W, duration, ease: 'Cubic.easeInOut' });
   }
 
   pick() {
@@ -211,6 +259,31 @@ export class StarMapScene extends Phaser.Scene {
     const step = dest > from ? 1 : -1;
     const rocket = this.add.image(SPOTS[from].x, SPOTS[from].y, 'icon-rocket').setScale(1.4).setDepth(10);
     this.btnA.setVisible(false);
+    // to or from the Wonder Galaxy: one big swoop straight there, the map
+    // sliding along with the rocket
+    if (isWonder(to) || isWonder(this.here)) {
+      const a = SPOTS[from];
+      const b = SPOTS[dest];
+      rocket.setAngle((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI + 90);
+      const dur = 500 + Math.min(900, Math.hypot(b.x - a.x, b.y - a.y) * 1.4);
+      if (pageOf(from) !== pageOf(dest)) {
+        this.cameras.main.setScroll(pageOf(from) * W, 0);
+        this.turnPage(pageOf(dest), dur);
+      }
+      this.tweens.add({
+        targets: rocket, x: b.x, y: b.y, duration: dur, ease: 'Sine.easeInOut',
+        onComplete: () => this.tweens.add({ targets: rocket, scale: 0, duration: 250, onComplete: () => this.close(to) }),
+      });
+      this.time.addEvent({
+        delay: 70,
+        repeat: Math.floor(dur / 70) - 1,
+        callback: () => {
+          const puff = this.add.image(rocket.x, rocket.y, 'pixel').setDisplaySize(2, 2).setTint(0xff8ac8).setDepth(9);
+          this.tweens.add({ targets: puff, alpha: 0, duration: 500, onComplete: () => puff.destroy() });
+        },
+      });
+      return;
+    }
     const hop = (i) => {
       if (i === dest) {
         this.tweens.add({ targets: rocket, scale: 0, duration: 250, onComplete: () => this.close(to) });
@@ -249,10 +322,14 @@ export class StarMapScene extends Phaser.Scene {
       const e = this.edges[slot];
       const l = e.left(intent.moveX < -0.5);
       const r = e.right(intent.moveX > 0.5);
+      const u = e.up(intent.moveY < -0.5);
+      const d = e.down(intent.moveY > 0.5);
       const a = e.a(!!intent.jump);
       const b = e.b(!!intent.home);
       if (l) this.move(-1);
       if (r) this.move(1);
+      if (u) this.moveRow(-1);
+      if (d) this.moveRow(1);
       if (this.time.now - this.openedAt < 300) continue;
       if (a) this.pick();
       else if (b) this.close();

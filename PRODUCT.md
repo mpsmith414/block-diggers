@@ -29,7 +29,8 @@ It is a personal game that grows with the child. New worlds, mini games and feat
 - **The game:**
   - Phaser 3, Vite and Vitest.
   - All art (pixel art drawn in code), music and sound effects are generated at runtime. There are no asset files.
-- **Worlds and planets:** a journey Earth → Moon → Mars → Saturn → Dino Planet → the Sun, each with layered mines, its own camp, buildings, creatures, finds and a Heart at the bottom.
+- **Worlds and planets:** a journey Earth → Moon → Mars → Saturn → Dino Planet → the Sun, each with layered mines, its own camp, buildings, creatures, finds and a Heart at the bottom. Past the Sun, Rainbow Planet's endless mine and village.
+- **The Wonder Galaxy:** eight more planets on the star map's second page, all open from any rocket, each its own way to play (trick-or-treating, a giant robot, swimming, flipping gravity, bouncing, kart racing, dragon flying, being bug-sized), with a prize at the end of each.
 - **Things to do:**
   - a bonus mini game beside each Heart: Whack-a-Mole, Skate Park, Claw Machine, Ice Hockey, Egg Catch, Firework Launcher;
   - a sticker book;
@@ -54,7 +55,7 @@ It is a personal game that grows with the child. New worlds, mini games and feat
 
 ## Evidence on Hand
 
-- **The feature record:** `README.md`, with 256 stickers on 26 pages.
+- **The feature record:** `README.md`, with 300 stickers on 31 pages.
 - **Design specs and plans** for every update: `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 - **Trailer tooling:** `tools/trailer/` and `docs/trailer/`.
 - **What doesn't exist:** there are no testimonials, reviews, player counts or marketing claims, and none should be invented. The game has one family as its audience.
