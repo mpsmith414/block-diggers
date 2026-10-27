@@ -8,6 +8,7 @@ import { drawUpsideArt } from './upside.js';
 import { drawJellyArt } from './jelly.js';
 import { drawRaceArt } from './race.js';
 import { drawDragonArt } from './dragon.js';
+import { drawTinyArt } from './tiny.js';
 
 export function drawWonderArt(scene, canvasTexture, rect) {
   drawWonderCommon(scene, canvasTexture, rect);
@@ -18,4 +19,5 @@ export function drawWonderArt(scene, canvasTexture, rect) {
   drawJellyArt(scene, canvasTexture, rect);
   drawRaceArt(scene, canvasTexture, rect);
   drawDragonArt(scene, canvasTexture, rect);
+  drawTinyArt(scene, canvasTexture, rect);
 }
