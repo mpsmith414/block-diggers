@@ -219,8 +219,9 @@ export class WonderScene extends Phaser.Scene {
   // Draw a player's character in the usual way (modules call this with their body).
   drawCharacter(a, body, dt, time, { flipY = false } = {}) {
     animateCharacter(a.sprite, body, a, dt, time);
-    a.sprite.setFlipY(flipY);
-    if (flipY) a.sprite.setY(Math.round(body.y));
+    // upside down: mirrored about the feet, which are at the top of the body
+    // (a negative scale, so the gear worn over the sprite turns over too)
+    if (flipY) a.sprite.setScale(a.sprite.scaleX, -Math.abs(a.sprite.scaleY)).setY(Math.round(body.y));
     a.sprite.setVisible(!a.hidden);
   }
 
@@ -322,7 +323,7 @@ export class WonderScene extends Phaser.Scene {
     const prize = this.add.image(x, y, `wprize-${this.info.prize}`).setScale(0).setDepth(90);
     const glow = this.add.image(x, y - 40, 'light').setTint(0xffe9a0).setAlpha(0).setScale(3).setDepth(89).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: prize, y: y - 44, scale: 4, duration: 900, ease: 'Back.easeOut' });
-    this.tweens.add({ targets: glow, alpha: 0.6, duration: 900 });
+    this.tweens.add({ targets: glow, alpha: 0.35, duration: 900 });
     this.tweens.add({ targets: prize, angle: { from: -6, to: 6 }, duration: 300, yoyo: true, repeat: 6, delay: 900 });
     for (let k = 0; k < 6; k++) this.time.delayedCall(k * 300, () => this.effects.confetti(x + Phaser.Math.Between(-50, 50), y - Phaser.Math.Between(30, 80)));
     for (const a of this.avatars.filter(Boolean)) this.time.delayedCall(400, () => this.mod.cheer?.(a));

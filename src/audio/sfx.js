@@ -166,6 +166,7 @@ export function createSfx(audio) {
     rattle() { for (let i = 0; i < 6; i++) noise({ dur: 0.03, gain: 0.08, freq: 2400 + i * 200, q: 4, at: i * 0.05 }); },
     flip() { tone({ type: 'triangle', freq: 400, to: 1200, dur: 0.14, gain: 0.07 }); tone({ type: 'sine', freq: 1200, to: 600, dur: 0.12, gain: 0.04, at: 0.12 }); },
     honk() { tone({ type: 'square', freq: 330, dur: 0.12, gain: 0.04 }); tone({ type: 'square', freq: 392, dur: 0.12, gain: 0.03 }); tone({ type: 'square', freq: 330, dur: 0.16, gain: 0.04, at: 0.16 }); },
+    moo() { tone({ type: 'sawtooth', freq: 140, to: 110, dur: 0.5, gain: 0.05 }); tone({ type: 'triangle', freq: 280, to: 220, dur: 0.5, gain: 0.04 }); },
     purr() { for (let i = 0; i < 8; i++) noise({ dur: 0.05, gain: 0.07, freq: 160, q: 2, type: 'lowpass', at: i * 0.07 }); },
     stomp() { noise({ dur: 0.25, gain: 0.3, freq: 300, to: 80, q: 1, type: 'lowpass' }); tone({ type: 'sine', freq: 90, to: 40, dur: 0.25, gain: 0.2 }); },
     punch() { noise({ dur: 0.1, gain: 0.2, freq: 1200, to: 300, q: 1.5 }); tone({ type: 'square', freq: 200, to: 80, dur: 0.08, gain: 0.05 }); },
