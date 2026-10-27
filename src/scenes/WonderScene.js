@@ -285,7 +285,8 @@ export class WonderScene extends Phaser.Scene {
     const to = this.mod.focus(stay);
     const from = this.mod.focus(move);
     this.effects.sparkle(from.x, from.y, 0x9ff6ff, 8);
-    this.mod.place(move, to.x + (stay.slot < move.slot ? 14 : -14), to.y + 8);
+    // (right beside them: where they stand is always clear)
+    this.mod.place(move, to.x + (stay.slot < move.slot ? 3 : -3), to.y + 8);
     this.effects.sparkle(to.x, to.y, 0x9ff6ff, 8);
     this.events.emit('bubblePop');
   }

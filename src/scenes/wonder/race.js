@@ -30,6 +30,7 @@ export function createRace(scene) {
   let coins = 0;
   let pickups = null;
   let doneAt = null;
+  let raceId = 0; // (a countdown that was called off doesn't start the race)
   const countText = scene.add.bitmapText(0, 0, 'pixel', '').setOrigin(0.5).setDepth(95).setTint(0xffe066).setVisible(false);
   const racePrompt = scene.add.image(0, 0, 'btn-a').setScale(1.5).setDepth(75).setVisible(false);
 
@@ -64,6 +65,7 @@ export function createRace(scene) {
   // everyone onto the grid, then the countdown
   const lineUp = () => {
     state = 'count';
+    const id = ++raceId;
     raceT = 0;
     doneAt = null;
     coins = 0;
@@ -72,6 +74,7 @@ export function createRace(scene) {
     all.forEach((k, i) => Object.assign(k, createKart(RACE.startX - GRID[i % GRID.length], k.who)));
     for (const r of racers) r.k.who = r.key;
     ['3', '2', '1', 'GO'].forEach((n, i) => scene.time.delayedCall(400 + i * 800, () => {
+      if (id !== raceId || state !== 'count') return;
       countText.setText(n === 'GO' ? 'GO!' : n).setScale(8).setAlpha(1).setVisible(true);
       scene.tweens.add({ targets: countText, scale: 11, alpha: 0, duration: 700, ease: 'Quad.easeOut' });
       scene.events.emit('sfx', n === 'GO' ? 'horn' : 'beep');
@@ -153,7 +156,8 @@ export function createRace(scene) {
       if (hs.some((a) => a.k.finishT !== null) && doneAt === null) doneAt = raceT;
       if (hs.length && (hs.every((a) => a.k.finishT !== null) || (doneAt !== null && raceT - doneAt > 10))) {
         for (const a of hs) if (a.k.finishT === null) a.k.finishT = raceT + 1;
-        scene.time.delayedCall(1200, finish);
+        const id = raceId;
+        scene.time.delayedCall(1200, () => { if (id === raceId) finish(); });
         state = 'finishing';
       }
     }
@@ -180,8 +184,10 @@ export function createRace(scene) {
     // (hold B: back to the rocket, and the race is off)
     place: (a, x) => {
       Object.assign(a.k, createKart(Math.min(x, RACE.startX - 30), a.k.who));
-      if (state === 'race' || state === 'count' || state === 'done') {
+      if (state !== 'free') {
         state = 'free';
+        raceId++;
+        countText.setVisible(false);
         for (const h of humans()) if (h !== a) Object.assign(h.k, createKart(PAD_X + (h.slot ? 18 : -18), h.k.who));
         racers.forEach((r, i) => Object.assign(r.k, createKart(RACE.startX - GRID[i + 2], r.key)));
       }
